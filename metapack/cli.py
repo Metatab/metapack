@@ -8,7 +8,7 @@ import six
 from itertools import islice
 from uuid import uuid4
 
-import _meta
+from metapack import _meta
 from metapack import make_dir_structure, make_metatab_file
 from metatab import MetatabDoc
 from os import getcwd
