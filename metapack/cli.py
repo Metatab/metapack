@@ -3,21 +3,35 @@
 
 from __future__ import print_function
 
-import json
 import sys
+import six
+from itertools import islice
 from uuid import uuid4
 
-from metatab import TermParser, TermGenerator, Term, CsvPathRowGenerator, CsvUrlRowGenerator
-from metatab import __meta__, MetatabDoc
-from metatab.metapack import make_dir_structure, make_metatab_file
+import _meta
+from metapack import make_dir_structure, make_metatab_file
+from metatab import MetatabDoc
 from os import getcwd
-from os.path import exists, join
+from os.path import exists, join, isdir
+from rowgenerators import RowGenerator
+from tableintuit import TypeIntuiter, SelectiveRowGenerator
 
 METATAB_FILE = 'metadata.csv'
 
 
-def new_metatab_file(mt_file, template):
+def prt(*args):
+    print(*args)
 
+def warn( *args):
+    print('WARN:',*args)
+
+def err(*args):
+    import sys
+    print("ERROR:", *args)
+    sys.exit(1)
+
+
+def new_metatab_file(mt_file, template):
     template = template if template else 'metatab'
 
     if not exists(mt_file):
@@ -26,6 +40,7 @@ def new_metatab_file(mt_file, template):
         doc['Root']['Identifier'] = str(uuid4())
 
         doc.write_csv(mt_file)
+
 
 def find_files(base_path, types):
     from os import walk
@@ -44,32 +59,21 @@ def find_files(base_path, types):
                 yield join(root, f)
 
 
-
-def prt(*args):
-    print(*args)
-
-
-def err(*args):
-    import sys
-    print("ERROR:", *args)
-    sys.exit(1)
-
-
 def metapack():
     import argparse
 
     parser = argparse.ArgumentParser(
         prog='metapack',
-        description='Create metatab data packages, version {}'.format(__meta__.__version__))
+        description='Create metatab data packages, version {}'.format(_meta.__version__))
 
     parser.add_argument('-i', '--init', action='store', nargs='?', default=False,
                         help='Set the cache directory for downloads and building packages')
 
     parser.add_argument('-a', '--add', default=False,
-                        help='Add a file or url to the resources')
+                        help='Add a file or url to the resources. With a directory add a data files in the directory')
 
-    parser.add_argument('-r', '--resources', action='store', nargs='?', default=False,
-                        help='Rebuild the resources section of a metatab file with files in a directory')
+    parser.add_argument('-r', '--resources', default=False, action='store_true',
+                        help='Rebuild the resources, intuiting rows and encodings from the URLs')
 
     parser.add_argument('-s', '--schemas', default=False, action='store_true',
                         help='Rebuild the schemas for files referenced in the resource section')
@@ -95,11 +99,11 @@ def metapack():
 
     mt_file = args.metatabfile if args.metatabfile else join(d, METATAB_FILE)
 
-    if args.init is not  False:
+    if args.init is not False:
         init_metatab(mt_file, args.init)
 
-    if args.resources is not False:
-        process_resources(mt_file, args.resources)
+    if args.resources:
+        process_resources(mt_file, cache=cache)
 
     if args.schemas:
         process_schemas(mt_file)
@@ -110,7 +114,7 @@ def metapack():
     if args.excel is not False:
         write_excel_package(mt_file, args.excel, cache=cache)
 
-    if args.zip is not  False:
+    if args.zip is not False:
         write_zip_package(mt_file, args.zip, cache=cache)
 
     if args.resource_format:
@@ -119,7 +123,6 @@ def metapack():
 
 def get_cache(d):
     from fs.opener import fsopendir
-    from metatab.metapack import make_dir_structure
 
     make_dir_structure(d)
 
@@ -127,7 +130,6 @@ def get_cache(d):
 
 
 def init_metatab(mt_file, d):
-
     d = d if d is not None else getcwd()
 
     prt("Initializing '{}'".format(d))
@@ -144,43 +146,56 @@ def init_metatab(mt_file, d):
         prt("Doing nothing; file '{}' already exists".format(mt_file))
 
 
-def process_resources(mt_file, d):
-    from os import getcwd
-    from os.path import join
-    from metatab import MetatabDoc
+def add_resource(mt_file, ref, cache):
+    """Add a resources entry, downloading the intuiting the file, replacing entries with
+    the same reference"""
 
-    d = d if d is not None else getcwd()
+    if isinstance(mt_file, six.string_types):
+        write = True
+        doc = MetatabDoc().load_csv(mt_file)
+    else:
+        write = False
+        doc = mt_file
 
-    mt_file = mt_file if mt_file else join(getcwd(), METATAB_FILE)
+    if isdir(ref):
+        for f in find_files(ref, ['csv']):
 
-    doc = MetatabDoc().load_csv(mt_file)
+            if f.endswith(METATAB_FILE):
+                continue
 
-    doc['Schema'].clean()
-    doc['Resources'].clean()
+            add_resource_term(f, doc['Resources'], cache=cache)
+    else:
 
-    from os.path import splitext, basename
+        t = doc.find_first('Root.Datafile', value=ref)
 
-    cache = get_cache(d)
+        if t:
+            doc.remove_term(t)
 
-    for f in find_files(d, ['csv']):
+        add_resource_term(ref, doc['Resources'], cache=cache)
 
-        if f.endswith(METATAB_FILE):
-            continue
+    if write:
+        doc.write_csv(mt_file)
 
-        path = f.replace(d, '').strip('/')
-        name = basename(splitext(path)[0])
 
-        prt("Processing {}".format(path))
+def add_resource_term(ref, section, cache):
 
-        add_resource_term(path, doc['Resources'], cache=cache)
+    path, name = extract_path_name(ref)
 
-    doc.write_csv(mt_file)
+    prt("Adding resource for '{}'".format(ref))
+
+    encoding, ri = run_row_intuit(path, cache)
+
+    return section.new_term('Datafile', ref, name=name,
+                            startline=ri.start_line,
+                            headerlines=','.join(str(e) for e in ri.header_lines),
+                            encoding=encoding)
 
 
 def run_row_intuit(path, cache):
     from rowgenerators import RowGenerator
     from tableintuit import RowIntuiter
     from itertools import islice
+
 
     for encoding in ('ascii', 'utf8', 'latin1'):
         try:
@@ -208,50 +223,49 @@ def extract_path_name(ref):
     return path, name
 
 
-def add_resource_term(ref, section, cache):
-    path, name = extract_path_name(ref)
-
-    encoding, ri = run_row_intuit(path, cache)
-
-    return section.new_term('Datafile', ref, name=name,
-                            startline=ri.start_line,
-                            headerlines=','.join(str(e) for e in ri.header_lines),
-                            encoding=encoding)
-
-
-def add_resource(mt_file, ref, cache):
-
-    doc = MetatabDoc().load_csv(mt_file)
-
-    t = doc.find_first('Root.Datafile', value=ref)
-
-    if t:
-        doc.remove_term(t)
-
-    add_resource_term(ref, doc['Resources'], cache=cache)
-
-    doc.write_csv(mt_file)
-
-
 def alt_col_name(name):
     import re
     return re.sub('_+', '_', re.sub('[^\w_]', '_', name).lower()).rstrip('_')
 
 
+def process_resources(mt_file, cache):
+    doc = MetatabDoc().load_csv(mt_file)
+
+    try:
+        doc['Schema'].clean()
+    except KeyError:
+        pass
+
+    for t in list(doc['Resources']): # w/o list(), will iterate over new terms
+
+        if not t.term_is('root.datafile'):
+            continue
+
+        if t.as_dict().get('url'):
+            add_resource(doc, t.as_dict()['url'], cache)
+
+        else:
+            warn("Entry '{}' on row {} is missing a url; skipping".format(t.join, t.row))
+
+    doc.write_csv(mt_file)
+
 def process_schemas(mt_file):
-    from rowgenerators import RowGenerator
-    from tableintuit import TypeIntuiter, SelectiveRowGenerator
-    from metatab import MetatabDoc
-    from itertools import islice
 
     doc = MetatabDoc().load_csv(mt_file)
 
-    doc['Schema'].clean()
+    try:
+        doc['Schema'].clean()
+    except KeyError:
+        doc.new_section('Schema',['DataType', 'Altname', 'Description'])
 
     for t in doc['Resources']:
-        e = t.as_dict()
 
-        path, name = extract_path_name(e['url'])
+        if not t.term_is('root.datafile'):
+            continue
+
+        e = { k:v for k,v in t.properties.items() if v}
+
+        path, name = extract_path_name(t.value)
 
         slice = islice(RowGenerator(url=path, encoding=e.get('encoding', 'utf8')), 5000)
 
@@ -262,6 +276,8 @@ def process_schemas(mt_file):
         ti = TypeIntuiter().run(si)
 
         table = doc['Schema'].new_term('Table', e['name'])
+
+        prt("Adding table '{}' ".format(e['name']))
 
         for c in ti.to_rows():
             raw_alt_name = alt_col_name(c['header'])
@@ -286,7 +302,7 @@ def write_excel_package(mt_file, d, cache):
     if not name:
         err("Input metadata must define a package name in the Root.Name term")
 
-    ep = ExcelPackage(join(d,name + '.xls'))
+    ep = ExcelPackage(join(d, name + '.xls'))
 
     ep.copy_section('root', in_doc)
 
@@ -331,8 +347,8 @@ def write_zip_package(mt_file, d, cache):
 
     zp.save()
 
-def rewrite_resource_format(mt_file):
 
+def rewrite_resource_format(mt_file):
     doc = MetatabDoc().load_csv(mt_file)
 
     if 'schema' in doc:
@@ -340,13 +356,12 @@ def rewrite_resource_format(mt_file):
         del doc['schema']
 
         for resource in doc['resources']:
-            s = resource.new_child('Schema','')
+            s = resource.new_child('Schema', '')
             for column in table_schemas.get(resource.get_child_value('name'), {})['column']:
                 c = s.new_child('column', column['name'])
 
                 for k, v in column.items():
                     if k != 'name':
                         c.new_child(k, v)
-
 
     doc.write_csv(mt_file)
