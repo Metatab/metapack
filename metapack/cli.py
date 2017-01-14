@@ -8,8 +8,8 @@ import six
 from itertools import islice
 from uuid import uuid4
 
-from metapack import _meta
-from metapack import make_dir_structure, make_metatab_file
+from metapack._meta import __version__
+from metapack.util import make_dir_structure, make_metatab_file
 from metatab import MetatabDoc
 from os import getcwd
 from os.path import exists, join, isdir
@@ -64,7 +64,7 @@ def metapack():
 
     parser = argparse.ArgumentParser(
         prog='metapack',
-        description='Create metatab data packages, version {}'.format(_meta.__version__))
+        description='Create metatab data packages, version {}'.format(__version__))
 
     parser.add_argument('-i', '--init', action='store', nargs='?', default=False,
                         help='Set the cache directory for downloads and building packages')
