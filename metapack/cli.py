@@ -196,7 +196,6 @@ def run_row_intuit(path, cache):
     from tableintuit import RowIntuiter
     from itertools import islice
 
-
     for encoding in ('ascii', 'utf8', 'latin1'):
         try:
             rows = list(islice(RowGenerator(url=path, encoding=encoding, cache=cache), 5000))
@@ -249,6 +248,14 @@ def process_resources(mt_file, cache):
 
     doc.write_csv(mt_file)
 
+type_map = {
+    float.__name__: 'number',
+    int.__name__:'integer',
+    six.text_type.__name__: 'string',
+    six.binary_type.__name__:'text',
+
+}
+
 def process_schemas(mt_file):
 
     doc = MetatabDoc().load_csv(mt_file)
@@ -271,7 +278,7 @@ def process_schemas(mt_file):
 
         si = SelectiveRowGenerator(slice,
                                    headers=[int(i) for i in e.get('headerlines', '0').split(',')],
-                                   start=e.get('startline', 1))
+                                   start=int(e.get('startline', 1)))
 
         ti = TypeIntuiter().run(si)
 
@@ -284,7 +291,8 @@ def process_schemas(mt_file):
             alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
 
             table.new_child('Column', c['header'],
-                            datatype=c['resolved_type'], altname=alt_name)
+                            datatype=type_map.get(c['resolved_type'],c['resolved_type']),
+                                                  altname=alt_name)
 
     doc.write_csv(mt_file)
 
@@ -307,7 +315,7 @@ def write_excel_package(mt_file, d, cache):
     ep.copy_section('root', in_doc)
 
     table_schemas = {t.value: t.as_dict()['column'] for t in in_doc['schema']}
-    file_resources = [fr.as_dict() for fr in in_doc['resources']]
+    file_resources = [fr.properties for fr in in_doc['resources'] if fr.term_is('root.datafile')]
 
     if len(table_schemas) == 0:
         err("Cant create package without table schemas")
@@ -343,9 +351,7 @@ def write_zip_package(mt_file, d, cache):
 
     zp = ZipPackage(in_doc, d, cache)
 
-    return
-
-    zp.save()
+    zp.run().close()
 
 
 def rewrite_resource_format(mt_file):
