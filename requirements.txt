@@ -1,5 +1,1 @@
-metatab
-datapackage
-https://github.com/CivicKnowledge/tableintuit.git#egg=tableintuit
-git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators
-git+https://github.com/CivicKnowledge/metatab-py.git#egg=metatab
+.

@@ -47,9 +47,17 @@ setup(
     long_description=readme,
     packages=packages,
     include_package_data=True,
-    zip_safe=False,
-    install_requires=[x for x in reversed([str(x.req) for x in install_requires])],
-    tests_require=[x for x in reversed([str(x.req) for x in tests_require])],
+
+    install_requires=[
+        'datapackage',
+        'rowgenerators',
+        'metatab'
+    ],
+    dependency_links=[
+        'git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators',
+        'git+https://github.com/CivicKnowledge/metatab-py.git#egg=metatab'
+    ],
+
     entry_points={
         'console_scripts': [
             'metapack=metapack.cli:metapack',
