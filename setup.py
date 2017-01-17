@@ -52,7 +52,7 @@ setup(
         'metatab'
     ],
     dependency_links=[
-        'git+https://github.com/CivicKnowledge/metatab-py.git#egg=metatab'
+        'git+https://github.com/CivicKnowledge/metatab-py.git#egg=metatab',
         'git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators',
 
     ],
