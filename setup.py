@@ -26,8 +26,6 @@ ps_meta = imp.load_source('_meta', 'metapack/_meta.py')
 
 packages = find_packages()
 
-tests_require = install_requires = parse_requirements('requirements.txt', session=uuid.uuid1())
-
 classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
@@ -54,8 +52,9 @@ setup(
         'metatab'
     ],
     dependency_links=[
-        'git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators',
         'git+https://github.com/CivicKnowledge/metatab-py.git#egg=metatab'
+        'git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators',
+
     ],
 
     entry_points={
