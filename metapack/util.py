@@ -42,3 +42,17 @@ def make_metatab_file(template='metatab'):
     doc = MetatabDoc().load_csv(template_path)
 
     return doc
+
+def get_cache(d):
+    from fs.opener import fsopendir
+    from os import getenv
+
+    if getenv('METAPACK_CACHE'):
+        return fsopendir(getenv('METAPACK_CACHE'))
+    elif d:
+        make_dir_structure(d)
+
+        return fsopendir(join(d, '_metapack', 'download'))
+    else:
+        return None
+

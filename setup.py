@@ -29,19 +29,18 @@ packages = find_packages()
 classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: BSD',
+    'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
-
 
 setup(
     name='metapack',
     version=ps_meta.__version__,
-    description='Data format for storing structured data in spreadsheet tables',
+    description='Metatab programs for building data packages',
     long_description=readme,
     packages=packages,
     include_package_data=True,
@@ -49,13 +48,9 @@ setup(
     install_requires=[
         'datapackage',
         'rowgenerators',
-        'metatab'
+        'metatab>=0.0.7'
     ],
-    dependency_links=[
-        'git+https://github.com/CivicKnowledge/metatab-py.git#egg=metatab',
-        'git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators',
 
-    ],
 
     entry_points={
         'console_scripts': [

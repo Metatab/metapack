@@ -37,7 +37,7 @@ def new_metatab_file(mt_file, template):
     if not exists(mt_file):
         doc = make_metatab_file(template)
 
-        doc['Root']['Identifier'] = str(uuid4())
+        doc['Root']['Identifier'] = six.text_type(uuid4())
 
         doc.write_csv(mt_file)
 
@@ -121,13 +121,6 @@ def metapack():
         rewrite_resource_format(mt_file)
 
 
-def get_cache(d):
-    from fs.opener import fsopendir
-
-    make_dir_structure(d)
-
-    return fsopendir(join(d, '_metapack', 'download'))
-
 
 def init_metatab(mt_file, d):
     d = d if d is not None else getcwd()
@@ -195,12 +188,13 @@ def run_row_intuit(path, cache):
     from rowgenerators import RowGenerator
     from tableintuit import RowIntuiter
     from itertools import islice
+    from rowgenerators import TextEncodingError
 
     for encoding in ('ascii', 'utf8', 'latin1'):
         try:
             rows = list(islice(RowGenerator(url=path, encoding=encoding, cache=cache), 5000))
             return encoding, RowIntuiter().run(list(rows))
-        except UnicodeDecodeError:
+        except TextEncodingError:
             pass
 
     raise Exception('Failed to convert with any encoding')
@@ -349,9 +343,9 @@ def write_zip_package(mt_file, d, cache):
     if not name:
         err("Input metadata must define a package name in the Root.Name term")
 
-    zp = ZipPackage(in_doc, d, cache)
+    zp = ZipPackage(d, cache)
 
-    zp.run().close()
+    zp.run(in_doc).close()
 
 
 def rewrite_resource_format(mt_file):
