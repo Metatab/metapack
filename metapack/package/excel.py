@@ -3,18 +3,19 @@
 
 """ """
 
-from os.path import join, dirname
-from .core import PackageBuilder
-from metapack.exc import PackageError
-from metapack.util import  ensure_dir, slugify
-from itertools import islice
 
+from .core import PackageBuilder
+from metapack.util import datetime_now
 
 class ExcelPackageBuilder(PackageBuilder):
     """An Excel File Package"""
 
+    type_code = 'xlsx'
+
     def __init__(self, source_ref=None, package_root=None,  callback=None, env=None):
         super().__init__(source_ref, package_root, callback, env)
+
+        self.package_path, self.cache_path = self.make_package_path(self.package_root, self.package_name)
 
         self.cache_path = self.package_name+".xlsx"
 
@@ -22,6 +23,14 @@ class ExcelPackageBuilder(PackageBuilder):
 
         self.package_root.ensure_dir()
 
+    @classmethod
+    def make_package_path(cls, package_root, package_name):
+
+        cache_path = package_name + ".xlsx"
+
+        package_path = package_root.join(cache_path)
+
+        return package_path, cache_path
 
     def save(self):
         from openpyxl import Workbook
@@ -56,6 +65,9 @@ class ExcelPackageBuilder(PackageBuilder):
         table_fill = PatternFill("solid", fgColor="d9dce0")  # PatternFill(patternType='gray125')
 
         alignment = Alignment(wrap_text=False)
+
+        self._doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
+
         for i, row in enumerate(self.doc.rows, 1):
 
             if row[0] == 'Section' or row[0] == 'Table':

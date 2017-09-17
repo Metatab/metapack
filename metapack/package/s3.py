@@ -20,6 +20,8 @@ from .core import PackageBuilder
 class S3PackageBuilder(PackageBuilder):
     """A Zip File package"""
 
+    type_code = 's3'
+
     def __init__(self, source_ref=None, package_root=None, callback=None, env=None, acl=None, force=False):
 
         super().__init__(source_ref, package_root, callback, env)
@@ -162,7 +164,7 @@ def set_s3_profile(profile_name):
 class S3Bucket(object):
 
     def __init__(self, url, acl='public', profile=None):
-
+        import socket
 
         if url.scheme != 's3':
             raise ReferenceError("Must be an S3 url; got: {}".format(url))
@@ -179,6 +181,13 @@ class S3Bucket(object):
         self._acl = acl
 
         self._bucket = self._s3.Bucket(self.bucket_name)
+
+        # Check if the bucket name is a resolvable address.
+        try:
+            socket.getaddrinfo(self.bucket_name, None)
+            self.dns_bucket = True
+        except socket.gaierror:
+            self.dns_bucket = False
 
     @property
     def prefix(self):
@@ -209,9 +218,12 @@ class S3Bucket(object):
 
         s3 = boto3.client('s3')
 
-        return '{}/{}/{}'.format(s3.meta.endpoint_url.replace('https', 'http')\
-                                 .replace('/s3.amazonaws.com',''), # Assume bucket has a CNAME
-                                 self.bucket_name, key)
+        url = s3.meta.endpoint_url.replace('https', 'http')
+
+        if self.dns_bucket:
+            url = url.replace('/s3.amazonaws.com','') # Assume bucket has name because it is setup as a CNAME
+
+        return '{}/{}/{}'.format(url, self.bucket_name, key)
 
     def signed_access_url(self, *paths):
 
@@ -263,6 +275,7 @@ class S3Bucket(object):
         from botocore.exceptions import ClientError
         import mimetypes
         from metapack.cli.core import err, prt
+        import hashlib
 
         acl = acl if acl is not None else self._acl
 
@@ -276,12 +289,21 @@ class S3Bucket(object):
 
         try:
             o = self._bucket.Object(key)
+
+            md5 = o.e_tag[1:-1] # Rumor is this only works for single-part uplaoaded files
+
             if o.content_length == file_size:
                 if force:
                     prt("File '{}' already in bucket, but forcing overwrite".format(key))
                 else:
-                    prt("File '{}' already in bucket; skipping".format(key))
-                    return self.access_url(path)
+
+                    local_md5 = (hashlib.md5(body).hexdigest())
+
+                    if(local_md5 != md5):
+                        prt("File '{}' already in bucket, but md5 sums differ".format(key))
+                    else:
+                        prt("File '{}' already in bucket; skipping".format(key))
+                        return self.access_url(path)
             else:
                 prt("File '{}' already in bucket, but length is different; re-wirtting".format(key))
 

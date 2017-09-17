@@ -14,7 +14,7 @@ from metapack import MetapackDoc, Downloader, open_package
 from metapack.cli.core import err
 from metatab import _meta, DEFAULT_METATAB_FILE, MetatabError
 from .core import MetapackCliMemo as _MetapackCliMemo
-from .core import prt, warn, write_doc, update_dist
+from .core import prt, warn, write_doc
 
 downloader = Downloader()
 
@@ -74,7 +74,7 @@ def run_ckan(args):
     m = MetapackCliMemo(args, downloader=downloader)
 
     if m.mtfile_url.scheme == 's3':
-        """Find all of the top level CSV files in a bucket and use them to create CKan entries"""
+        # Find all of the top level CSV files in a bucket and use them to create CKan entries
 
         from metatab.s3 import S3Bucket
 
@@ -88,7 +88,7 @@ def run_ckan(args):
                 send_to_ckan(m.update_mt_arg(url))
 
     elif m.args.packages:
-
+        # Load a list of packages
         with open(m.mtfile_arg) as f:
             for line in f.readlines():
                 url = line.strip()
@@ -112,6 +112,7 @@ def send_to_ckan(m):
     from ckanapi import RemoteCKAN, NotFound
     try:
         doc = MetapackDoc(m.mt_file, cache=m.cache)
+
     except (IOError, MetatabError) as e:
         err("Failed to open metatab '{}': {}".format(m.mt_file, e))
 
@@ -183,6 +184,7 @@ def send_to_ckan(m):
             extras[t.qualified_term] = t.value
 
     pkg['extras'] = [ {'key':k, 'value':v} for k, v in extras.items() ]
+
 
     resources = []
 
@@ -262,8 +264,7 @@ def send_to_ckan(m):
             from requests import HTTPError
             from appurl import DownloadError
             try:
-                doc = metadata_url.doc
-                markdown = doc.markdown
+                markdown = metadata_url.doc.markdown
             except (HTTPError, DownloadError):
                 pass
 
@@ -282,8 +283,6 @@ def send_to_ckan(m):
 
     pkg = c.action.package_show(name_or_id=pkg['id'])
 
-    update_dist(doc, [], join(m.ckan_url, 'dataset',ckan_name))
-
     ##
     ## Add a term with CKAN info.
 
@@ -299,7 +298,8 @@ def send_to_ckan(m):
     for group in pkg.get('groups', []):
         doc['Root'].new_term('Group', group['name'])
 
-    write_doc(doc, m.mt_file)
+    write_doc(doc, '/tmp/metadata.csv')
+    #write_doc(doc, m.mt_file)
 
 
 def configure_ckan(m):

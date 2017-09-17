@@ -5,19 +5,20 @@
 
 from os.path import join
 from metapack import PackageError
+from metapack.util import datetime_now
 from metapack.package.core import PackageBuilder
 from appurl import parse_app_url
 
 class CsvPackageBuilder(PackageBuilder):
     """"""
 
+    type_code = 'csv'
+
     def __init__(self, source_ref=None, package_root=None,  resource_root=None, callback=None, env=None):
         super().__init__(source_ref, package_root,  callback, env)
         from metapack import MetapackPackageUrl
 
-        self.cache_path = self.package_name + ".csv"
-
-        self.package_path = self.package_root.join(self.cache_path)
+        self.package_path, self.cache_path = self.make_package_path(self.package_root, self.package_name)
 
         if self.package_root.proto == 'file':
             self.package_root.ensure_dir()
@@ -27,10 +28,19 @@ class CsvPackageBuilder(PackageBuilder):
         else:
             self.resource_root = source_ref.dirname().as_type(MetapackPackageUrl)
 
-
-
-
         assert isinstance(self.resource_root, MetapackPackageUrl), (type(self.resource_root), self.resource_root)
+
+    @classmethod
+    def make_package_path(cls, package_root, package_name):
+
+        # self.package_path, self.cache_path = self.make_package_path(self.package_name, self.package_root)
+
+        cache_path = package_name + ".csv"
+
+        package_path = package_root.join(cache_path)
+
+        return package_path, cache_path
+
 
     def _load_resource(self, source_r):
         """The CSV package has no reseources, so we just need to resolve the URLs to them. Usually, the
@@ -71,6 +81,8 @@ class CsvPackageBuilder(PackageBuilder):
                 path = self.package_path.path
             else:
                 raise PackageError("Can't write doc to path: '{}'".format(path))
+
+        self.doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
 
         self.doc.write_csv(path)
 

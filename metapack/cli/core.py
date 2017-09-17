@@ -6,21 +6,20 @@ from os.path import join
 from uuid import uuid4
 
 import six
-from tableintuit import TypeIntuiter
 
+from appurl import parse_app_url
 from metapack import MetapackDoc, MetapackUrl
-from metapack.package.s3 import S3PackageBuilder
 from metapack.package.csv import CsvPackageBuilder
 from metapack.package.excel import ExcelPackageBuilder
 from metapack.package.filesystem import FileSystemPackageBuilder
+from metapack.package.s3 import S3PackageBuilder
 from metapack.package.zip import ZipPackageBuilder
+from metapack.util import datetime_now
 from metatab import  DEFAULT_METATAB_FILE
 from metatab import _meta
 from metatab.util import make_metatab_file
 from rowgenerators import SelectiveRowGenerator
-from appurl import parse_app_url
-from os.path import dirname
-from os import getenv
+from tableintuit import TypeIntuiter
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -49,13 +48,6 @@ def warn(*args, **kwargs):
 def err(*args, **kwargs):
     logger_err.critical(' '.join(str(e) for e in args),**kwargs)
     sys.exit(1)
-
-
-
-def datetime_now():
-    import datetime
-
-    return datetime.datetime.utcnow().replace(microsecond=0).isoformat()
 
 
 def metatab_info(cache):
@@ -281,13 +273,12 @@ def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='publ
 
     p = S3PackageBuilder(file, package_root, callback=prt,  env=env, acl=acl)
 
-    prt('Making S3 Package')
     if not p.exists() or not skip_if_exists:
         url = p.save()
         prt("Packaged saved to: {}".format(url))
         created = True
     elif p.exists():
-        prt("S3 Package already exists")
+        prt("S3 Filesystem Package already exists")
         created = False
         url = p.access_url
 
@@ -503,7 +494,6 @@ class MetapackCliMemo(object):
         self.init_stage2(mtf, frag)
 
 
-
     def init_stage2(self, mtf, frag):
 
         self.frag = frag
@@ -521,27 +511,3 @@ class MetapackCliMemo(object):
         assert self.package_root._downloader
 
 
-def update_dist(doc, old_dists, v):
-
-    # This isn't quite correct, because it will try to remove the .csv format
-    # Distributions twice, since both <name>.csv and <name>/metadata.csv have the same format.
-    # (That's why theres a try/except ) But, it is effective
-
-    name = doc.find_first_value("Root.Name")
-
-    for d in old_dists:
-
-        if parse_app_url(d.value).resource_format == parse_app_url(v).resource_format and name not in d.value:
-            try:
-                doc.remove_term(d)
-            except ValueError:
-                pass
-
-    t = doc.find_first('Root.Distribution', v)
-
-    if not t:
-        doc['Root'].new_term('Root.Distribution', v)
-
-        return True
-    else:
-        return False

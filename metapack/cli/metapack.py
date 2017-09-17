@@ -20,7 +20,7 @@ from metapack.cli.core import prt, err, warn, dump_resource, dump_resources, met
     get_lib_module_dict, write_doc, datetime_now, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
     cli_init, process_schemas, extract_path_name, PACKAGE_PREFIX, MetapackCliMemo
-from metapack.util import make_metatab_file
+from metapack.util import make_metatab_file, datetime_now
 from os import getcwd
 from os.path import dirname, abspath, exists
 from rowgenerators import SourceError

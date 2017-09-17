@@ -107,7 +107,8 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def doc(self):
         """Return the metatab document for the URL"""
         from metapack import MetapackDoc
-        return MetapackDoc(self.get_resource().get_target(), package_url=self.package_url)
+        t = self.get_resource().get_target()
+        return MetapackDoc(t, package_url=self.package_url)
 
     @property
     def generator(self):

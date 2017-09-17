@@ -15,12 +15,14 @@ from appurl import parse_app_url
 from metatab.datapackage import convert_to_datapackage
 from metatab import DEFAULT_METATAB_FILE
 from .core import PackageBuilder
-from metapack.util import ensure_dir, write_csv, slugify
+from metapack.util import ensure_dir, write_csv, slugify, datetime_now
 from metapack.appurl import MetapackUrl
 
 
 class FileSystemPackageBuilder(PackageBuilder):
     """Build a filesystem package"""
+
+    type_code = 'fs'
 
     def __init__(self, source_ref, package_root, callback=None, env=None):
 
@@ -29,13 +31,18 @@ class FileSystemPackageBuilder(PackageBuilder):
         if not self.package_root.isdir():
             self.package_root.ensure_dir()
 
-        self.cache_path = join(self.package_name, DEFAULT_METATAB_FILE)
-
-        self.package_path = self.package_root.join(self.package_name)
+        self.package_path, self.cache_path = self.make_package_path(self.package_root, self.package_name)
 
         self.doc_file = self.package_path.join(DEFAULT_METATAB_FILE)
 
+    @classmethod
+    def make_package_path(cls, package_root, package_name):
 
+        cache_path = join(package_name, DEFAULT_METATAB_FILE)
+
+        package_path = package_root.join(package_name)
+
+        return package_path, cache_path
 
     def exists(self):
 
@@ -93,6 +100,8 @@ class FileSystemPackageBuilder(PackageBuilder):
         return doc_file
 
     def _write_doc(self):
+
+        self._doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
 
         self._doc.write_csv(self.doc_file)
         return MetapackUrl(self.doc_file, downloader=self._downloader)

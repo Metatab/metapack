@@ -329,3 +329,9 @@ def write_csv(path_or_flo, headers, gen):
 
     finally:
         f.close()
+
+
+def datetime_now():
+    import datetime
+
+    return datetime.datetime.utcnow().replace(microsecond=0).isoformat()

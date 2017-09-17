@@ -9,13 +9,22 @@ from .core import PackageBuilder
 class ZipPackageBuilder(PackageBuilder):
     """A Zip File package"""
 
+    type_code = 'zip'
+
     def __init__(self, source_ref=None, package_root=None,  callback=None, env=None):
+
         super().__init__(source_ref, package_root, callback, env)
 
-        self.cache_path = self.package_name + ".zip"
+        self.package_path, self.cache_path = self.make_package_path(self.package_root, self.package_name)
 
-        self.package_path = self.package_root.join(self.cache_path)
+    @classmethod
+    def make_package_path(cls, package_root, package_name):
 
+        cache_path = package_name + ".zip"
+
+        package_path = package_root.join(cache_path)
+
+        return package_path, cache_path
 
     def save(self, path=None):
 

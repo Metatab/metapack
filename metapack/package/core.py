@@ -35,6 +35,8 @@ class Downloader(_Downloader):
 
 class PackageBuilder(object):
 
+    type_code = 'unk'
+
     def __init__(self, source_ref=None, package_root = None,  callback=None, env=None):
         from metapack.doc import MetapackDoc
 

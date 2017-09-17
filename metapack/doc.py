@@ -32,9 +32,9 @@ class MetapackDoc(MetatabDoc):
 
         self.downloader = Downloader(cache)
 
-        if not isinstance(ref, (MetapackDocumentUrl, MetapackResourceUrl)):
+        if not isinstance(ref, (MetapackDocumentUrl)):
 
-            ref = MetapackUrl(str(ref), downloader=self.downloader)
+            ref = MetapackDocumentUrl(str(ref), downloader=self.downloader)
 
         self.register_term_class('root.resource', 'metapack.terms.Resource')
         self.register_term_class('root.reference', 'metapack.terms.Resource')

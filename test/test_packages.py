@@ -106,7 +106,8 @@ class TestPackages(unittest.TestCase):
 
         cli_init()
 
-        m = MetapackUrl(test_data('packages/example.com/example-package/metadata.csv'), downloader=downloader)
+        m = MetapackUrl(test_data('packages/example.com/example.com-example_data_package-2017-us/metadata.csv'),
+                        downloader=downloader)
 
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
 
@@ -141,7 +142,7 @@ class TestPackages(unittest.TestCase):
 
         cache = Downloader().cache
 
-        m = MetapackUrl(test_data('packages/example.com/simple_example-2017-us/metadata.csv'), downloader=downloader)
+        m = MetapackUrl(test_data('packages/example.com/example.com-simple_example-2017-us'), downloader=downloader)
 
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
         package_dir = package_dir
@@ -151,6 +152,8 @@ class TestPackages(unittest.TestCase):
         fs_doc = MetapackDoc(fs_url, cache=downloader.cache)
 
         r = fs_doc.resource('random-names')
+
+
 
         # Excel
 
