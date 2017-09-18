@@ -37,14 +37,17 @@ setup(
         'datapackage',
         'markdown',
         'boto3',
-        'rowgenerators>=0.7.0',
-        'rowpipe>=0.1.5',
-        'tableintuit>=0.0.6',
-        'geoid>=1.0.4',
         'nbconvert',
         'IPython',
         'nameparser',
-        'pybtex'
+        'pybtex',
+        'appurl>=0.1.5',
+        'rowgenerators>=0.7.0',
+        'rowpipe>=0.1.5',
+        'metatab>=0.6.6',
+        'tableintuit>=0.0.6',
+        'geoid>=1.0.4',
+
 
     ],
 
