@@ -27,7 +27,7 @@ setup(
     version='0.6.6',
     description='Data packaging system using Metatab',
     long_description=readme,
-    packages=find_packages,
+    packages=find_packages(),
     package_data={'metatab.jupyter': ['*.csv']},
     zip_safe=False,
     install_requires=[
@@ -35,15 +35,12 @@ setup(
         'unicodecsv',
         'pyyaml',
         'datapackage',
-        'bs4',
         'markdown',
-        'ckanapi',
         'boto3',
-        'rowgenerators>=0.3.2',
-        'rowpipe>=0.1.2',
+        'rowgenerators>=0.7.0',
+        'rowpipe>=0.1.5',
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
-        'metapack',
         'nbconvert',
         'IPython',
         'nameparser',
@@ -53,10 +50,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            #'metapack=metapack.cli.metapack:metapack',
             'mt=metapack.cli.mt:mt',
-            'metakan=metapack.cli.metakan:metakan',
-            'metasync=metapack.cli.metasync:metasync',
             'metaworld=metapack.cli.metaworld:metaworld',
             'metaaws=metapack.cli.metaaws:metaaws',
             'metasql=metapack.cli.metasql:metasql'
