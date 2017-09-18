@@ -1,28 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import imp
 import os
 import sys
-import shutil
-import glob
-from distutils.command import sdist as sdist_module
-from os.path import dirname, abspath, join, isdir
-
-try:
-    from site import getsitepackages
-    plugin_base_dir = [e for e in getsitepackages() if e.startswith(sys.prefix)][0]
-except ImportError:
-    # Virtualenvs have their own copy of site.py, which is empty/
-    plugin_base_dir = os.path.join(sys.prefix, "lib","python%d.%d" % sys.version_info[:2],
-                 "site-packages")
-
-from setuptools import find_packages
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import find_packages, setup
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
@@ -30,8 +11,6 @@ if sys.argv[-1] == 'publish':
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
     readme = f.read()
-
-ps_meta = imp.load_source('_meta', 'metapack/_meta.py')
 
 classifiers = [
     'Development Status :: 4 - Beta',
@@ -45,10 +24,10 @@ classifiers = [
 
 setup(
     name='metapack',
-    version=ps_meta.__version__,
+    version='0.6.6',
     description='Data packaging system using Metatab',
     long_description=readme,
-    packages=['metapack', 'test', 'metapack.jupyter', 'metapack.cli'],
+    packages=find_packages,
     package_data={'metatab.jupyter': ['*.csv']},
     zip_safe=False,
     install_requires=[
@@ -108,8 +87,8 @@ setup(
     },
 
     include_package_data=True,
-    author=ps_meta.__author__,
-    author_email=ps_meta.__author__,
+    author='Eric Busboom',
+    author_email='eric@civicknowledge.com',
     url='https://github.com/CivicKnowledge/metapack.git',
     license='BSD',
     classifiers=classifiers,
