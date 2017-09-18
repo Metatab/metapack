@@ -65,14 +65,16 @@ class S3PackageBuilder(PackageBuilder):
         return self.bucket.exists(DEFAULT_METATAB_FILE)
 
 
-    def save(self, url=None, acl=None):
+    def save(self):
 
         self.check_is_ready()
 
         # Resets the ref so that resource.resolved_url link to the resources as written in S3
         self._doc._ref = self.access_url.join('metatab.csv')
 
-        self.prt("Preparing S3 package '{}' ".format(self.package_name))
+        self.prt("Preparing S3 package '{}' from '{}'".format(self.package_name, self.source_dir))
+
+
 
         # Copy all of the files from the Filesystem package
         for root, dirs, files in walk(self.source_dir):
@@ -93,7 +95,7 @@ class S3PackageBuilder(PackageBuilder):
                 r.url = self.bucket.access_url(r.url)
 
         # re-write the metatab with the new URLs
-        self._write_doc()
+        #self._write_doc()
 
         # Re-write the HTML index file.
         self._write_html()
@@ -107,6 +109,7 @@ class S3PackageBuilder(PackageBuilder):
 
     def write_to_s3(self, path, body):
 
+        self.prt("Writing '{}' to S3".format(path))
         self.bucket.write(body, path, acl=self._acl, force=self.force)
 
         return
@@ -297,7 +300,10 @@ class S3Bucket(object):
                     prt("File '{}' already in bucket, but forcing overwrite".format(key))
                 else:
 
-                    local_md5 = (hashlib.md5(body).hexdigest())
+                    try:
+                        local_md5 = (hashlib.md5(body).hexdigest())
+                    except TypeError:
+                        local_md5 = md5
 
                     if(local_md5 != md5):
                         prt("File '{}' already in bucket, but md5 sums differ".format(key))

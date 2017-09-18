@@ -160,7 +160,8 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         notebook_docs = []
 
-        # First find and remove them from the doc.
+        # First find and remove notebooks from the docs. These wil ge processed to create
+        # normal documents.
         for term in list(self.doc['Documentation'].find('Root.Documentation')):
             u = parse_app_url(term.value)
             if u.target_format == 'ipynb':
@@ -192,9 +193,10 @@ class FileSystemPackageBuilder(PackageBuilder):
             self.warn("Documentation has no title, skipping: '{}' ".format(term.value))
             return
 
-        self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
 
-        path = join(self.package_path.path, 'docs/' + file_name)
+        path = join(self.package_path.path,  file_name)
+
+        self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
 
         makedirs(dirname(path), exist_ok=True)
 

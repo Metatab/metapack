@@ -122,6 +122,14 @@ class MetapackDoc(MetatabDoc):
 
     def _repr_html_(self, **kwargs):
         """Produce HTML for Jupyter Notebook"""
+        from jinja2 import Template
+        from markdown import markdown as convert_markdown
+
+        extensions = [
+            'markdown.extensions.extra',
+            'markdown.extensions.admonition'
+        ]
+
 
         def resource_repr(r, anchor=kwargs.get('anchors', False)):
             return "<p><strong>{name}</strong> - <a target=\"_blank\" href=\"{url}\">{url}</a> {description}</p>" \
@@ -139,17 +147,17 @@ class MetapackDoc(MetatabDoc):
                 return ''
 
             try:
-                for t in self['Documentation']:
+                for t in self['Documentation'].find('Root.Documentation'):
 
                     if t.get_value('url'):
 
-                        out += ("\n<p><strong>{} </strong>{}</p>"
+                        out += ("\n**{} **{}"
                                 .format(linkify(t.get_value('url'), t.get_value('title')),
                                         t.get_value('description')
                                         ))
 
                     else:  # Mostly for notes
-                        out += ("\n<p><strong>{}: </strong>{}</p>"
+                        out += ("\n**{}: **{}"
                                 .format(t.record_term.title(), t.value))
 
 
@@ -177,7 +185,7 @@ class MetapackDoc(MetatabDoc):
                     web = t.get_value('url')
                     org = t.get_value('organization', web)
 
-                    out += ("\n<p><strong>{}: </strong>{}</p>"
+                    out += ("\n**{}:** {}"
                             .format(t.record_term.title(),
                                     (linkify(email, name) or '') + " " + (linkify(web, org) or '')
                                     ))
@@ -187,28 +195,43 @@ class MetapackDoc(MetatabDoc):
 
             return out
 
-        return """
-<h1>{title}</h1>
-<p>{name}</p>
-<p>{description}</p>
-<p>{ref}</p>
-<h2>Documentation</h2>
-{doc}
-<h2>Contacts</h2>
-{contact}
-<h2>Resources</h2>
+        t = Template("""
+# {{title}}
+<p>{{name}}</p>
+<p>{{description}}</p>
+<p>{{ref}}</p>
+{% if documentation %}
+## Documentation
+{{doc}}
+{% endif %}
+## Contacts
+{{contact}}
+{% if resources %}
+## Resources
 <ol>
-{resources}
+{{resources}}
 </ol>
-""".format(
+{% endif%}
+{% if references %}
+## References
+<ol>
+{{references}}
+{% endif %}
+</ol>""")
+
+        v = t.render(
             title=self.find_first_value('Root.Title', section='Root'),
             name=self.find_first_value('Root.Name', section='Root'),
             ref=self.ref,
             description=self.find_first_value('Root.Description', section='Root'),
             doc=documentation(),
             contact=contacts(),
-            resources='\n'.join(["<li>" + resource_repr(r) + "</li>" for r in self.find('Root.Resource')])
+            resources='\n'.join(["<li>" + resource_repr(r) + "</li>" for r in self['Resources'].find('Root.Resource')]),
+            references='\n'.join(["<li>" + resource_repr(r) + "</li>" for r in self['References'].find('Root.Resource')]),
+
         )
+
+        return convert_markdown(v, extensions)
 
     @property
     def html(self):

@@ -118,7 +118,7 @@ def run_s3(args):
 def set_distributions(m, dist_urls):
 
     for t in m.doc.find('Root.Distribution'):
-        m.doc.remove(t)
+        m.doc.remove_term(t)
 
     for au in dist_urls:
         m.doc['Root'].new_term('Root.Distribution', au)
@@ -148,19 +148,21 @@ def upload(m):
 
             try:
                 s3_package_root = MetapackPackageUrl(str(m.s3_url), downloader=m.downloader)
-                fs_p, fs_url, created = make_s3_package(purl, s3_package_root, m.cache, env, m.acl, skip_if_exist)
+
+                fs_p, fs_url, created = make_s3_package(purl.metadata_url, s3_package_root, m.cache, env, m.acl, skip_if_exist)
             except NoCredentialsError:
                 print(getenv('AWS_SECRET_ACCESS_KEY'))
                 err("Failed to find boto credentials for S3. "
                     "See http://boto3.readthedocs.io/en/latest/guide/configuration.html ")
 
             # A crappy hack. make_s3_package should return the correct url
-            if m.acl == 'private':
-                au = fs_p.private_access_url.inner
-            else:
-                au = fs_p.public_access_url.inner
+            if fs_p:
+                if m.acl == 'private':
+                    au = fs_p.private_access_url.inner
+                else:
+                    au = fs_p.public_access_url.inner
 
-            dist_urls.append(au)
+                dist_urls.append(au)
 
     m.doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
 

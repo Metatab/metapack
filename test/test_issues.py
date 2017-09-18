@@ -64,6 +64,13 @@ class TestIssues(unittest.TestCase):
         t = u.get_target()
         print (t)
 
+    def test_ref_resource_confusion(self):
+        from metapack import open_package
+        u = 'http://library.metatab.org/ffiec.gov-cra_disclosure_smb_orig-2010_2015-2.csv'
+
+        p = open_package(u)
+
+        self.assertEqual(1, len(list(r for r in p['Resources'].find('Root.Resource'))))
 
 
 

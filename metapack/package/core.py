@@ -52,6 +52,7 @@ class PackageBuilder(object):
         self._env = env if env is not None else {}
 
         self._source_doc = MetapackDoc(self._source_ref, cache=self._cache) # this one stays constant
+
         self.source_dir = dirname(parse_app_url(self._source_ref).path)
 
         self._doc = MetapackDoc(self._source_ref, cache=self._cache) # This one gets edited
@@ -404,7 +405,7 @@ class PackageBuilder(object):
     def _load_documentation_files(self):
         """Copy all of the Datafile entries into the Excel file"""
 
-        for doc in self.doc.find(['Root.Documentation', 'Root.Image']):
+        for doc in self.doc.find(['Root.Documentation', 'Root.Image', 'Root.IncludeDocumentation']):
 
             resource = self._get_ref_contents(doc)
 

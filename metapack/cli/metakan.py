@@ -3,6 +3,9 @@
 
 """
 CLI program for storing pacakges in CKAN
+
+The program uses the Root.Distributions in the source package to locate packages to link into a CKAN record.
+
 """
 
 import mimetypes
@@ -13,8 +16,10 @@ from os.path import join, basename
 from metapack import MetapackDoc, Downloader, open_package
 from metapack.cli.core import err
 from metatab import _meta, DEFAULT_METATAB_FILE, MetatabError
+from metapack.package.s3 import S3Bucket
 from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import prt, warn, write_doc
+from ckanapi import RemoteCKAN
 
 downloader = Downloader()
 
@@ -63,7 +68,10 @@ def metakan(subparsers):
                         help="The file argument is a text file with a list of package URLs to load")
 
     parser.add_argument('-C', '--configure', action='store_true',
-                        help="File is a CKAN configuration file in Metatab format")
+                        help="Load groups and organizations from a metatab file")
+
+    parser.add_argument('-D', '--dump', action='store_true',
+                        help="Dump groups and organizations to a metatab file")
 
     parser.add_argument('metatabfile', nargs='?', default=DEFAULT_METATAB_FILE,
                         help='Path to a Metatab file, or an s3 link to a bucket with Metatab files. ')
@@ -75,8 +83,6 @@ def run_ckan(args):
 
     if m.mtfile_url.scheme == 's3':
         # Find all of the top level CSV files in a bucket and use them to create CKan entries
-
-        from metatab.s3 import S3Bucket
 
         b = S3Bucket(m.mtfile_arg)
 
@@ -98,9 +104,11 @@ def run_ckan(args):
                 except Exception as e:
                     warn("Failed to process {}: {}".format(line, e))
 
-
     elif m.args.configure:
         configure_ckan(m)
+
+    elif m.args.dump:
+        dump_ckan(m)
 
     else:
         send_to_ckan(m)
@@ -184,7 +192,6 @@ def send_to_ckan(m):
             extras[t.qualified_term] = t.value
 
     pkg['extras'] = [ {'key':k, 'value':v} for k, v in extras.items() ]
-
 
     resources = []
 
@@ -271,7 +278,6 @@ def send_to_ckan(m):
         else:
             warn("Unknown distribution type '{}' for '{}'  ".format(dist.type, dist.value))
 
-
     try:
         pkg['notes'] = markdown or doc.markdown #doc.find_first_value('Root.Description')
     except (OSError, DownloadError) as e:
@@ -286,7 +292,7 @@ def send_to_ckan(m):
     ##
     ## Add a term with CKAN info.
 
-    doc['Root'].get_or_new_term('CkanId', pkg['id'])
+    doc['Root'].get_or_new_term('CkanId').value = pkg['id']
 
     if org_name_slug is None and pkg.get('organization'):
         doc['Root'].get_or_new_term('CkanOrg', (pkg.get('organization') or {}).get('name'))
@@ -298,13 +304,12 @@ def send_to_ckan(m):
     for group in pkg.get('groups', []):
         doc['Root'].new_term('Group', group['name'])
 
-    write_doc(doc, '/tmp/metadata.csv')
-    #write_doc(doc, m.mt_file)
+    write_doc(doc, m.mt_file)
 
 
 def configure_ckan(m):
     """Load groups and organizations, from a file in Metatab format"""
-    from ckanapi import RemoteCKAN
+
     try:
         doc = MetapackDoc(m.mt_file, cache=m.cache)
     except (IOError, MetatabError) as e:
@@ -335,3 +340,18 @@ def configure_ckan(m):
                                   description=o.get_value('description'),
                                   id=o.get_value('id'),
                                   image_url=o.get_value('image_url'))
+
+def dump_ckan(m):
+    """Create a groups and organization file"""
+
+    doc = MetapackDoc(cache=m.cache)
+    doc.new_section('Groups',        'Title Description Id Image_url'.split())
+    doc.new_section('Organizations', 'Title Description Id Image_url'.split())
+
+    c = RemoteCKAN(m.ckan_url, apikey=m.api_key)
+
+    for g in c.action.group_list(all_fields=True):
+        print(g.keys())
+
+    for o in c.action.organization_list(all_fields=True):
+        print(g.keys())
