@@ -19,7 +19,7 @@ from metatab import _meta, DEFAULT_METATAB_FILE, MetatabError
 from metapack.package.s3 import S3Bucket
 from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import prt, warn, write_doc
-from ckanapi import RemoteCKAN
+
 
 downloader = Downloader()
 
@@ -309,6 +309,7 @@ def send_to_ckan(m):
 
 def configure_ckan(m):
     """Load groups and organizations, from a file in Metatab format"""
+    from ckanapi import RemoteCKAN
 
     try:
         doc = MetapackDoc(m.mt_file, cache=m.cache)
