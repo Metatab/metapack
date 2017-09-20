@@ -3,7 +3,7 @@ from __future__ import print_function
 import json
 import unittest
 from appurl import parse_app_url
-from metapack import MetapackUrl
+from metapack import MetapackUrl, Downloader
 
 
 def test_data(*paths):
@@ -12,7 +12,7 @@ def test_data(*paths):
     return abspath(join(dirname(dirname(abspath(__file__))), 'test-data', *paths))
 
 
-class MetatabTestCase(unittest.TestCase):
+class TestBasic(unittest.TestCase):
 
     def test_resolve_packages(self):
 
@@ -26,7 +26,7 @@ class MetatabTestCase(unittest.TestCase):
         for us in (u('package.zip'), u('package.xlsx'), u('package.csv'), u('package/metadata.csv'),
                    f('package.zip'), f('package.xlsx'), f('package.csv'), f('package/metadata.csv'),):
 
-            u = MetapackUrl(us)
+            u = MetapackUrl(us, downloader=Downloader())
 
             print(u.metadata_url)
 
@@ -36,19 +36,22 @@ class MetatabTestCase(unittest.TestCase):
         from metapack import open_package
         from metapack.terms import Resource
 
-        p = open_package(test_data('packages/example.com/example-package/metadata.csv'))
+        p = open_package(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'))
 
         self.assertEqual(Resource, type(p.find_first('root.datafile')))
 
-        self.assertEqual('example.com-example_data_package-2017-us-1', p.find_first('Root.Name').value)
+        self.assertEqual('example.com-full-2017-us-1', p.find_first('Root.Name').value)
 
-        self.assertEqual(14, len(list(p['Resources'].find('Root.Resource'))))
+        self.assertEqual(16, len(list(p['Resources'].find('Root.Resource'))))
 
 
-        self.assertEqual(['renter_cost', 'simple-example-altnames', 'simple-example', 'unicode-latin1', 'unicode-utf8',
-                          'renter_cost_excel07', 'renter_cost_excel97', 'renter_cost-2', 'random-names',
-                          'random-names-fs', 'random-names-csv', 'random-names-xlsx', 'random-names-zip', 'sra'],
-                         [ r.name for r in p.find('Datafile') ])
+        all_names = [ r.name for r in p.find('Datafile') ]
+        for name in ['renter_cost', 'simple-example-altnames', 'simple-example', 'unicode-latin1', 'unicode-utf8',
+                     'renter_cost_excel07', 'renter_cost_excel97', 'renter_cost-2', 'random-names',
+                     'random-names-fs', 'random-names-csv', 'random-names-xlsx', 'random-names-zip', 'sra']:
+            self.assertIn(name, all_names)
+
+
 
         self.assertIsInstance (p.resource('random-names'), Resource)
         self.assertEqual('random-names', p.resource('random-names').name)

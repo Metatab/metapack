@@ -28,16 +28,6 @@ def cache_fs():
 
 class TestPackages(unittest.TestCase):
 
-    def test_geo(self):
-
-        url = "shape+http://s3.amazonaws.com/test.library.civicknowledge.com/census/tl_2016_us_state.geojson.zip"
-
-        gen = RowGenerator(url=url, cache=cache_fs())
-
-        self.assertTrue(gen.is_geo)
-
-        self.assertEquals(-4776, int(x))
-
 
     def test_resolve_resource_urls(self):
         """Test how resources are resolved in packages. The resource values must be one of:
@@ -79,34 +69,14 @@ class TestPackages(unittest.TestCase):
                     self.assertTrue(bool(l['generate_error']))
                     continue
 
-    def test_package_resolve_resource_urls(self):
 
-        m = MetapackUrl(test_data('packages/example.com/example-package/metadata.csv'), downloader=downloader)
-
-        for r in m.doc.resources():
-
-            #if r.name != "renter_cost_excel07":
-            #    continue
-
-            if False:
-                print("=====")
-                print(r.name)
-                ru = r.resolved_url
-                print(ru)
-                rur = ru.get_resource()
-                print(rur)
-                t = rur.get_target()
-                print(t)
-                g = get_generator(r.resolved_url.get_resource().get_target())
-
-            self.assertEqual(int(r.nrows), len(list(r)))
 
 
     def test_build_package(self):
 
         cli_init()
 
-        m = MetapackUrl(test_data('packages/example.com/example.com-example_data_package-2017-us/metadata.csv'),
+        m = MetapackUrl(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'),
                         downloader=downloader)
 
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
@@ -189,10 +159,10 @@ class TestPackages(unittest.TestCase):
         from metapack.package import CsvPackageBuilder
 
         package_root = MetapackPackageUrl(
-            'file:/Volumes/Storage/proj/virt-proj/metapack/metapack/test-data/packages/example.com/simple_example-2017-us/_packages',
+            'file:/Volumes/Storage/proj/virt-proj/metapack/metapack/test-data/packages/example.com/example.com-simple_example-2017-us/_packages',
             downloader=downloader)
 
-        source_url = 'http://s3.amazonaws.com/library.metatab.org/example.com-simple_example-2017-us-2/metadata.csv'
+        source_url = 'http://library.metatab.org/example.com-simple_example-2017-us-2/metadata.csv'
 
         u = MetapackUrl(source_url, downloader=downloader)
 
@@ -281,7 +251,7 @@ class TestPackages(unittest.TestCase):
     def test_program_resource(self):
 
 
-        m = MetapackUrl(test_data('packages/example.com/example-package/metadata.csv'), downloader=downloader)
+        m = MetapackUrl(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'), downloader=downloader)
 
         doc = MetapackDoc(m)
 
@@ -302,7 +272,7 @@ class TestPackages(unittest.TestCase):
         from itertools import islice
         from rowgenerators.generator.fixed import FixedSource
 
-        m = MetapackUrl(test_data('packages/example.com/example-package/metadata.csv'), downloader=downloader)
+        m = MetapackUrl(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'), downloader=downloader)
 
         doc = MetapackDoc(m)
 

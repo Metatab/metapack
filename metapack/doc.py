@@ -15,6 +15,7 @@ from appurl import parse_app_url
 from .html import linkify
 from .util import slugify
 from metapack.package.core import Downloader
+from rowgenerators import Source
 
 class Resolver(WebResolver):
     def get_row_generator(self, ref, cache=None):
@@ -32,15 +33,15 @@ class MetapackDoc(MetatabDoc):
         #assert isinstance(ref, (MetapackDocumentUrl, MetapackResourceUrl)), (type(ref), ref)
 
         if downloader:
-            self.downloader = Downloader()
-        else:
-            assert cache
+            self.downloader = downloader
+        elif cache:
             self.downloader = Downloader(cache)
+        else:
+            self.downloader = Downloader()
 
-        cache = cache or self.downloader.cache
+        cache = self.downloader.cache
 
-        if not isinstance(ref, (MetapackDocumentUrl)):
-
+        if not isinstance(ref, (MetapackDocumentUrl)) and not isinstance(ref, Source):
             ref = MetapackDocumentUrl(str(ref), downloader=self.downloader)
 
         self.register_term_class('root.resource', 'metapack.terms.Resource')
