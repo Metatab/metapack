@@ -95,3 +95,4 @@ jspm_packages
 .node_repl_history
 
 _packages
+!/test-data/packages/example.com/example.com-transforms/lib/
