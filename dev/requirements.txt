@@ -1,5 +1,5 @@
 # pip uninstall -y metapack metatab metatabdecl rowpipe rowgenerators appurl
-six=1.10.0 
+six==1.10.0
 git+https://github.com/CivicKnowledge/appurl.git#egg=appurl
 git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators
 git+https://github.com/CivicKnowledge/rowpipe.git#egg=rowpipe
