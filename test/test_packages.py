@@ -59,7 +59,8 @@ class TestPackages(unittest.TestCase):
                     self.assertTrue(bool(l['resolve_error']))
                     continue
 
-                self.assertEquals(str(t), l['resolved_url'])
+                # Testing containment because t can have path in local filesystem.
+                self.assertTrue(l['resolved_url'] in str(t))
 
                 try:
                     g = get_generator(t.get_resource().get_target())
@@ -159,8 +160,7 @@ class TestPackages(unittest.TestCase):
         from metapack.package import CsvPackageBuilder
 
         package_root = MetapackPackageUrl(
-            'file:/Volumes/Storage/proj/virt-proj/metapack/metapack/test-data/packages/example.com/example.com-simple_example-2017-us/_packages',
-            downloader=downloader)
+            test_data('packages/example.com/example.com-simple_example-2017-us/_packages'),downloader=downloader)
 
         source_url = 'http://library.metatab.org/example.com-simple_example-2017-us-2/metadata.csv'
 

@@ -58,7 +58,7 @@ class TestBasic(unittest.TestCase):
 
         r = p.find_first('Root.DataFile')
         print(r.resolved_url)
-        self.assertEquals('http://public.source.civicknowledge.com/example.com/sources/test_data.zip#renter_cost.csv',
+        self.assertEqual('http://public.source.civicknowledge.com/example.com/sources/test_data.zip#renter_cost.csv',
                           str(r.resolved_url))
 
         for r in p.find('Root.DataFile'):
@@ -66,9 +66,9 @@ class TestBasic(unittest.TestCase):
             if r.name != 'unicode-latin1':
                 continue
 
-            self.assertEquals(int(r.nrows), len(list(r)))
+            self.assertEqual(int(r.nrows), len(list(r)))
 
-        self.assertEquals(['ipums', 'bordley', 'mcdonald', 'majumder'],
+        self.assertEqual(['ipums', 'bordley', 'mcdonald', 'majumder'],
                           [c.name for c in p['Bibliography']])
 
 
