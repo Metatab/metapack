@@ -120,8 +120,8 @@ def make_metatab_file(template='metatab'):
 
 def scrape_urls_from_web_page(page_url):
     from bs4 import BeautifulSoup
-    from six.moves.urllib.parse import urlparse, urlsplit, urlunsplit
-    from six.moves.urllib.request import urlopen
+    from urllib.parse import urlsplit, urlunsplit
+    from urllib.request import urlopen
     import os
     from os.path import dirname
 

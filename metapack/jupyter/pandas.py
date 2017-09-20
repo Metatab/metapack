@@ -4,8 +4,7 @@
 """Support for PANDAS dataframes"""
 
 from pandas import DataFrame, Series
-import numpy as np
-from six import string_types
+
 
 
 class MetatabSeries(Series):

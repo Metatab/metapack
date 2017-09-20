@@ -31,7 +31,7 @@ setup(
     package_data={'metatab.jupyter': ['*.csv']},
     zip_safe=False,
     install_requires=[
-        'six',
+
         'unicodecsv',
         'pyyaml',
         'datapackage',

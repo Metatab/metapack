@@ -6,33 +6,28 @@ CLI program for managing packages
 """
 
 import json
-import sys
-from uuid import uuid4
-
 import re
-import six
-from genericpath import isdir
-from metatab import _meta, DEFAULT_METATAB_FILE, ConversionError
-from metapack import MetapackDoc, Downloader
-from metapack.appurl import  MetapackUrl
-from metapack.jupyter.convert import convert_documentation, convert_notebook
-from metapack.cli.core import prt, err, warn, dump_resource, dump_resources, metatab_info, find_files, \
-    get_lib_module_dict, write_doc, datetime_now, \
-    make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
-    cli_init, process_schemas, extract_path_name, PACKAGE_PREFIX, MetapackCliMemo
-from metapack.util import make_metatab_file, datetime_now
+import sys
 from os import getcwd
-from os.path import dirname, abspath, exists
+from os.path import dirname, abspath
+
+from appurl import parse_app_url
+from metapack import MetapackDoc, Downloader
+from metapack.cli.core import prt, err, warn, dump_resource, dump_resources, metatab_info, get_lib_module_dict, write_doc, \
+    make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
+    process_schemas, extract_path_name, MetapackCliMemo
+from metapack.jupyter.convert import convert_documentation, convert_notebook
+from metapack.util import make_metatab_file, datetime_now
+from metatab import ConversionError
 from rowgenerators import SourceError
 from rowgenerators.util import clean_cache
 from rowgenerators.util import fs_join as join
 from tableintuit import RowIntuitError
-from appurl import parse_app_url
 
 downloader = Downloader()
 
-def metapack(subparsers):
 
+def metapack(subparsers):
     parser = subparsers.add_parser(
         'pack',
         help='Create and manipulate metatab data packages',
@@ -46,7 +41,7 @@ def metapack(subparsers):
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
 
     parser.add_argument('--exceptions', default=False, action='store_true',
-                             help='Show full stack tract for some unhandled exceptions')
+                        help='Show full stack tract for some unhandled exceptions')
 
     parser.set_defaults(handler=None)
 
@@ -106,7 +101,6 @@ def metapack(subparsers):
     derived_group.add_argument('-v', '--csv', action='store_true', default=False,
                                help='Create a CSV archive from a metatab file')
 
-
     ##
     ## QueryPackage Group
 
@@ -147,8 +141,6 @@ def metapack(subparsers):
 
 
 def run_metapack(args):
-
-
     m = MetapackCliMemo(args, downloader)
 
     # Maybe need to convert a notebook first
@@ -157,7 +149,7 @@ def run_metapack(args):
         u = parse_app_url(m.mtfile_arg)
 
         if u.target_format != 'ipynb':
-            print (u.dict)
+            print(u.dict)
             err("Input must be a Jupyter notebook file. Got '{}' ".format(u.target_format))
 
         if m.args.make_documentation:
@@ -185,8 +177,8 @@ def run_metapack(args):
 
     clean_cache(m.cache)
 
-def metatab_build_handler(m):
 
+def metatab_build_handler(m):
     if m.args.create is not False:
 
         template = m.args.create if m.args.create else 'metatab'
@@ -207,7 +199,6 @@ def metatab_build_handler(m):
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
 
         add_resource(m.mt_file, m.args.add, cache=m.cache)
-
 
     if m.args.schemas:
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
@@ -236,7 +227,6 @@ def metatab_build_handler(m):
             err(e)
 
     if m.mtfile_url.scheme == 'file' and m.args.update:
-
         update_name(m.mt_file, fail_on_missing=True, force=m.args.force)
 
 
@@ -257,7 +247,7 @@ def metatab_derived_handler(m, skip_if_exists=None):
     env = get_lib_module_dict(doc)
 
     if (m.args.excel is not False or m.args.zip is not False or
-            (hasattr(m.args, 'filesystem') and m.args.filesystem is not False) ):
+            (hasattr(m.args, 'filesystem') and m.args.filesystem is not False)):
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
 
     if m.args.force:
@@ -269,7 +259,6 @@ def metatab_derived_handler(m, skip_if_exists=None):
         # data for the other packages. This means that Transform processes and programs only need
         # to be run once.
         if any([m.args.filesystem, m.args.excel, m.args.zip]):
-
             _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, skip_if_exists)
             create_list.append(('fs', url, created))
 
@@ -312,6 +301,7 @@ def metatab_query_handler(m):
         else:
             dump_resources(doc)
 
+
 def metatab_admin_handler(m):
     if m.args.enumerate:
 
@@ -345,7 +335,6 @@ def metatab_admin_handler(m):
 
 
 def classify_url(url):
-
     ss = parse_app_url(url)
 
     if ss.target_format in DATA_FORMATS:
@@ -451,8 +440,8 @@ def add_single_resource(doc, ref, cache, seen_names):
                                      headerlines=','.join(str(e) for e in header_lines),
                                      encoding=encoding)
 
-def run_row_intuit(path, cache):
 
+def run_row_intuit(path, cache):
     from tableintuit import RowIntuiter
     from itertools import islice
     from rowgenerators import TextEncodingError, get_generator
@@ -463,13 +452,12 @@ def run_row_intuit(path, cache):
             u = parse_app_url(path)
             u.encoding = encoding
 
-            rows = list(islice(get_generator(url=str(u),cache=cache,), 5000))
+            rows = list(islice(get_generator(url=str(u), cache=cache, ), 5000))
             return encoding, RowIntuiter().run(list(rows))
         except (TextEncodingError, UnicodeEncodeError) as e:
             pass
 
     raise RowIntuitError('Failed to convert with any encoding')
-
 
 
 DATA_FORMATS = ('xls', 'xlsx', 'tsv', 'csv')

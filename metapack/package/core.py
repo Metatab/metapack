@@ -10,7 +10,7 @@ from itertools import islice
 from os import walk
 from os.path import dirname, abspath, basename, splitext, join, isdir
 
-from six import text_type
+
 
 from appurl import Url, parse_app_url
 
@@ -175,7 +175,7 @@ class PackageBuilder(object):
             if du.target_segment:
                 try:
                     int(du.target_segment)
-                    name = du.target_file + text_type(du.target_segment)
+                    name = du.target_file + str(du.target_segment)
 
                 except ValueError:
                     name = du.target_segment
