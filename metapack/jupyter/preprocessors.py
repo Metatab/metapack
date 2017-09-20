@@ -350,7 +350,7 @@ class AddEpilog(Preprocessor):
 
     pkg_dir = Unicode(help='Metatab package Directory').tag(config=True)
 
-    dataframes = List(help='Names of dataframes to materialize',trait=Unicode)
+    dataframes = List(help='Names of dataframes to materialize',trait=Unicode())
 
 
     def preprocess(self, nb, resources):
