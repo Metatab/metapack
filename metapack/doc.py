@@ -26,11 +26,18 @@ class Resolver(WebResolver):
 
 class MetapackDoc(MetatabDoc):
 
-    def __init__(self, ref=None, decl=None,  cache=None, resolver=None, package_url=None, clean_cache=False):
+    def __init__(self, ref=None, decl=None,  cache=None, resolver=None, package_url=None, clean_cache=False,
+                 downloader=None):
 
         #assert isinstance(ref, (MetapackDocumentUrl, MetapackResourceUrl)), (type(ref), ref)
 
-        self.downloader = Downloader(cache)
+        if downloader:
+            self.downloader = Downloader()
+        else:
+            assert cache
+            self.downloader = Downloader(cache)
+
+        cache = cache or self.downloader.cache
 
         if not isinstance(ref, (MetapackDocumentUrl)):
 

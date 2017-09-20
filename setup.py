@@ -38,6 +38,7 @@ setup(
         'markdown',
         'boto3',
         'nbconvert',
+        'docopt',
         'IPython',
         'nameparser',
         'pybtex',

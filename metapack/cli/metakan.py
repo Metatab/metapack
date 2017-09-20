@@ -52,7 +52,7 @@ def metakan(subparsers):
 
     parser = subparsers.add_parser(
         'ckan',
-        help='CKAN management of Metatab packages, version {}'.format(_meta.__version__)
+        help='CKAN management of Metatab packages'
     )
 
     parser.set_defaults(run_command=run_ckan)

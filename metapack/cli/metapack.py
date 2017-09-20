@@ -35,7 +35,7 @@ def metapack(subparsers):
 
     parser = subparsers.add_parser(
         'pack',
-        help='Create and manipulate metatab data packages, version {}'.format(_meta.__version__),
+        help='Create and manipulate metatab data packages',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
     parser.set_defaults(run_command=run_metapack)

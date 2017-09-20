@@ -29,6 +29,8 @@ DEFAULT_CACHE_NAME = 'metapack'
 class Downloader(_Downloader):
     """"Local version of the downloader. Also should be used as the source of the cache"""
 
+    ok = True
+
     def download(self, url):
         return super().download(url)
 
@@ -493,6 +495,6 @@ def open_package(ref, cache=None, clean_cache=False, downloader=None):
 
     cache = cache if cache else downloader.cache
 
-    return MetapackDoc(u, cache=cache)
+    return MetapackDoc(u, downloader=downloader)
 
 

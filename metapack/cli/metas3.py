@@ -66,7 +66,7 @@ def metas3(subparsers):
 
     parser = subparsers.add_parser(
         's3',
-        help='Create packages and store them in s3 buckets, version {}'.format(_meta.__version__),
+        help='Create packages and store them in s3 buckets',
     )
 
     parser.set_defaults(run_command=run_s3)
