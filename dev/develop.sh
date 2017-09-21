@@ -3,7 +3,8 @@
 
 
 pip uninstall -y six
-pip install six==1.10.0 install fiona shapely pyproj terminaltables geopandas
+pip install six==1.10.0
+pip install fiona shapely pyproj terminaltables geopandas pandas numpy
 
 git clone https://github.com/CivicKnowledge/rowpipe.git && (cd rowpipe && python setup.py develop)
 git clone https://github.com/CivicKnowledge/tableintuit.git && (cd tableintuit && python setup.py develop)

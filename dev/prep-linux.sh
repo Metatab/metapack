@@ -5,4 +5,4 @@
 
 apt upgrade && \
 apt update && \
-apt install -y gcc python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev
+apt install -y git gcc python3-dev python3-pip python3-venv curl libxml2-dev libxslt1-dev zlib1g-dev

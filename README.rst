@@ -13,11 +13,15 @@ This repository has a Python module and executable. For a Javascript version, se
 Install
 -------
 
-Metapack only works with Python 3.5 or later, and you'll almost certainly want to install it into a virtual environment.
+Metapack only works with Python 3.5 or later, and you'll almost certainly want to install it into a virtual environment. To set up a virtual environment:
 
 .. code-block:: bash
 
-    $ python3 -mvenv metapack
+    python3 -mvenv metapack
+    cd metapack
+    source bin/activate
+
+Since we're stil in development, it may be best to install
 
 Install the package from PiPy with:
 
@@ -43,12 +47,8 @@ Or, cut-and-paste this block:
 
 .. code-block:: bash
 
-    python3 -mvenv metapack
-    cd metapack
-    source bin/activate
-    pip install metapack
-    pip uninstall six
-    pip install six==1.10.0
+
+    pip uninstall six; pip install six==1.10.0
     pip install -y fiona shapely pyproj terminaltables geopandas
 
 Or, you can install the most recent packages from github using the requirements file in the `dev/requirements.txt` file. This file can be installed directly from github:
