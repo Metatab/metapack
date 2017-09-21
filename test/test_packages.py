@@ -60,7 +60,7 @@ class TestPackages(unittest.TestCase):
                     continue
 
                 # Testing containment because t can have path in local filesystem.
-                self.assertTrue(l['resolved_url'] in str(t))
+                self.assertTrue(l['resolved_url'] in str(t), (l['resolved_url'], str(t)))
 
                 try:
                     g = get_generator(t.get_resource().get_target())
@@ -249,7 +249,6 @@ class TestPackages(unittest.TestCase):
         self.assertIsInstance(row['geometry'], ShapeValue)
 
     def test_program_resource(self):
-
 
         m = MetapackUrl(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'), downloader=downloader)
 
