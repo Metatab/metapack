@@ -53,6 +53,13 @@ Or, you can install the most recent packages from github using the requirements 
 
 .. code-block:: bash
 
+    python3 -mvenv metapack
+    cd metapack
+    source bin/activate
+    bash <(curl https://raw.githubusercontent.com/CivicKnowledge/metapack/master/dev/develop.sh)
+
+.. code-block:: bash
+
     $ pip install https://github.com/CivicKnowledge/metatab-py.git
 
 Then test parsing using a remote file with:
