@@ -41,6 +41,8 @@ To run the tests, you'll also need to install some support modules;
 
 Or, cut-and-paste this block:
 
+.. code-block:: bash
+
     python3 -mvenv metapack
     cd metapack
     source bin/activate
