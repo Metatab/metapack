@@ -60,7 +60,8 @@ class TestPackages(unittest.TestCase):
                     continue
 
                 # Testing containment because t can have path in local filesystem.
-                self.assertTrue(l['resolved_url'] in str(t), (l['resolved_url'], str(t)))
+                print("   ", t)
+                self.assertTrue(l['resolved_url'] in str(t), (i, l['resolved_url'], str(t)))
 
                 try:
                     g = get_generator(t.get_resource().get_target())
