@@ -15,7 +15,7 @@ from os.path import join, basename
 
 from metapack import MetapackDoc, Downloader, open_package
 from metapack.cli.core import err
-from metatab import _meta, DEFAULT_METATAB_FILE, MetatabError
+from metatab import  DEFAULT_METATAB_FILE, MetatabError
 from metapack.package.s3 import S3Bucket
 from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import prt, warn, write_doc
