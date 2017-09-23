@@ -1,9 +1,8 @@
+# Setup all of the key Metapack packages, from github.
 
 FROM ubuntu:16.04
 
 MAINTAINER Eric Busboom "eric@civicknowledge.com"
-
-#VOLUME /opt/metapack
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -26,26 +25,51 @@ RUN apt-get update && apt-get install -y \
     wget && \
     apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-# Fixes security warnings in later pip installs. The --ignore-installed bit is requred because some of the
-# installed packages already exist, but pip 8 refuses to remove them because they were installed with
-# distutils.
-RUN pip3 install --upgrade pip && pip3 install --ignore-installed requests
-
-
-WORKDIR /opt
-
-RUN python3 -mvenv metapack
 
 WORKDIR /opt/metapack
 
-RUN git clone https://github.com/CivicKnowledge/rowpipe.git && \
-    git clone https://github.com/CivicKnowledge/tableintuit.git && \
-    git clone https://github.com/CivicKnowledge/rowgenerators.git &&  \
-    git clone https://github.com/CivicKnowledge/pandas-reporter.git &&  \
-    git clone https://github.com/CivicKnowledge/metatab.git &&  \
-    git clone https://github.com/CivicKnowledge/metapack.git # foobar
+# Setup the git venv
 
-ADD setup.sh /tmp/setup.sh
+RUN python3 -mvenv git
 
-RUN /tmp/setup.sh
+WORKDIR /opt/metapack/git
+
+RUN . bin/activate && \
+    bin/pip install --upgrade pip && \
+    bin/pip install --ignore-installed requests && \
+    bin/pip install pandas IPython nbconvert fiona shapely pyproj \
+                 terminaltables tabulate geopandas pybtex boto3 pyyaml markdown unicodecsv docopt \
+                 nameparser wheel datapackage fs && \
+    bin/pip install tableintuit pandasreporter metatabdecl # other Civic Knowledge packages
+
+ADD setup-git.sh /opt/metapack/git/setup.sh
+
+
+# Setup the pip venv
+
+WORKDIR /opt/metapack
+
+RUN python3 -mvenv pip
+
+WORKDIR /opt/metapack/pip
+
+RUN . bin/activate && \
+    bin/pip install --upgrade pip && \
+    bin/pip install --ignore-installed requests && \
+    bin/pip install pandas IPython nbconvert fiona shapely pyproj \
+                 terminaltables tabulate geopandas pybtex boto3 pyyaml markdown unicodecsv docopt \
+                 nameparser wheel datapackage fs && \
+    bin/pip install tableintuit pandasreporter  metatabdecl # other Civic Knowledge packages
+
+ADD setup-pip.sh /opt/metapack/pip/setup.sh
+
+# Run the final install scripts
+
+#RUN /tmp/setup-git.sh
+#RUN /tmp/setup-pip.sh
+
+
+VOLUME /opt/metapack
+WORKDIR /opt/metapack
+
 

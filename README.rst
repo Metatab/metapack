@@ -21,9 +21,9 @@ Metapack only works with Python 3.5 or later, and you'll almost certainly want t
     cd metapack
     source bin/activate
 
-Since we're stil in development, it may be best to install
+Since we're stil in development, you'll get the latest got by installing package from github, but you can also install from pip. In either case, you should create the virtualenv, and aterward, you'll have to reinstall the six package.
 
-Install the package from PiPy with:
+To install the package with pip:
 
 .. code-block:: bash
 

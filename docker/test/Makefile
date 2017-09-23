@@ -29,10 +29,10 @@ push:
 	$(DOCKER) push $(NS)/$(REPO):$(VERSION)
 
 shell:
-	$(DOCKER) run --rm  -i -t $(PORTS) $(VOLUMES) $(LINKS) $(ENV) $(NS)/$(REPO):$(VERSION) /bin/bash
+	$(DOCKER) run --rm  -ti $(PORTS) $(VOLUMES) $(LINKS) $(ENV) $(NS)/$(REPO):$(VERSION) /bin/bash
 
 run:
-	$(DOCKER) run --rm --name $(NAME) $(PORTS) $(VOLUMES) $(LINKS) $(ENV) $(NS)/$(REPO):$(VERSION)
+	$(DOCKER) run --rm -ti --name $(NAME) $(PORTS) $(VOLUMES) $(LINKS) $(ENV) $(NS)/$(REPO):$(VERSION)
 
 logs:
 	$(DOCKER) logs -f $(NAME) 
