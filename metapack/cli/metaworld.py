@@ -9,7 +9,7 @@ import sys
 from os import getcwd
 from os.path import join, basename
 
-from metatab import _meta, DEFAULT_METATAB_FILE, resolve_package_metadata_url, MetatabDoc, MetatabError, open_package
+from metatab import DEFAULT_METATAB_FILE, resolve_package_metadata_url, MetatabDoc, MetatabError, open_package
 from metatab.cli.core import err
 from rowgenerators import get_cache, Url
 from .core import prt, warn
@@ -29,7 +29,7 @@ def metaworld():
     import argparse
     parser = argparse.ArgumentParser(
         prog='metakan',
-        description='Publish packages to Data.World, version {}'.format(_meta.__version__))
+        description='Publish packages to Data.World')
 
     parser.add_argument('-i', '--info', default=False, action='store_true',
                    help="Show package information")

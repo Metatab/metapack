@@ -4,7 +4,6 @@ README.rst
 requirements.txt
 setup.py
 metatab/__init__.py
-metatab/_meta.py
 metatab/datapackage.py
 metatab/doc.py
 metatab/exc.py

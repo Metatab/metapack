@@ -28,9 +28,7 @@ def metaaws():
     import argparse
 
     parser = argparse.ArgumentParser(prog='metakan',
-                                     description='CKAN management of Metatab packages, version {}'.format(
-                                         _meta.__version__),
-                                     )
+                                     description='CKAN management of Metatab packages')
 
     parser.add_argument('-p', '--profile_name', type=str, nargs='?', help='Name of boto/aws credentials file')
     parser.set_defaults(subcommand=None)

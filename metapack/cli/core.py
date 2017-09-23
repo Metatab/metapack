@@ -16,7 +16,6 @@ from metapack.package.s3 import S3PackageBuilder
 from metapack.package.zip import ZipPackageBuilder
 from metapack.util import datetime_now
 from metatab import  DEFAULT_METATAB_FILE
-from metatab import _meta
 from metatab.util import make_metatab_file
 from rowgenerators import SelectiveRowGenerator
 from tableintuit import TypeIntuiter
@@ -51,18 +50,7 @@ def err(*args, **kwargs):
 
 
 def metatab_info(cache):
-    from tabulate import tabulate
-    from rowgenerators._meta import __version__ as rg_ver
-    from rowpipe._meta import __version__ as rp_ver
-
-    table = [
-        ('Version',_meta.__version__),
-        ('Row Generators', rg_ver),
-        ('Row Pipes', rp_ver),
-        ('Cache Dir', str(cache.getsyspath('/'))),
-    ]
-
-    prt(tabulate(table))
+   pass
 
 
 def new_metatab_file(mt_file, template):

@@ -17,7 +17,7 @@ from metapack.cli.core import prt, err, make_s3_package, PACKAGE_PREFIX
 from metapack.package import *
 from metapack.package.s3 import S3Bucket
 from metapack.util import datetime_now
-from metatab import _meta, DEFAULT_METATAB_FILE
+from metatab import DEFAULT_METATAB_FILE
 from rowgenerators.util import clean_cache
 from rowgenerators.util import fs_join as join
 

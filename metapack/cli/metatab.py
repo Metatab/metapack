@@ -9,7 +9,7 @@ CLI program for managing Metatab files
 import json
 import sys
 
-from metatab import _meta, DEFAULT_METATAB_FILE, resolve_package_metadata_url, MetatabDoc
+from metatab import DEFAULT_METATAB_FILE, resolve_package_metadata_url, MetatabDoc
 from metatab.cli.core import prt, new_metatab_file, err, dump_resource, dump_resources, dump_schema, cli_init
 from appurl import Url, get_cache
 from rowgenerators.util import clean_cache
@@ -19,7 +19,7 @@ def metatab():
     import argparse
     parser = argparse.ArgumentParser(
         prog='metatab',
-        description='Matatab file parser, version {}'.format(_meta.__version__))
+        description='Matatab file parser')
 
     parser.add_argument('-C', '--clean-cache', default=False, action='store_true',
                         help="Clean the download cache")
@@ -69,10 +69,6 @@ def metatab():
 
     cache = get_cache('metapack')
 
-    if args.info:
-        prt('Version  : {}'.format(_meta.__version__))
-        prt('Cache dir: {}'.format(str(cache.getsyspath('/'))))
-        exit(0)
 
     if args.clean_cache:
         clean_cache(cache)

@@ -27,14 +27,14 @@ To install the package with pip:
 
 .. code-block:: bash
 
-    $ pip install metapack
+    pip install metapack
 
 Because the fs package has an odd version requirement on `six`, you'll have to fix the version:
 
 .. code-block:: bash
 
-    $ pip uninstall six
-    $ pip install six==1.10.0
+    pip uninstall -y six
+    pip install six==1.10.0
 
 To run the tests, you'll also need to install some support modules;
 
