@@ -21,7 +21,7 @@ Metapack only works with Python 3.5 or later, and you'll almost certainly want t
     cd metapack
     source bin/activate
 
-Since we're stil in development, you'll get the latest got by installing package from github, but you can also install from pip. In either case, you should create the virtualenv, and aterward, you'll have to reinstall the six package.
+Since we're stil in development, you'll get the latest code by installing package from github, but you can also install from pip. In either case, you should create the virtualenv, and afterward, you'll have to reinstall the six package because of an odd conflict
 
 To install the package with pip:
 
@@ -42,27 +42,6 @@ To run the tests, you'll also need to install some support modules;
 
     $ pip install fiona shapely pyproj terminaltables geopandas
 
-
-Or, cut-and-paste this block:
-
-.. code-block:: bash
-
-
-    pip uninstall six; pip install six==1.10.0
-    pip install -y fiona shapely pyproj terminaltables geopandas
-
-Or, you can install the most recent packages from github using the requirements file in the `dev/requirements.txt` file. This file can be installed directly from github:
-
-.. code-block:: bash
-
-    python3 -mvenv metapack
-    cd metapack
-    source bin/activate
-    bash <(curl https://raw.githubusercontent.com/CivicKnowledge/metapack/master/dev/develop.sh)
-
-.. code-block:: bash
-
-    $ pip install https://github.com/CivicKnowledge/metatab-py.git
 
 Then test parsing using a remote file with:
 
