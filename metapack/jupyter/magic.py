@@ -107,7 +107,7 @@ class MetatabMagic(Magics):
         # Give all of the sections their standard args, to make the CSV versions of the doc
         # prettier
 
-        for name, s in inline_doc.sections.items():
+        for name, s in inline_doc._sections.items():
             try:
                 s.args = inline_doc.decl_sections[name.lower()]['args']
             except KeyError:

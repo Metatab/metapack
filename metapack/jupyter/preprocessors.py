@@ -188,7 +188,7 @@ class ExtractFinalMetatabDoc(Preprocessor):
                 # Give all of the sections their standard args, to make the CSV versions of the doc
                 # prettier
 
-                for name, s in self.doc.sections.items():
+                for name, s in self.doc._sections.items():
                     try:
                         s.args = self.doc.decl_sections[name.lower()]['args']
                     except KeyError:

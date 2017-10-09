@@ -59,7 +59,7 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
 
 
     @classmethod
-    def match(cls, url, **kwargs):
+    def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be contructed through matching")
 
 
@@ -295,7 +295,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
         self.path = md.path
 
     @classmethod
-    def match(cls, url, **kwargs):
+    def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be contructed through matching")
 
 
@@ -374,7 +374,7 @@ class MetapackUrl(Url):
             return MetapackDocumentUrl(url, downloader, **kwargs)
 
     @classmethod
-    def match(cls, url, **kwargs):
+    def _match(cls, url, **kwargs):
         """Return True if this handler can handle the input URL"""
         return url.proto in ('metapack', 'metatab')
 
@@ -386,10 +386,10 @@ class JupyterNotebookUrl(FileUrl):
         super().__init__(url, **kwargs)
 
     @classmethod
-    def match(cls, url, **kwargs):
+    def _match(cls, url, **kwargs):
         return url.resource_format == 'ipynb'
 
-    def get_target(self, mode=None):
+    def get_target(self):
         return self
 
 

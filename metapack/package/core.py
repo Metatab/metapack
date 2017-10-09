@@ -105,7 +105,7 @@ class PackageBuilder(object):
 
     @property
     def documentation(self):
-        for t in self.doc.terms:
+        for t in self.doc._terms:
             if t.term_is(['root.documentation']):
                 yield Resource(t, self)
 

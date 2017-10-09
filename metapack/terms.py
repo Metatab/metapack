@@ -18,10 +18,6 @@ class Resource(Term):
                  parent=None, doc=None, section=None,
                  ):
 
-        # self.base_url = base_url
-        # self.package = package
-        # self.code_path = code_path
-        # self.env = env if env is not None else {}
 
         self.errors = {}  # Typecasting errors
 
@@ -55,21 +51,16 @@ class Resource(Term):
 
         return self.doc.cache.opendir(sub_dir).getsyspath(slugify(self.name) + '.py')
 
-    @property
-    def _self_url(self):
-        """Return the URl value, which might just be the value, and not self.url, if the document
-        declartion is broken"""
-        return self.url
 
     @property
     def resolved_url(self):
         """Return a URL that properly combines the base_url and a possibly relative
         resource url"""
 
-        if not self._self_url:
+        if not self.url:
             return None
 
-        u = parse_app_url(self._self_url)
+        u = parse_app_url(self.url)
 
         if u.scheme != 'file':
             # Hopefully means the URL is http, https, ftp, etc.
@@ -77,7 +68,7 @@ class Resource(Term):
         elif u.resource_format == 'ipynb':
 
             # This shouldn't be a special case, but ...
-            t = self.doc.package_url.inner.join_dir(self._self_url)
+            t = self.doc.package_url.inner.join_dir(self.url)
             t = t.as_type(type(u))
             t.fragment = u.fragment
 
@@ -86,10 +77,10 @@ class Resource(Term):
                 type(self.doc.package_url), self.doc.package_url)
 
             try:
-                t = self.doc.package_url.resolve_url(self._self_url)
+                t = self.doc.package_url.resolve_url(self.url)
 
                 # Also a hack
-                t.scheme_extension = parse_app_url(self._self_url).scheme_extension
+                t.scheme_extension = parse_app_url(self.url).scheme_extension
 
                 # Yet more hack!
                 t = parse_app_url(str(t))
