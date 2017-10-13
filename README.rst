@@ -1,5 +1,5 @@
-Metatab
-=======
+Metapack, Metatab Data Packaging
+================================
 
 Parse and manipulate structured data and metadata in a tabular format.
 
@@ -43,7 +43,7 @@ To run the tests, you'll also need to install some support modules;
     $ pip install fiona shapely pyproj terminaltables geopandas
 
 
-Then test parsing using a remote file with:
+Then test parsing using a remote file with the ``metatab`` program, from teh ``metatab`` module:
 
 .. code-block:: bash
 
@@ -52,6 +52,8 @@ Then test parsing using a remote file with:
 Run ``metatab -h`` to get other program options.
 
 The ``test-data`` directory has test files that also serve as examples to parse. You can either clone the repo and parse them from the files, or from the Github page for the file, click on the ``raw`` button to get raw view of the flie, then copy the URL.
+
+The main program for metapack is `mt`, which has a number of ( extensible) sub commands. See the commands with: `mt -h`.
 
 Getting Started
 ---------------
