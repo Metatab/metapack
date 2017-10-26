@@ -7,7 +7,7 @@ Exporter to convert a notebook into a Metatab package.
 """
 
 import logging
-
+import sys
 import copy
 import io
 import metapack
@@ -93,13 +93,15 @@ class DocumentationExporter(MetatabExporter):
         c.MarkdownExporter.preprocessors = ['metapack.jupyter.preprocessors.RemoveMagics']
 
         c.PDFExporter.preprocessors = [
-            'metapack.jupyter.preprocessors.NoShowInput',
+            #'metapack.jupyter.preprocessors.NoShowInput',
             'metapack.jupyter.preprocessors.RemoveMetatab',
             'metapack.jupyter.preprocessors.LatexBib',
             'metapack.jupyter.preprocessors.MoveTitleDescription'
         ]
+
         c.PDFExporter.exclude_input_prompt = True
-        c.PDFExporter.exclude_output_prompt = True
+        # Excluding the output prompt also excludes the output tables.
+        #.PDFExporter.exclude_output_prompt = True
 
         c.merge(super(DocumentationExporter, self).default_config)
         return c
@@ -134,13 +136,17 @@ class DocumentationExporter(MetatabExporter):
             .preprocess(nb, resources)
 
     def add_pdf(self, nb, resources):
-        exp = PDFExporter(config=self.config, template_file='notebook.tplx')
+
+        template_file =  'notebook.tplx'
+
+
+        exp = PDFExporter(config=self.config, template_file=template_file)
 
         (body, _) = exp.from_notebook_node(nb)
 
         resources['outputs']['documentation.pdf'] = body
 
-        exp = LatexExporter(config=self.config, template_file='notebook.tplx')
+        exp = LatexExporter(config=self.config, template_file=template_file)
 
         (body, _) = exp.from_notebook_node(nb)
 
@@ -167,7 +173,7 @@ class DocumentationExporter(MetatabExporter):
 
         resources['outputs']['documentation.md'] = md_body.encode('utf-8')
 
-    def update_metatab(self, doc, resources):
+    def update_metatab(self, doc, resources, doc_resources):
         """Add documentation entries for resources"""
         if not 'Documentation' in doc:
             doc.new_section("Documentation")
@@ -222,12 +228,20 @@ class NotebookExecutor(MetatabExporter):
         c.merge(super(NotebookExecutor, self).default_config)
         return c
 
+
+
     def get_package_dir_name(self, nb):
+        """This is the name of the package we will be creating. """
+
+        package_dir = self.package_dir
+
+        if not package_dir:
+            package_dir = getcwd()
 
         package_name = self.package_name
 
         if not package_name:
-            doc = ExtractInlineMetatabDoc().run(nb)
+            doc = ExtractInlineMetatabDoc(package_url="metapack+file:" +package_dir).run(nb)
 
             if not doc:
                 raise NotebookError("Notebook does not have an inline metatab doc")
@@ -238,11 +252,6 @@ class NotebookExecutor(MetatabExporter):
                 raise NotebookError("Inline Metatab doc doesnt have a Root.Name term")
 
             package_name = doc.as_version(None)
-
-        package_dir = self.package_dir
-
-        if not package_dir:
-            package_dir = getcwd()
 
         return package_dir, package_name
 
@@ -277,7 +286,10 @@ class NotebookExecutor(MetatabExporter):
             self.output_dir = self.get_output_dir(nb)
         except NotebookError as e:
             # Notebook probably lacks a metatab doc.
-            self.log.warn(e)
+            self.log.fatal(e)
+            sys.exit(1)
+
+        assert self.output_dir
 
         resources = self._init_resources(resources)
 
@@ -294,7 +306,6 @@ class NotebookExecutor(MetatabExporter):
 
         # Clear the output before executing
         self.clear_output(nb_copy)
-
 
         nb_copy, resources = self.exec_notebook(nb_copy, resources, self.notebook_dir)
 

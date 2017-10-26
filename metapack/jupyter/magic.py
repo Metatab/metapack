@@ -11,25 +11,29 @@ jupyter nbextension install --py metatab.jupyter.magic
 from __future__ import print_function
 
 import logging
+import os
 import shlex
 import sys
-import docopt
-
-from IPython import get_ipython
-from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
-from IPython.display import  display, HTML, Latex
 from collections import OrderedDict
-from metapack import MetapackDoc, Downloader
-from metapack.cli.core import process_schemas
-from metatab.generate import TextRowGenerator
-from appurl import parse_app_url
 from os import makedirs, getcwd
 from os.path import join, abspath, dirname, exists, normpath
 from warnings import warn
-from metapack.html import bibliography, data_sources
 
+import docopt
+from IPython import get_ipython
+from IPython.core.magic import Magics, magics_class, line_magic, cell_magic, line_cell_magic
 from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
+from IPython.display import  display, HTML, Latex
+
+from appurl import Downloader
+from appurl import parse_app_url
+from metapack import MetapackDoc
+from metapack.appurl import MetapackPackageUrl
+from metapack.cli.core import process_schemas
+from metapack.html import bibliography, data_sources
+from metatab import TermParser
+from metatab.generate import TextRowGenerator
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -45,25 +49,36 @@ class MetatabMagic(Magics):
 
     """
 
-    def _get_notebook_dir(self):
-        """Return the directory the notebook is in. This is either based on the path set by
-        %mt_notebook_path, or the current directory"""
-
-        try:
-            return dirname(self.shell.user_ns['_notebook_path'])
-        except KeyError:
-            pass
-
-        try:
-            return self.shell.user_ns['_notebook_dir']
-        except KeyError:
-            return getcwd()
 
 
     @property
     def mt_doc(self):
         """Return the current metatab document, which must be created with either %%metatab
         or %mt_load_package"""
+
+
+
+        if MT_DOC_VAR not in self.shell.user_ns:
+
+            package_url = MetapackPackageUrl("metapack+file:" + os.getcwd() + '/', downloader=Downloader())
+
+            self.shell.user_ns[MT_DOC_VAR] = \
+                MetapackDoc(TextRowGenerator("Declare: metatab-latest\n"), package_url=package_url)
+
+            inline_doc = self.shell.user_ns[MT_DOC_VAR]
+
+            if not 'Resources' in inline_doc:
+                inline_doc.new_section('Resources', ['Name', 'Description'])
+            if not 'Resources' in inline_doc:
+                inline_doc.new_section('References', ['Name', 'Description'])
+
+            # Give all of the sections their standard args, to make the CSV versions of the doc
+            # prettier
+            for name, s in inline_doc.sections.items():
+                try:
+                    s.args = inline_doc.decl_sections[name.lower()]['args']
+                except KeyError:
+                    pass
 
         return self.shell.user_ns[MT_DOC_VAR]
 
@@ -73,6 +88,39 @@ class MetatabMagic(Magics):
         or %mt_load_package"""
 
         return self.shell.user_ns['_package_dir']
+
+    def add_term_lines(self, text):
+
+
+        assert 'root.reference' in TermParser.term_classes
+
+        tp = TermParser(TextRowGenerator(text), resolver= self.mt_doc.resolver, doc= self.mt_doc)
+
+        self.mt_doc.load_terms(tp)
+
+
+    def clean_doc(self, doc):
+
+        # Some sections have terms that are unique on Name
+
+        for sec in ['Resources','References','Bibliography', 'Schema', 'Contacts']:
+            try:
+                seen = set()
+                for t in doc[sec]:
+                    if t.name in seen:
+                        doc.remove_term(t)
+                    seen.add(t.name)
+            except KeyError:
+                pass
+
+        # For the Root, just make every term unique name term name, keeping the last one
+
+        seen = {}
+        for t in list(doc['Root']):
+            if t.term in seen:
+                extant = seen[t.term]
+                doc.remove_term(extant)
+            seen[t.term] = t
 
     @magic_arguments()
     @argument('-s', '--show', help='After loading, display the document', action='store_true')
@@ -84,40 +132,22 @@ class MetatabMagic(Magics):
 
         args = parse_argstring(self.metatab, line)
 
-        inline_doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n" + cell))
+        inline_doc = self.mt_doc
+
+        self.add_term_lines(cell)
 
         extant_identifier = inline_doc.get_value('Root.Identifier')
-
         extant_name = inline_doc.get_value('Root.Name')
 
         inline_doc.update_name(force=True, create_term=True)
 
-        if not 'Resources' in inline_doc:
-            inline_doc.new_section('Resources', ['Name', 'Description'])
-        else:
-            inline_doc['Resources'].args = \
-                list(OrderedDict(
-                    (c.record_term.title(), None) for t in inline_doc['Resources'].terms for c in t.children).keys())
-
-        if not 'References' in inline_doc:
-            inline_doc.new_section('References', ['Name', 'Description'])
-
         process_schemas(inline_doc)
 
-        # Give all of the sections their standard args, to make the CSV versions of the doc
-        # prettier
-
-        for name, s in inline_doc._sections.items():
-            try:
-                s.args = inline_doc.decl_sections[name.lower()]['args']
-            except KeyError:
-                pass
+        self.clean_doc(inline_doc)
 
         if args.show:
             for l in inline_doc.lines:
                 print(': '.join(str(e) for e in l))
-
-        self.shell.user_ns['_notebook_dir'] = getcwd()
 
         if args.package_dir:
             self.shell.user_ns['_package_dir'] = abspath(join(getcwd(), args.package_dir))
@@ -125,12 +155,11 @@ class MetatabMagic(Magics):
             self.shell.user_ns['_package_dir'] = join(getcwd(), inline_doc.get_value('Root.Name'))
 
         if extant_identifier != inline_doc.get_value('Root.Identifier'):
-            print("Identifier updated. \nSet 'Identifier: {}'  in document".format(inline_doc.get_value('Root.Identifier')))
+            print("Identifier updated.  Set 'Identifier: {}'  in document".format(inline_doc.get_value('Root.Identifier')))
 
         if extant_name != inline_doc.get_value('Root.Name'):
-            print("Name Changed\nSet 'Name: {}'  in document".format(inline_doc.get_value('Root.Name')))
+            print("Name Changed. Set 'Name: {}'  in document".format(inline_doc.get_value('Root.Name')))
 
-        self.shell.user_ns[MT_DOC_VAR] = inline_doc
 
     @magic_arguments()
     @argument('-s', '--source', help='Force opening the source package', action='store_true')
@@ -138,12 +167,11 @@ class MetatabMagic(Magics):
     def mt_open_package(self, line):
         """Find the metatab file for this package, open it, and load it into the namespace. """
 
-        from metapack.jupyter.ipython import open_package, open_source_package
+        from metapack.jupyter.ipython import open_package
 
         args = parse_argstring(self.mt_open_package, line)
         self.shell.user_ns[MT_DOC_VAR] = open_package(self.shell.user_ns)
 
-        self.shell.user_ns['_notebook_dir'] = getcwd()
 
         if self.mt_doc.package_url:
             u = parse_app_url(self.mt_doc.package_url)
@@ -300,92 +328,118 @@ class MetatabMagic(Magics):
         except KeyError:
             pass
 
-
-    @line_magic
-    def mt_add_dataframe(self, line):
+    @magic_arguments()
+    @argument('-m','--materialize', help='Save the data for the dataframe during package conversion', action="store_true")
+    @argument('-n','--name', help='Metadata reference name of the dataframe')
+    @argument('-t','--title', help='Title of the dataframe')
+    @argument('-d', '--dump', help='Dump example schema for the dataframe', action="store_true")
+    @argument('--feather', help='Materialize with feather', action="store_true")
+    @argument('dataframe_name', nargs=1, help='Variable name of the dataframe name')
+    @line_cell_magic
+    def mt_add_dataframe(self, line, cell=''):
         """Add a dataframe to a metatab document's data files
-
-        Usage: mt_add_dataframe [options] <dataframe_name>
-
-        Options:
-            dataframe_name    Variable name of the dataframe
-            -h, --help         Show this screen.
-            -t <title>, --title <title>      Title of the dataframe
-            -n <name>, --name  <name>        Metadata reference name of the dataframe
-            -m , --materialize               Save the data for the dataframe
-
 
         """
         from metapack.jupyter.core import process_schema
+        from metatab.exc import ParserError
 
-        try:
-            args = docopt.docopt(self.mt_add_dataframe.__doc__, argv=shlex.split(line))
-        except docopt.DocoptExit as e:
-            warn(str(e))
-            return
-        except SystemExit:
-            return
+        args = parse_argstring(self.mt_add_dataframe, line)
 
+        dataframe_name = args.dataframe_name[0]
 
         if not '_material_dataframes' in self.shell.user_ns:
             self.shell.user_ns['_material_dataframes'] = {}
 
-        df = self.shell.user_ns[args['<dataframe_name>']]
+        df = self.shell.user_ns[dataframe_name]
 
-        if hasattr(df, 'name'):
-            # It's a Metatab dataframe, with special properties
+        try:
+            cell_doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n" + cell))
+        except ParserError as e:
+            warn('Failed to parse Metatab in cell: {} '.format(e))
+            return
 
-            name = args['--name'] or df.name or args['<dataframe_name>']
-            title = args['--title'] or df.title or df.desc or ''
+        cell_table = cell_doc.find_first('Root.Table')
 
+        if cell_table and ( args.name or args.title ):
+            warn("The name and title arguments are ignored when the cell includes a Metatab table definition")
+
+        if cell_table:
+            name = cell_table.get_value('name')
+            title = cell_table.get_value('title','')
+            description = cell_table.get_value('description','')
         else:
-            name = args['--name'] or args['<dataframe_name>']
-            title = args['--title'] or ''
+            name = None
+            title = ''
+            description = ''
+
 
         if not name:
-            warn("Failed to materialize '{}'; name must be set with .name property, or --name option".format(args['<dataframe_name>']))
+            name = args.name or dataframe_name;
+
+        if not title:
+            title = args.title or dataframe_name
+
+        if not name:
+            warn("Name must be set with .name property, or --name option".format(args['<dataframe_name>']))
             return
+
+        title = title.strip("'").strip('"')
 
         try:
             doc = self.mt_doc
         except KeyError:
             doc = None
 
-        if args['--materialize']:
+        if args.materialize:
             ref = 'file:data/{}.csv'.format(name)
-            self.shell.user_ns['_material_dataframes'][args['<dataframe_name>']] = ref
+            self.shell.user_ns['_material_dataframes'][dataframe_name] = ref
 
         elif doc is not None:
-            ref = 'ipynb:notebooks/{}.ipynb#{}'.format( doc.as_version(None), args['<dataframe_name>'])
+            ref = 'ipynb:notebooks/{}.ipynb#{}'.format( doc.as_version(None), dataframe_name)
 
         else:
             ref = None
+
+        table = None
+
+        resource_term = None
 
         if doc and ref:
             if not 'Resources' in doc:
                 doc.new_section('Resources')
 
-            t = doc['Resources'].get_or_new_term("Root.Datafile", ref)
+            resource_term = doc['Resources'].get_or_new_term("Root.Datafile", ref)
 
-            t['name'] = name
-            t['title'] = title
+            resource_term['name'] = name
+            resource_term['title'] = title
+            resource_term['description'] = description
 
-            process_schema(doc, doc.resource(name), df)
+            table = process_schema(doc, doc.resource(name), df)
 
-    @line_magic
-    def mt_notebook_path(self, line):
-        """Set the notebook path in the notebook, for use by other magics during execution"""
+            if not table:
+                table = doc['Schema'].find_first('Root.Table', name)
 
-        from os import getcwd
+        if cell_table:
 
-        if not line.strip():
-            # If the magic is used before any changes in directory, the notebok dir will
-            # be the current directory
-            self.shell.user_ns['_notebook_dir'] = getcwd()
+            for c in table.find('Table.Column'):
 
-        else:
-            self.shell.user_ns['_notebook_path'] = line.strip()
-            self.shell.user_ns['_notebook_dir'] = dirname(self.shell.user_ns['_notebook_path'])
+                cell_column = cell_table.find_first('Table.Column', c.name)
+
+                if cell_column:
+                    c.description = cell_column.description
+
+        if args.dump and table:
+            print("Table:", resource_term.name)
+
+            if resource_term and resource_term.title:
+                print("Table.Title:", resource_term.get_value('title'))
+                print("Table.Description:", resource_term.get_value('description') if resource_term.get_value('description')  else '')
+
+            for c in table.find('Table.Column'):
+                print("Table.Column:", c.name)
+                print("  .Datatype:", c.datatype)
+                print("  .Description:",  c.description or '')
+
 
     @magic_arguments()
     @argument('--format', help="Format, html or latex. Defaults to 'all' ", default='all', nargs='?', )

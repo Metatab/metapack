@@ -7,7 +7,6 @@ Extensions to the MetatabDoc, Resources and References, etc.
 
 EMPTY_SOURCE_HEADER = '_NONE_'  # Marker for a column that is in the destination table but not in the source
 
-
 from metatab import MetatabDoc, WebResolver
 
 from metapack.appurl import MetapackDocumentUrl, MetapackResourceUrl, MetapackUrl
@@ -45,7 +44,7 @@ class MetapackDoc(MetatabDoc):
             ref = MetapackDocumentUrl(str(ref), downloader=self.downloader)
 
         self.register_term_class('root.resource', 'metapack.terms.Resource')
-        self.register_term_class('root.reference', 'metapack.terms.Resource')
+        self.register_term_class('root.reference', 'metapack.terms.Reference')
         self.register_term_class('root.distribution', 'metapack.terms.Distribution')
 
         resolver = resolver or Resolver()
@@ -85,24 +84,38 @@ class MetapackDoc(MetatabDoc):
         except ImportError:
             return None
 
+    def set_sys_path(self):
+        from os.path import join, isdir, dirname, abspath
+        import sys
+
+        if not self.ref:
+            return False
+
+        u = parse_app_url(self.ref)
+        doc_dir = dirname(abspath(u.path))
+        # Add the dir with the metatab file to the system path
+
+        if isdir(join(doc_dir, 'lib')):
+            if not 'docdir' in sys.path:
+                sys.path.insert(0, doc_dir)
+            return True
+        else:
+            return False
+
     def get_lib_module_dict(self):
         """Load the 'lib' directory as a python module, so it can be used to provide functions
         for rowpipe transforms. This only works filesystem packages"""
 
-        from os.path import dirname, abspath, join, isdir
         from importlib import import_module
-        import sys
+
+        if not self.ref:
+            return {}
 
         u = parse_app_url(self.ref)
 
         if u.scheme == 'file':
 
-            doc_dir = dirname(abspath(u.path))
-
-            # Add the dir with the metatab file to the system path
-            sys.path.append(doc_dir)
-
-            if not isdir(join(doc_dir, 'lib')):
+            if not self.set_sys_path():
                 return {}
 
             try:
@@ -204,10 +217,10 @@ class MetapackDoc(MetatabDoc):
             return out
 
         t = Template("""
-# {{title}}
-<p>{{name}}</p>
-<p>{{description}}</p>
-<p>{{ref}}</p>
+# {{title|default("", True) }}
+<p>{{name|default("", True)}}</p>
+<p>{{description|default("", True) }}</p>
+<p>{{ref|default("", True)}}</p>
 {% if documentation %}
 ## Documentation
 {{doc}}
@@ -227,6 +240,18 @@ class MetapackDoc(MetatabDoc):
 {% endif %}
 </ol>""")
 
+        try:
+            resources = '\n'.join(
+                ["<li>" + resource_repr(r) + "</li>" for r in self['Resources'].find('Root.Resource')])
+        except KeyError as e:
+            resources = None
+
+        try:
+            references = '\n'.join(
+                ["<li>" + resource_repr(r) + "</li>" for r in self['References'].find('Root.Resource')])
+        except KeyError as e:
+            references = None
+
         v = t.render(
             title=self.find_first_value('Root.Title', section='Root'),
             name=self.find_first_value('Root.Name', section='Root'),
@@ -234,8 +259,8 @@ class MetapackDoc(MetatabDoc):
             description=self.find_first_value('Root.Description', section='Root'),
             doc=documentation(),
             contact=contacts(),
-            resources='\n'.join(["<li>" + resource_repr(r) + "</li>" for r in self['Resources'].find('Root.Resource')]),
-            references='\n'.join(["<li>" + resource_repr(r) + "</li>" for r in self['References'].find('Root.Resource')]),
+            resources=resources,
+            references=references,
 
         )
 

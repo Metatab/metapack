@@ -139,8 +139,11 @@ def process_schema(doc, resource, df):
         t = table.new_child('Column', c['header'],
                             datatype=type_map.get(c['resolved_type'], c['resolved_type']),
                             altname=alt_name,
-                            description=df[c['header']].description if df[c['header']].description else ''
+                            description=df[c['header']].description \
+                                        if hasattr(df, 'description') and df[c['header']].description else ''
                             )
+
+    return table
 
 
 def write_geojson(path_or_flo, columns, gen):

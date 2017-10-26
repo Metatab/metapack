@@ -167,6 +167,40 @@ class TestIPython(unittest.TestCase):
 
         print(fs_url)
 
+    def test_nbconvert(self):
+
+        from collections import namedtuple
+        from metapack.jupyter.convert import convert_documentation
+
+        cli_init()
+
+        M = namedtuple('M', 'mt_file')
+
+        fn = test_data('notebooks/ConversionTest.ipynb')
+
+        m = M(mt_file=parse_app_url(fn))
+
+        convert_documentation(m)
+
+    def test_nbconvert_package(self):
+
+        from collections import namedtuple
+        from metapack.jupyter.convert import convert_notebook
+
+        cli_init()
+
+        M = namedtuple('M', 'mt_file mtfile_arg init_stage2')
+
+        fn = test_data('notebooks/ConversionTest.ipynb')
+
+        m = M(mt_file=parse_app_url(fn), mtfile_arg=parse_app_url(fn),
+              init_stage2=lambda x,y: None)
+
+        convert_notebook(m)
+
+
+
+
 
     def x_test_pandas(self):
 
@@ -184,22 +218,6 @@ class TestIPython(unittest.TestCase):
 
         print(df.head())
 
-    def x_test_text_row_generator(self):
-
-        from metatab.generate import TextRowGenerator
-
-        # Generate the text output:
-        cdoc = MetatabDoc(test_data('example1.csv'))
-
-        with (open(test_data('example1.txt'), 'w')) as f:
-            for line in cdoc.lines:
-                f.write(': '.join(line))
-                f.write('\n')
-
-        # Load it back in.
-        doc = MetatabDoc(TextRowGenerator(test_data('example1.txt'), 'example1.csv'))
-
-        self.assertEqual(len(list(cdoc.all_terms)), len(list(doc.all_terms)))
 
     def x_test_metatab_line(self):
         from metatab.generate import TextRowGenerator
@@ -216,38 +234,8 @@ class TestIPython(unittest.TestCase):
         for c in r.columns():
             print(c)
 
-    def x_test_nbconvert(self):
 
-        from metatab.jupyter.exporters import PackageExporter
 
-        from traitlets.config import  Config
-        from metatab.jupyter.exporters import PackageExporter
-        import logging
-
-        logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger('PackageExporter')
-        logger.setLevel(logging.INFO)
-
-        c = Config()
-
-        pe = PackageExporter(config=c)
-
-        pe.from_filename(test_data('notebooks/MagicsTest.ipynb'))
-
-    def x_test_get_ipython(self):
-
-        from metatab.jupyter.script import  ScriptIPython
-
-        foo = 'bar'
-
-        sp = ScriptIPython()
-
-        sp.system('pwd')
-
-        self.assertIn('foo', sp.user_ns)
-        self.assertIn('bar', sp.user_ns['foo'])
-
-        print(sp.user_ns)
 
 
     def x_test_ipy(self):

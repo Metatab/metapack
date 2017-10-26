@@ -79,6 +79,7 @@ setup(
             'pack=metapack.cli.metapack:metapack',
             's3=metapack.cli.metas3:metas3',
             'ckan=metapack.cli.metakan:metakan'
+            'notebook=metapack.cli.notebook:notebook'
         ]
 
 
@@ -87,7 +88,7 @@ setup(
     include_package_data=True,
     author='Eric Busboom',
     author_email='eric@civicknowledge.com',
-    url='https://github.com/CivicKnowledge/metapack.git',
+    url='https://github.com/Metatab/metapack.git',
     license='BSD',
     classifiers=classifiers,
     extras_require={

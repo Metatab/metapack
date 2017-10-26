@@ -384,7 +384,7 @@ def process_schemas(mt_file, cache=None, clean=False):
 
         prt("Processing {}".format(r.url))
 
-        slice = islice(r.row_generator, 100)
+        slice = islice(r.row_generator, 500)
 
         si = SelectiveRowGenerator(slice,
                                    headers=[int(i) for i in r.get_value('headerlines', '0').split(',')],

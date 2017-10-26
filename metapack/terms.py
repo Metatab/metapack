@@ -82,6 +82,9 @@ class Resource(Term):
                 # Also a hack
                 t.scheme_extension = parse_app_url(self.url).scheme_extension
 
+                # Another Hack!
+                t.fragment = u.fragment
+
                 # Yet more hack!
                 t = parse_app_url(str(t))
 
@@ -91,6 +94,10 @@ class Resource(Term):
                 raise
 
         return t
+
+    @property
+    def parsed_url(self):
+        return parse_app_url(self.url)
 
     def _name_for_col_term(self, c, i):
 
@@ -219,9 +226,7 @@ class Resource(Term):
     @property
     def generator_env(self):
 
-
         d = {
-
             # These become their own env vars.
             'CACHE_DIR': self._doc._cache.getsyspath('/'),
             'RESOURCE_NAME': self.name,
@@ -230,7 +235,6 @@ class Resource(Term):
             'METATAB_DOC': str(self._doc.ref),
             'METATAB_WORKING_DIR': str(self._doc.doc_dir),
             'METATAB_PACKAGE': str(self._doc.package_url)
-
         }
 
         d.update(self.all_props)
@@ -240,6 +244,9 @@ class Resource(Term):
 
     @property
     def row_generator(self):
+        import sys
+
+        self.doc.set_sys_path() # Set sys path to package 'lib' dir in case of python function generator
 
         ru = self.resolved_url
 
@@ -261,7 +268,9 @@ class Resource(Term):
 
         table = self.row_processor_table()
 
-        g = get_generator(ut, table=table, resource=self, doc=self._doc, working_dir=self._doc.doc_dir, env=self.generator_env)
+        g = get_generator(ut, table=table, resource=self,
+                          doc=self._doc, working_dir=self._doc.doc_dir,
+                          env=self.generator_env)
 
         assert g, ut
 
@@ -408,45 +417,34 @@ class Resource(Term):
 
 
 class Reference(Resource):
-    def xdataframe(self, limit=None):
-        """Return a Pandas Dataframe using read_csv or read_excel"""
 
-        from pandas import read_csv
-        from rowgenerators import download_and_cache
-        from metapack.jupyter.pands import MetatabDataFrame, MetatabSeries
+    def read_csv(self, *args, **kwargs):
+        """Fetch the target and pass through to pandas.read_csv
 
-        df = self._upstream_dataframe(limit)
+        Don't provide the first argument of read_csv(); it is supplied internally.
+        """
+        import pandas
 
-        if df is not None:
-            self._convert_geometry(df)
-            return df
+        t = self.resolved_url.get_resource().get_target()
 
-        rg = self.row_generator
+        return pandas.read_csv(t.path, *args, **kwargs)
 
-        # Download, cache and possibly extract an inner file.
-        info = download_and_cache(rg.generator.spec, self._doc._cache, logger=None, working_dir='', callback=None)
+    def read_fwf(self, *args, **kwargs):
+        """Fetch the target and pass through to pandas.read_fwf.
 
-        try:
-            skip = int(self.get_value('startline', 1)) - 1
-        except ValueError as e:
-            skip = 0
+        Don't provide the first argument of read_fwf(); it is supplied internally. """
+        import pandas
 
-        df = read_csv(
-            info['sys_path'],
-            skiprows=skip
-        )
+        t = self.resolved_url.get_resource().get_target()
 
-        df.columns = self._get_header()
+        return pandas.read_fwf(t.path, *args, **kwargs)
 
-        df.__class__ = MetatabDataFrame
-        df.metatab_resource = self
-        df.metatab_errors = {}
+    def readlines(self):
+        """Load the target, open it, and return the result from readlines()"""
 
-        for c in df.columns:
-            df[c].__class__ = MetatabSeries
-
-        return df
-
+        t = self.resolved_url.get_resource().get_target()
+        with open(t.path) as f:
+            return f.readlines()
 
 class Distribution(Term):
 

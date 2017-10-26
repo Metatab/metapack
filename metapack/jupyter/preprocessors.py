@@ -12,8 +12,12 @@ from .magic import MetatabMagic
 from nbformat.notebooknode import from_dict
 from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
-from metapack import MetapackDoc
 
+from metatab import TermParser
+from metapack import MetapackDoc
+from metatab.generate import TextRowGenerator
+from appurl import Downloader, parse_app_url
+from metapack.appurl import MetapackPackageUrl
 
 class RemoveDocsFromImages(Preprocessor):
     """Change the file name for images, because they are in the sam dir as the HTML files"""
@@ -85,7 +89,8 @@ class LatexBib(HtmlBib):
 
 
 class MoveTitleDescription(Preprocessor):
-    """NBConvert preprocessor to remove the %metatab block"""
+    """Look for Markdown cells with Title or Description tags, clear them out. The ExtractMetatabTerms
+    preprocessor is used to move these values into the Metatab metadata"""
 
     def preprocess(self, nb, resources):
 
@@ -133,21 +138,41 @@ class ExtractMetatabTerms(Preprocessor):
         return cell, resources
 
 class ExtractInlineMetatabDoc(ExtractMetatabTerms):
-    """Extract the Inlined Metatab document. WIll Apply the metatab cell vaules for
+    """Extract the Inlined Metatab document. Will Apply the metatab cell vaules for
     the Title and Description to the document terms. """
 
+    package_url = Unicode(help='Metapack Package Url').tag(config=True)
+
     doc = None
+
+    extra_terms = None
 
     def preprocess_cell(self, cell, resources, index):
         import re
         from metatab.generate import TextRowGenerator
 
+        if not self.extra_terms:
+            self.extra_terms = []
+
         if cell['source'].startswith('%%metatab'):
-            self.doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n" +
-                                                   re.sub(r'\%\%metatab.*\n', '', cell['source'])))
+
+            tp = TermParser(TextRowGenerator(re.sub(r'\%\%metatab.*\n', '', cell['source'])),
+                            resolver=self.doc.resolver, doc=self.doc)
+
+            self.doc.load_terms(tp)
+
+        elif cell['cell_type'] == 'markdown':
+
+            tags = cell['metadata'].get('tags', [])
+
+            if 'Title' in tags:
+                self.extra_terms.append(('Root', 'Root.Title', cell.source.strip().replace('#', '')))
+
+            elif 'Description' in tags:
+                self.extra_terms.append(('Root', 'Root.Description', cell.source.strip()))
+
         else:
             cell, resources = super().preprocess_cell(cell,resources,index)
-
 
         return cell, resources
 
@@ -162,10 +187,17 @@ class ExtractInlineMetatabDoc(ExtractMetatabTerms):
 
     def run(self, nb):
 
+        assert str(self.package_url)
+
+        self.doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n"),
+                               package_url=parse_app_url(self.package_url))
+
         self.preprocess(nb,{})
 
-        return self.doc
+        for section, term, value in self.extra_terms:
+            self.doc[section].get_or_new_term(term, value)
 
+        return self.doc
 
 class ExtractFinalMetatabDoc(Preprocessor):
     """Extract the metatab document produced from the %mt_show_metatab magic"""
@@ -188,14 +220,13 @@ class ExtractFinalMetatabDoc(Preprocessor):
                 # Give all of the sections their standard args, to make the CSV versions of the doc
                 # prettier
 
-                for name, s in self.doc._sections.items():
+                for name, s in self.doc.sections.items():
                     try:
                         s.args = self.doc.decl_sections[name.lower()]['args']
                     except KeyError:
                         pass
 
         return cell, resources
-
 
 class ExtractMaterializedRefs(Preprocessor):
     """Extract the metatab document produced from the %mt_show_metatab magic"""
@@ -356,7 +387,7 @@ class AddEpilog(Preprocessor):
     def preprocess(self, nb, resources):
         from datetime import datetime
 
-        # Well, wre adding prolog in the epilog ...
+        # Well, now we adding prolog in the epilog ...
         nb.cells = [
                from_dict({
                    'cell_type': 'code',
@@ -368,8 +399,10 @@ class AddEpilog(Preprocessor):
                })
            ] + nb.cells
 
+        assert self.pkg_dir
 
         if len(self.dataframes) > 0:
+
             nb.cells.append(from_dict({
                 'cell_type': 'code',
                 'outputs': [],

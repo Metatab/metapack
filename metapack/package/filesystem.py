@@ -162,11 +162,15 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         # First find and remove notebooks from the docs. These wil ge processed to create
         # normal documents.
-        for term in list(self.doc['Documentation'].find('Root.Documentation')):
-            u = parse_app_url(term.value)
-            if u.target_format == 'ipynb':
-                notebook_docs.append(term)
-                self.doc.remove_term(term)
+        try:
+            for term in list(self.doc['Documentation'].find('Root.Documentation')):
+                u = parse_app_url(term.value)
+                if u.target_format == 'ipynb':
+                    notebook_docs.append(term)
+                    self.doc.remove_term(term)
+        except KeyError:
+            self.warn("No documentation defined in metadata")
+
 
         # Process all of the normal files
         super()._load_documentation_files()

@@ -78,11 +78,6 @@ def metapack(subparsers):
     build_group.add_argument('-F', '--force', action='store_true', default=False,
                              help='Force some operations, like updating the name and building packages')
 
-    build_group.add_argument('-M', '--make-package', default=False, action='store_true',
-                             help='Build a package from a Jupyter notebook')
-
-    build_group.add_argument('-D', '--make-documentation', default=False, action='store_true',
-                             help='With -M, make only the documentation')
 
     ##
     ## Derived Package Group
@@ -142,21 +137,6 @@ def metapack(subparsers):
 
 def run_metapack(args):
     m = MetapackCliMemo(args, downloader)
-
-    # Maybe need to convert a notebook first
-    if m.args.make_package:
-
-        u = parse_app_url(m.mtfile_arg)
-
-        if u.target_format != 'ipynb':
-            print(u.dict)
-            err("Input must be a Jupyter notebook file. Got '{}' ".format(u.target_format))
-
-        if m.args.make_documentation:
-            convert_documentation(m)
-            sys.exit(0)
-        else:
-            convert_notebook(m)
 
     if m.args.info:
         metatab_info(m.cache)
@@ -372,6 +352,8 @@ def add_resource(mt_file, ref, cache):
         entries = u.list
     else:
         entries = [ssu for su in u.list() for ssu in su.list()]
+
+    print(type(u), u)
 
     for e in entries:
         add_single_resource(doc, e, cache=cache, seen_names=seen_names)

@@ -3,7 +3,10 @@ from __future__ import print_function
 import json
 import unittest
 from appurl import parse_app_url
-
+from metapack import MetapackDoc
+from metapack.terms import Reference, Resource
+from metatab import TermParser
+from metatab.generate import TextRowGenerator
 
 from metapack import MetapackUrl, Downloader
 
@@ -73,7 +76,72 @@ class TestBasic(unittest.TestCase):
         self.assertEqual(['ipums', 'bordley', 'mcdonald', 'majumder'],
                           [c.name for c in p['Bibliography']])
 
+    def test_line_oriented(self):
 
+        doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest"))
+
+        with open(test_data('line-oriented-doc.txt')) as f:
+            text = f.read()
+
+        tp = TermParser(TextRowGenerator(text), resolver=doc.resolver, doc=doc)
+
+        doc.load_terms(tp)
+
+        self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
+        self.assertEqual(146, len(doc.terms))
+
+        self.assertEqual(5, len(list(doc['References'])))
+
+        self.assertEqual(5, len(list(doc['References'].find('Root.Reference'))))
+
+        self.assertEqual(5, len(list(doc['References'].find('Root.Resource'))))  # References are Resources
+
+        rt = list(doc['References'].find('Root.Resource'))[0]
+
+        self.assertIsInstance(rt, Reference)
+
+    def test_line_doc_parts(self):
+
+        doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest"))
+
+        for fn in ('line/line-oriented-doc-root.txt',
+                   'line/line-oriented-doc-contacts.txt',
+                   'line/line-oriented-doc-datafiles.txt',
+                   'line/line-oriented-doc-references-1.txt',
+                   'line/line-oriented-doc-references-2.txt',
+                   'line/line-oriented-doc-bib.txt',
+                   ):
+            with open(test_data(fn)) as f:
+                text = f.read()
+
+            tp = TermParser(TextRowGenerator(text), resolver=doc.resolver, doc=doc)
+
+            doc.load_terms(tp)
+
+        self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
+        self.assertEqual(151, len(doc.terms))
+
+        self.assertEqual(5, len(list(doc['References'])))
+
+        self.assertEqual(5, len(list(doc['References'].find('Root.Reference'))))
+
+        self.assertEqual(5, len(list(doc['References'].find('Root.Resource'))))  # References are Resources
+
+        rt = list(doc['References'].find('Root.Resource'))[0]
+
+        self.assertIsInstance(rt, Reference)
+
+        self.assertEqual(5, len(list(doc['Resources'])))
+
+        self.assertEqual(5, len(list(doc['Resources'].find('Root.Datafile'))))
+
+        self.assertEqual(5, len(list(doc['Resources'].find('Root.Resource'))))  # References are Resources
+
+        rt = list(doc['Resources'].find('Root.Resource'))[0]
+
+        self.assertIsInstance(rt, Resource)
+
+        doc._repr_html_() # Check no exceptions
 
 
 

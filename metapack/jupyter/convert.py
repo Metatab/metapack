@@ -5,8 +5,7 @@
 Functions for converting Jupyter notebooks
 """
 from os import getcwd
-from os.path import abspath
-from os.path import normpath, exists
+from os.path import abspath, normpath, exists, dirname
 
 import nbformat
 from nbconvert.writers import FilesWriter
@@ -19,24 +18,22 @@ from metapack.cli.core import prt, err
 from metapack.util import ensure_dir, copytree
 from metapack.jupyter.core import logger
 from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter
-from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc
+from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc, ExtractMetatabTerms
 from rowgenerators.util import fs_join as join
 
 
 
-def convert_documentation(m):
+
+def convert_documentation(nb_path):
     """Run only the document conversion portion of the notebook conversion
 
       The final document will not be completel
     """
 
-
-    nb_path = parse_app_url(m.mt_file).path
-
     with open(nb_path) as f:
         nb = nbformat.reads(f.read(), as_version=4)
 
-    doc = ExtractInlineMetatabDoc().run(nb)
+    doc = ExtractInlineMetatabDoc(package_url="metapack+file:" +dirname(nb_path)).run(nb)
 
     package_name = doc.as_version(None)
 
@@ -54,14 +51,9 @@ def convert_documentation(m):
 
 
 
-def convert_notebook(m):
-
+def convert_notebook(nb_path):
 
     prt('Convert notebook to Metatab source package')
-
-    u = parse_app_url(m.mtfile_arg)
-
-    nb_path = u.path
 
     if not exists(nb_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
@@ -83,6 +75,8 @@ def convert_notebook(m):
     prt('Exporting documentation')
     output, resources = de.from_filename(nb_path)
 
+    doc_resources = resources['outputs']
+
     fw.build_directory = join(pe.output_dir,'docs')
     fw.write(output, resources, notebook_name='notebook')
 
@@ -90,7 +84,7 @@ def convert_notebook(m):
 
     doc = MetapackDoc(new_mt_file)
 
-    de.update_metatab(doc, resources)
+    de.update_metatab(doc, resources, doc_resources)
 
 
     for lib_dir in pe.lib_dirs:
@@ -105,13 +99,25 @@ def convert_notebook(m):
         ensure_dir(dest)
         copytree(path, join(pe.output_dir, lib_dir))
 
-
     doc.write_csv()
 
     # Reset the input to use the new data
 
     prt('Running with new package file: {}'.format(new_mt_file))
-    m.init_stage2(new_mt_file, '')
+
+
+def extract_metatab(nb_path):
+
+    if not exists(nb_path):
+        err("Notebook path does not exist: '{}' ".format(nb_path))
+
+    c = Config()
+
+    with open(nb_path) as f:
+        nb = nbformat.reads(f.read(), as_version=4)
+
+    return ExtractInlineMetatabDoc(package_url="metapack+file:" + dirname(nb_path)).run(nb)
+
 
 
 def doc_metadata(doc):

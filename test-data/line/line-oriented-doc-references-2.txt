@@ -1,21 +1,5 @@
-Identifier: 47bc1089-7584-41f0-b804-602ec42f1249
-Origin: civicknowledge.com
-Dataset: rcfe_affordability
-Version: 4
-Time: 2015
-Name: civicknowledge.com-rcfe_affordability-2015-4
-
-Section: Contacts
-Wrangler: Eric Busboom
-Wrangler.Email: eric@civicknowledge.com
-Wrangler.Organization: Civic Knowledge
 
 Section: References
-
-Reference: censusreporter:B09020/140/05000US06073
-Reference.Name: B09020
-Reference.Description: Relationship by Household Type (Including Living Alone) for Population 65 Years and Over
-
 
 #
 # Tract crosswalk
@@ -45,18 +29,3 @@ Reference.Description: Geographics Boundaries for SRAs
 Reference: metatab+http://s3.amazonaws.com/library.metatab.org/ipums.org-income_homevalue-5.zip#income_homeval
 Reference.Name: incv
 Reference.Description: Income and Home value records from IPUMS for San Diego County
-Section: Resources
-
-
-Section: Bibliography
-Citation: ipums
-Citation.Type: dataset
-Citation.Author: Steven Ruggles; Katie Genadek; Ronald Goeken; Josiah Grover; Matthew Sobek
-Citation.Title: Integrated Public Use Microdata Series
-Citation.Year: 2017
-Citation.Publisher: University of Minnesota
-Citation.Version: 7.0
-Citation.AccessDate: 20170718
-Citation.Url: https://usa.ipums.org/usa/index.shtml
-Citation.Doi: https://doi.org/10.18128/D010.V7.0
-

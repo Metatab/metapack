@@ -360,7 +360,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
 class MetapackUrl(Url):
     """Implements __new__ to return either a  MetapackResourceUrl or a MetapackDocumentUrl"""
 
-    match_priority = 18
+    match_priority = FileUrl.match_priority - 10
 
     def __new__(cls, url=None, downloader=None, **kwargs):
 
@@ -380,6 +380,8 @@ class MetapackUrl(Url):
 
 class JupyterNotebookUrl(FileUrl):
     """IPYthon Notebook URL"""
+
+    match_priority = FileUrl.match_priority - 10
 
     def __init__(self, url=None, **kwargs):
         kwargs['proto'] = 'ipynb'
