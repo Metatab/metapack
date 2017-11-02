@@ -24,7 +24,7 @@ classifiers = [
 
 setup(
     name='metapack',
-    version='0.6.14',
+    version='0.6.15',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -48,7 +48,6 @@ setup(
         'metatab>=0.6.6',
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
-
 
     ],
 

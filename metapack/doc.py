@@ -15,6 +15,7 @@ from .html import linkify
 from .util import slugify
 from metapack.package.core import Downloader
 from rowgenerators import Source
+from metapack.util import datetime_now
 
 class Resolver(WebResolver):
     def get_row_generator(self, ref, cache=None):
@@ -74,6 +75,42 @@ class MetapackDoc(MetatabDoc):
         """Return the name from the metatab document, or the identity, and as a last resort,
         the slugified file reference"""
         return self.get_value('root.name', self.get_value('root.identity',slugify(self._ref)))
+
+
+    def wrappable_term(self, term):
+        """Return the Root.Description, possibly combining multiple terms.
+        :return:
+        """
+
+        return ' '.join( e.value.strip() for e in self['Root'].find(term) if e and e.value)
+
+
+    def set_wrappable_term(self, v, term):
+        """Set the Root.Description, possibly splitting long descriptions across multiple terms. """
+
+        import textwrap
+
+        for t in self['Root'].find(term):
+            self.remove_term(t)
+
+        for l in textwrap.wrap(v, 80):
+            self['Root'].new_term(term, l)
+
+    @property
+    def description(self):
+        return self.wrappable_term('Root.Description')
+
+    @description.setter
+    def description(self, v):
+        return self.set_wrappable_term(v, 'Root.Description')
+
+    @property
+    def abstract(self):
+        return self.wrappable_term('Root.Abstract')
+
+    @description.setter
+    def abstract(self, v):
+        return self.set_wrappable_term(v, 'Root.Abstract')
 
     @property
     def env(self):
@@ -275,3 +312,48 @@ class MetapackDoc(MetatabDoc):
     def markdown(self):
         from .html import markdown
         return markdown(self)
+
+    def write_csv(self, path=None):
+        """Write CSV file. Sorts the sections before calling the superclass write_csv"""
+
+        # Sort the Sections
+
+        self.sort_sections(['Root', 'Contacts', 'Documentation', 'References','Resources','Citations','Schema'])
+
+        # Sort Terms in the root section
+
+        # Re-wrap the description and abstract
+        if self.description:
+            self.description = self.description
+
+        if self.abstract:
+            self.description = self.abstract
+
+        t = self['Root'].get_or_new_term('Root.Modified')
+        t.value = datetime_now()
+
+        self['Root'].sort_by_term(order=[
+            'Root.Declare',
+            'Root.Title',
+            'Root.Description',
+            'Root.Identifier',
+            'Root.Name',
+            'Root.Dataset',
+            'Root.Origin',
+            'Root.Time',
+            'Root.Space',
+            'Root.Grain',
+            'Root.Version',
+            'Root.Group',
+            'Root.Tag',
+            'Root.Keyword',
+            'Root.Subject',
+            'Root.Created',
+            'Root.Modified',
+            'Root.Issued',
+            'Root.Access',
+            'Root.Access',
+            'Root.Distribution'
+        ])
+
+        return super().write_csv(path)

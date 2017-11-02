@@ -173,8 +173,9 @@ class DocumentationExporter(MetatabExporter):
 
         resources['outputs']['documentation.md'] = md_body.encode('utf-8')
 
-    def update_metatab(self, doc, resources, doc_resources):
+    def update_metatab(self, doc, resources):
         """Add documentation entries for resources"""
+
         if not 'Documentation' in doc:
             doc.new_section("Documentation")
 
@@ -186,19 +187,20 @@ class DocumentationExporter(MetatabExporter):
         for name, data in resources.get('outputs', {}).items():
 
             if name == 'documentation.html':
-                ds.new_term('Root.Documentation', 'docs/' + name, title='Primary Documentation (HTML)')
+                ds.new_term('Root.Documentation', 'docs/' + name, name=name, title='Primary Documentation (HTML)')
 
             elif name == 'html_basic_body.html':
                 pass
             elif name.endswith('.html'):
-                ds.new_term('Root.Documentation', 'docs/' + name, title='Documentation (HTML)')
+                ds.new_term('Root.Documentation', 'docs/' + name, name=name, title='Documentation (HTML)')
             elif name.endswith('.md'):
-                ds.new_term('Root.Documentation', 'docs/'+ name, title='Documentation (Markdown)')
+                ds.new_term('Root.Documentation', 'docs/'+ name, name=name, title='Documentation (Markdown)')
             elif name.endswith('.pdf'):
-                ds.new_term('Root.Documentation', 'docs/'+ name, title='Documentation (PDF)')
-
+                ds.new_term('Root.Documentation', 'docs/'+ name, name=name, title='Documentation (PDF)')
             elif name.endswith('.png'):
-                ds.new_term('Root.Image', 'docs/'+name, title='Image for HTML Documentation')
+                ds.new_term('Root.Image', 'docs/'+name, name=name, title='Image for HTML Documentation')
+            else:
+                pass
 
 
 class NotebookExecutor(MetatabExporter):

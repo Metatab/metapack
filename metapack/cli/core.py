@@ -14,7 +14,6 @@ from metapack.package.excel import ExcelPackageBuilder
 from metapack.package.filesystem import FileSystemPackageBuilder
 from metapack.package.s3 import S3PackageBuilder
 from metapack.package.zip import ZipPackageBuilder
-from metapack.util import datetime_now
 from metatab import  DEFAULT_METATAB_FILE
 from metatab.util import make_metatab_file
 from rowgenerators import SelectiveRowGenerator
@@ -273,6 +272,7 @@ def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='publ
     return p, MetapackUrl(url, downloader=file.downloader), created
 
 
+
 def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False):
 
     if isinstance(mt_file, MetapackDoc):
@@ -301,32 +301,6 @@ def write_doc(doc, mt_file):
     :return:
     """
 
-    t = doc['Root'].get_or_new_term('Root.Modified')
-    t.value = datetime_now()
-
-    doc['Root'].sort_by_term(order = [
-        'Root.Declare',
-        'Root.Title',
-        'Root.Description',
-        'Root.Identifier',
-        'Root.Name',
-        'Root.Dataset',
-        'Root.Origin',
-        'Root.Time',
-        'Root.Space',
-        'Root.Grain',
-        'Root.Version',
-        'Root.Group',
-        'Root.Tag',
-        'Root.Keyword',
-        'Root.Subject',
-        'Root.Created',
-        'Root.Modified',
-        'Root.Issued',
-        'Root.Access',
-        'Root.Access',
-        'Root.Distribution'
-    ])
 
     import subprocess
 

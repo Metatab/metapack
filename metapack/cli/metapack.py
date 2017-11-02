@@ -176,6 +176,7 @@ def metatab_build_handler(m):
             err('File', m.mt_file, 'already exists')
 
     if m.args.add:
+
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
 
         add_resource(m.mt_file, m.args.add, cache=m.cache)
@@ -208,6 +209,7 @@ def metatab_build_handler(m):
 
     if m.mtfile_url.scheme == 'file' and m.args.update:
         update_name(m.mt_file, fail_on_missing=True, force=m.args.force)
+
 
 
 def metatab_derived_handler(m, skip_if_exists=None):

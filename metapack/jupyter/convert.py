@@ -75,8 +75,6 @@ def convert_notebook(nb_path):
     prt('Exporting documentation')
     output, resources = de.from_filename(nb_path)
 
-    doc_resources = resources['outputs']
-
     fw.build_directory = join(pe.output_dir,'docs')
     fw.write(output, resources, notebook_name='notebook')
 
@@ -84,8 +82,7 @@ def convert_notebook(nb_path):
 
     doc = MetapackDoc(new_mt_file)
 
-    de.update_metatab(doc, resources, doc_resources)
-
+    de.update_metatab(doc, resources)
 
     for lib_dir in pe.lib_dirs:
 
