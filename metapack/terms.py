@@ -387,6 +387,33 @@ class Resource(Term):
 
         return df
 
+    def read_csv(self, *args, **kwargs):
+        """Fetch the target and pass through to pandas.read_csv
+
+        Don't provide the first argument of read_csv(); it is supplied internally.
+        """
+        import pandas
+
+        t = self.resolved_url.get_resource().get_target()
+
+        return pandas.read_csv(t.path, *args, **kwargs)
+
+    def read_fwf(self, *args, **kwargs):
+        """Fetch the target and pass through to pandas.read_fwf.
+
+        Don't provide the first argument of read_fwf(); it is supplied internally. """
+        import pandas
+
+        t = self.resolved_url.get_resource().get_target()
+
+        return pandas.read_fwf(t.path, *args, **kwargs)
+
+    def readlines(self):
+        """Load the target, open it, and return the result from readlines()"""
+
+        t = self.resolved_url.get_resource().get_target()
+        with open(t.path) as f:
+            return f.readlines()
 
     def _repr_html_(self):
 
@@ -418,33 +445,8 @@ class Resource(Term):
 
 class Reference(Resource):
 
-    def read_csv(self, *args, **kwargs):
-        """Fetch the target and pass through to pandas.read_csv
+    pass
 
-        Don't provide the first argument of read_csv(); it is supplied internally.
-        """
-        import pandas
-
-        t = self.resolved_url.get_resource().get_target()
-
-        return pandas.read_csv(t.path, *args, **kwargs)
-
-    def read_fwf(self, *args, **kwargs):
-        """Fetch the target and pass through to pandas.read_fwf.
-
-        Don't provide the first argument of read_fwf(); it is supplied internally. """
-        import pandas
-
-        t = self.resolved_url.get_resource().get_target()
-
-        return pandas.read_fwf(t.path, *args, **kwargs)
-
-    def readlines(self):
-        """Load the target, open it, and return the result from readlines()"""
-
-        t = self.resolved_url.get_resource().get_target()
-        with open(t.path) as f:
-            return f.readlines()
 
 class Distribution(Term):
 
