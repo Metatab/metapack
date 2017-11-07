@@ -12,7 +12,7 @@ import argparse
 from metapack.cli.core import  cli_init
 
 
-def mt():
+def mp():
     cli_init()
 
     parser = argparse.ArgumentParser(

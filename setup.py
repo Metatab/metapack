@@ -24,7 +24,7 @@ classifiers = [
 
 setup(
     name='metapack',
-    version='0.6.15',
+    version='0.6.16',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -53,7 +53,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'mt=metapack.cli.mt:mt',
+            'mp=metapack.cli.mp:mp',
             'metaworld=metapack.cli.metaworld:metaworld',
             'metaaws=metapack.cli.metaaws:metaaws',
             'metasql=metapack.cli.metasql:metasql'
@@ -77,7 +77,7 @@ setup(
         'mt.subcommands': [
             'pack=metapack.cli.metapack:metapack',
             's3=metapack.cli.metas3:metas3',
-            'ckan=metapack.cli.metakan:metakan'
+            'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook'
         ]
 
