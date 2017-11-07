@@ -1,6 +1,6 @@
 from os import walk
 from os.path import join
-from zipfile import ZipFile
+import zipfile
 from metapack.util import slugify
 
 from .core import PackageBuilder
@@ -35,7 +35,7 @@ class ZipPackageBuilder(PackageBuilder):
         self.prt("Creating ZIP Package at '{}' from filesystem package at '{}'"
                  .format(self.package_path, self.source_dir))
 
-        self.zf = ZipFile(self.package_path.path, 'w')
+        self.zf = zipfile.ZipFile(self.package_path.path, 'w', zipfile.ZIP_DEFLATED)
 
 
         for root, dirs, files in walk(self.source_dir):
