@@ -61,7 +61,9 @@ setup(
         ],
         'nbconvert.exporters': [
             'metapack = metapack.jupyter:MetapackExporter',
+            'hugo = metapack.jupyter:HugoExporter',
         ],
+
         'appurl.urls' : [
             "metapack+ = metapack.appurl:MetapackUrl",
             "metatab+ = metapack.appurl:MetapackUrl",

@@ -5,6 +5,7 @@
 NBConvert preprocessors
 """
 
+import re
 from traitlets import Integer, Unicode, List
 from nbconvert.preprocessors import Preprocessor
 from textwrap import dedent
@@ -280,7 +281,7 @@ class RemoveMetatab(Preprocessor):
 
         out_cells = []
 
-        mt_doc_name = 'mt_pkg'
+
 
         for cell in nb.cells:
 
@@ -296,6 +297,10 @@ class RemoveMetatab(Preprocessor):
 
                 cell.source = "%mt_open_package\n"
                 cell.outputs = []
+
+                cell['metadata']['hide_input'] = True
+                cell['metadata']['show_input'] = 'hide'
+                cell['metadata']['hide_output'] = True
 
             out_cells.append(cell)
 
@@ -366,6 +371,7 @@ class NoShowInput(Preprocessor):
                     cell['source'] = re.sub(r'\%mt_showinput', '', source)
                 else:
                     cell['metadata']['hide_input'] = True
+                    cell['metadata']['show_input'] = 'hide'
 
             out_cells.append(cell)
 
@@ -444,3 +450,104 @@ class AddEpilog(Preprocessor):
         }))
 
         return nb, resources
+
+class OrganizeMetadata(Preprocessor):
+    """Move a lot of metadata around """
+
+    package_url = Unicode(help='Metapack Package Url').tag(config=True)
+
+    alt_title = None # Title extracted from markdown, without a Title tag
+
+    show_input = 'show'
+
+    def __init__(self, **kw):
+        self.front_matter = { 'show_input': self.show_input}
+        self.metadata = {}
+
+        self.doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n"),
+                               package_url=parse_app_url(self.package_url))
+
+        super().__init__(**kw)
+
+    def preprocess(self, nb, resources):
+        from metapack.util import slugify
+        import uuid
+
+        r = super().preprocess(nb, resources)
+
+        nb.cells = [cell for cell in nb.cells if cell.source ]
+
+        self.front_matter['slug'] = slugify(self.front_matter.get('title',self.alt_title or str(uuid.uuid4())))
+
+        # move the metadata we collected back into the notebook metadata.
+        nb.metadata['frontmatter'] = self.front_matter
+        nb.metadata['metatab'] = self.doc.as_dict()
+        nb.metadata['metapack'] = self.metadata
+
+        return nb, resources
+
+    def preprocess_cell(self, cell, resources, index):
+        import yaml
+        import re
+
+        tags = [e.lower() for e in cell['metadata'].get('tags', [])]
+
+        if 'frontmatter' in tags:
+            d = yaml.load(cell['source'])
+            self.front_matter.update(d)
+            cell.source = ''
+
+        if 'metadata' in tags:
+            d = yaml.load(cell['source'])
+            self.metadata.update(d)
+            cell.source = ''
+
+        if 'title' in tags:
+            self.front_matter['title'] = cell.source.strip().replace('#', '')
+            m = resources.get('metadata', {})
+            m['name'] = cell.source.strip().replace('#', '')
+            resources['metadata'] = m
+            cell.source = ''
+
+        if 'show' in tags:
+            cell['metadata']['show_input'] = 'show'
+
+
+        if 'hide' in tags:
+            cell['metadata']['show_input'] = 'hide'
+
+        if cell.cell_type == 'markdown' and re.match('\#\s', cell.source.strip()):
+            # Extract the first level 1 heading as the title, if a title isn't already defined
+            m = re.match('\s*\#\s*(.*)$', cell.source.strip())
+            if m and not self.alt_title:
+                if not 'title' in self.front_matter:
+                    self.front_matter['title'] = m.groups()[0]
+                    cell.source = ''
+
+                self.alt_title = m.groups()[0]
+
+        if cell.cell_type == 'markdown' and 'description' in tags:
+            self.front_matter['description'] = cell.source.strip().replace('#', '')
+            cell.source = ''
+
+        if cell['source'].startswith('%%metatab'):
+
+            tp = TermParser(TextRowGenerator(re.sub(r'\%\%metatab.*\n', '', cell['source'])),
+                            resolver=self.doc.resolver, doc=self.doc)
+
+            self.doc.load_terms(tp)
+
+            # Turn off errors or requests to update Name or Identifier
+            cell.outputs = []
+
+        if 'show_input' not in cell['metadata']:
+            cell['metadata']['show_input'] = self.front_matter['show_input']
+
+
+        cell['metadata']['hide_input'] = (cell['metadata']['show_input'] == 'hide')
+
+        return cell, resources
+
+
+
+

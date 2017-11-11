@@ -17,7 +17,7 @@ from metapack import MetapackDoc
 from metapack.cli.core import prt, err
 from metapack.util import ensure_dir, copytree
 from metapack.jupyter.core import logger
-from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter
+from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter
 from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc, ExtractMetatabTerms
 from rowgenerators.util import fs_join as join
 
@@ -48,7 +48,6 @@ def convert_documentation(nb_path):
     fw.build_directory = join(output_dir,'docs')
     fw.write(output, resources, notebook_name='notebook')
     prt("Wrote documentation to {}".format(fw.build_directory))
-
 
 
 def convert_notebook(nb_path):
@@ -116,7 +115,6 @@ def extract_metatab(nb_path):
     return ExtractInlineMetatabDoc(package_url="metapack+file:" + dirname(nb_path)).run(nb)
 
 
-
 def doc_metadata(doc):
     """Create a metadata dict from a MetatabDoc, for Document conversion"""
 
@@ -125,3 +123,23 @@ def doc_metadata(doc):
     r['author'] = r.get('author', r.get('creator', r.get('wrangler')))
 
     return r
+
+def convert_hugo(nb_path, hugo_path):
+
+    if not exists(nb_path):
+        err("Notebook path does not exist: '{}' ".format(nb_path))
+
+    c = Config()
+    c.HugoExporter.hugo_dir = hugo_path
+    he = HugoExporter(config=c,log=logger)
+
+    output, resources = he.from_filename(nb_path)
+
+    prt('Writing Notebook to Hugo Markdown')
+
+    prt('    Writing ', resources['unique_key']+resources['output_extension'])
+    for k, v in resources['outputs'].items():
+        prt('    Writing ',k)
+
+    fw = FilesWriter()
+    fw.write(output, resources, notebook_name=resources['unique_key'])

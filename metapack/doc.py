@@ -254,24 +254,26 @@ class MetapackDoc(MetatabDoc):
             return out
 
         t = Template("""
-# {{title|default("", True) }}
+## {{title|default(name, True) }}
+{% if title %}
 <p>{{name|default("", True)}}</p>
+{% endif %}
 <p>{{description|default("", True) }}</p>
 <p>{{ref|default("", True)}}</p>
 {% if documentation %}
-## Documentation
+### Documentation
 {{doc}}
 {% endif %}
-## Contacts
+### Contacts
 {{contact}}
 {% if resources %}
-## Resources
+### Resources
 <ol>
 {{resources}}
 </ol>
 {% endif%}
 {% if references %}
-## References
+### References
 <ol>
 {{references}}
 {% endif %}

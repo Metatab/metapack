@@ -5,7 +5,7 @@
 """
 Exporter to convert a notebook into a Metatab package.
 """
-
+import re
 import logging
 import sys
 import copy
@@ -13,7 +13,8 @@ import io
 import metapack
 from metapack.exc import MetapackError
 from metapack.jupyter.exc import NotebookError
-from metapack.jupyter.markdown import MarkdownExporter
+#from metapack.jupyter.markdown import MarkdownExporter
+from nbconvert.exporters.markdown import MarkdownExporter
 import nbformat
 from nbconvert.exporters import Exporter
 from nbconvert.exporters.html import HTMLExporter
@@ -23,11 +24,12 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from nbconvert.preprocessors import ExtractOutputPreprocessor
 from nbconvert.preprocessors.execute import CellExecutionError
 from os import getcwd
-from os.path import dirname, join, abspath
+from os.path import dirname, join, abspath, basename
 from traitlets import List
 from traitlets.config import Unicode, Config, Dict
 from .preprocessors import (AddEpilog, ExtractInlineMetatabDoc, RemoveMetatab,
                             ExtractFinalMetatabDoc, ExtractMetatabTerms, ExtractLibDirs)
+from traitlets import default
 
 from metatab.util import ensure_dir
 
@@ -72,6 +74,7 @@ class MetatabExporter(Exporter):
 
 
 class DocumentationExporter(MetatabExporter):
+    """Exports multiple forms of documentation"""
 
     metadata = Dict(help='Extra metadata, added to the \'metatab\' key', default_value={}).tag(config=True)
 
@@ -79,7 +82,7 @@ class DocumentationExporter(MetatabExporter):
     def default_config(self):
         c = Config()
 
-        c.TemplateExporter.template_path = [dirname(metapack.jupyter.__file__)]
+        c.TemplateExporter.template_path = [dirname(metapack.jupyter.templates.__file__)]
 
         c.HTMLExporter.preprocessors = [
             'metapack.jupyter.preprocessors.NoShowInput',
@@ -138,7 +141,6 @@ class DocumentationExporter(MetatabExporter):
     def add_pdf(self, nb, resources):
 
         template_file =  'notebook.tplx'
-
 
         exp = PDFExporter(config=self.config, template_file=template_file)
 
@@ -358,4 +360,161 @@ class NotebookExecutor(MetatabExporter):
 
         return nb, resources
 
+class HugoOutputExtractor(ExtractOutputPreprocessor):
+
+    def preprocess(self, nb, resources):
+        return super().preprocess(nb, resources)
+
+    def preprocess(self, nb, resources):
+
+        for index, cell in enumerate(nb.cells):
+            nb.cells[index], resources = self.preprocess_cell(cell, resources, index)
+
+        return nb, resources
+
+    def preprocess_cell(self, cell, resources, cell_index):
+        """Also extracts attachments"""
+        from nbformat.notebooknode import NotebookNode
+
+        attach_names = []
+
+        # Just move the attachment into an output
+
+        for k, attach in cell.get('attachments',{}).items():
+            for mime_type in self.extract_output_types:
+                if mime_type in attach:
+
+                    if not 'outputs' in cell:
+                        cell['outputs'] = []
+
+                    o = NotebookNode({
+                        'data': NotebookNode({mime_type: attach[mime_type]}),
+                        'metadata': NotebookNode({
+                            'filenames': { mime_type: k} # Will get re-written
+                        }),
+                        'output_type': 'display_data'
+                    })
+
+                    cell['outputs'].append(o)
+
+                    attach_names.append((mime_type,k))
+
+
+
+        nb, resources = super().preprocess_cell(cell, resources, cell_index)
+
+        output_names = list(resources.get('outputs', {}).keys())
+
+        if attach_names:
+            # We're going to assume that attachments are only on Markdown cells, and Markdown cells
+            # can't generate output, so all of the outputs wee added.
+
+            # reverse + zip matches the last len(attach_names) elements from output_names
+
+            for output_name, (mimetype, an) in zip(reversed(output_names), reversed(attach_names)):
+
+                p = '\(attachment:{}\)'.format(an)
+                print (p)
+                print(re.search(p,cell.source))
+                cell.source = re.sub(p,'(__IMGDIR__/{})'.format(output_name), cell.source)
+
+        return nb, resources
+
+
+
+class HugoExporter(MarkdownExporter):
+    """ Export a python notebook to markdown, with frontmatter for Hugo.
+    """
+
+    hugo_dir = Unicode(help="Root of the Hugo directory").tag(config=True)
+
+    section = Unicode(help="Hugo section in which to write the converted notebook").tag(config=True)
+
+
+
+    @default('section')
+    def _section_file_default(self):
+        return 'notebooks'
+
+    @property
+    def default_config(self):
+        import metapack.jupyter.templates
+
+        c = Config({
+
+        })
+
+        c.TemplateExporter.template_path = [dirname(metapack.jupyter.templates.__file__)]
+        c.TemplateExporter.template_file = 'markdown_hugo.tpl'
+
+        c.MarkdownExporter.preprocessors = [
+            'metapack.jupyter.preprocessors.OrganizeMetadata',
+            HugoOutputExtractor
+        ]
+
+        c.merge(super(HugoExporter, self).default_config)
+
+        c.ExtractOutputPreprocessor.enabled = False
+
+        return c
+
+    def from_notebook_node(self, nb, resources=None, **kw):
+
+        nb_copy = copy.deepcopy(nb)
+
+        resources = self._init_resources(resources)
+
+        if 'language' in nb['metadata']:
+            resources['language'] = nb['metadata']['language'].lower()
+
+        # Preprocess
+        nb_copy, resources = self._preprocess(nb_copy, resources)
+
+        resources.setdefault('raw_mimetypes', self.raw_mimetypes)
+        resources['global_content_filter'] = {
+            'include_code': not self.exclude_code_cell,
+            'include_markdown': not self.exclude_markdown,
+            'include_raw': not self.exclude_raw,
+            'include_unknown': not self.exclude_unknown,
+            'include_input': not self.exclude_input,
+            'include_output': not self.exclude_output,
+            'include_input_prompt': not self.exclude_input_prompt,
+            'include_output_prompt': not self.exclude_output_prompt,
+            'no_prompt': self.exclude_input_prompt and self.exclude_output_prompt,
+        }
+
+        slug = nb_copy.metadata.frontmatter.slug
+
+        # Rebuild all of the image names
+        for cell_index, cell in enumerate(nb_copy.cells):
+            for output_index, out in enumerate(cell.get('outputs', [])):
+
+                for type_name, fn in list(out.metadata.get('filenames',{}).items()):
+                    if fn in resources['outputs']:
+                        html_path = join('img', slug ,basename(fn))
+                        file_path = join(self.hugo_dir, 'static', html_path)
+
+                        resources['outputs'][file_path] = resources['outputs'][fn]
+                        del resources['outputs'][fn]
+
+                        # Can't put the '/' in the join() or it will be absolute
+
+                        out.metadata.filenames[type_name] = '/'+html_path
+
+
+        output = self.template.render(nb=nb_copy, resources=resources)
+
+        section = nb_copy.metadata.frontmatter.get('section') or  self.section
+
+        # Don't know why this isn't being set from the config
+        #resources['output_file_dir'] = self.config.NbConvertApp.output_base
+
+        # Setting full path to subvert the join() in the file writer. I can't
+        # figure out how to set the output directories from this function
+        resources['unique_key'] = join(self.hugo_dir, 'content', section,slug)
+
+        # Probably should be done with a postprocessor.
+        output = re.sub(r'__IMGDIR__',join('/img',slug),output)
+
+        return output, resources
 

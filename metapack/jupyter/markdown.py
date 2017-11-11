@@ -9,6 +9,9 @@ from traitlets.config import Config
 from nbconvert.exporters.templateexporter import TemplateExporter
 
 
+raise NotImplementedError()
+
+
 class MarkdownExporter(TemplateExporter):
     """
     Exports to a markdown document (.md)
