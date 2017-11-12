@@ -29,6 +29,7 @@ from traitlets import List
 from traitlets.config import Unicode, Config, Dict
 from .preprocessors import (AddEpilog, ExtractInlineMetatabDoc, RemoveMetatab,
                             ExtractFinalMetatabDoc, ExtractMetatabTerms, ExtractLibDirs)
+from datetime import datetime
 from traitlets import default
 
 from metatab.util import ensure_dir
@@ -414,8 +415,6 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
             for output_name, (mimetype, an) in zip(reversed(output_names), reversed(attach_names)):
 
                 p = '\(attachment:{}\)'.format(an)
-                print (p)
-                print(re.search(p,cell.source))
                 cell.source = re.sub(p,'(__IMGDIR__/{})'.format(output_name), cell.source)
 
         return nb, resources
@@ -458,6 +457,25 @@ class HugoExporter(MarkdownExporter):
 
         return c
 
+    def get_creators(self, meta):
+
+        for typ in ('wrangler', 'creator'):
+            try:
+                # Multiple authors
+                for e in meta[typ]:
+                    d = dict(e.items())
+                    d['type'] = typ
+
+                    yield d
+            except AttributeError:
+                # only one
+                d = meta[typ]
+                d['type'] = typ
+                yield d
+            except KeyError:
+                pass
+
+
     def from_notebook_node(self, nb, resources=None, **kw):
 
         nb_copy = copy.deepcopy(nb)
@@ -469,6 +487,15 @@ class HugoExporter(MarkdownExporter):
 
         # Preprocess
         nb_copy, resources = self._preprocess(nb_copy, resources)
+
+        # move over some more metadata
+        if 'authors' not  in nb_copy.metadata.frontmatter:
+            nb_copy.metadata.frontmatter['authors'] = list(self.get_creators(nb_copy.metadata.metatab))
+
+        # Other useful metadata
+        if not 'date' in nb_copy.metadata.frontmatter:
+            nb_copy.metadata.frontmatter['date'] = datetime.now().isoformat()
+
 
         resources.setdefault('raw_mimetypes', self.raw_mimetypes)
         resources['global_content_filter'] = {
@@ -489,17 +516,19 @@ class HugoExporter(MarkdownExporter):
         for cell_index, cell in enumerate(nb_copy.cells):
             for output_index, out in enumerate(cell.get('outputs', [])):
 
-                for type_name, fn in list(out.metadata.get('filenames',{}).items()):
-                    if fn in resources['outputs']:
-                        html_path = join('img', slug ,basename(fn))
-                        file_path = join(self.hugo_dir, 'static', html_path)
+                if 'metadata' in out:
+                    for type_name, fn in list(out.metadata.get('filenames',{}).items()):
+                        if fn in resources['outputs']:
+                            html_path = join('img', slug ,basename(fn))
+                            file_path = join(self.hugo_dir, 'static', html_path)
 
-                        resources['outputs'][file_path] = resources['outputs'][fn]
-                        del resources['outputs'][fn]
+                            resources['outputs'][file_path] = resources['outputs'][fn]
+                            del resources['outputs'][fn]
 
-                        # Can't put the '/' in the join() or it will be absolute
+                            # Can't put the '/' in the join() or it will be absolute
 
-                        out.metadata.filenames[type_name] = '/'+html_path
+                            out.metadata.filenames[type_name] = '/'+html_path
+
 
 
         output = self.template.render(nb=nb_copy, resources=resources)

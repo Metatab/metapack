@@ -7,6 +7,7 @@ CLI program for managing packages
 
 from metapack import Downloader
 from metapack.jupyter.convert import convert_documentation, convert_notebook, extract_metatab, convert_hugo
+from os import environ
 
 downloader = Downloader()
 
@@ -46,8 +47,8 @@ def notebook(subparsers):
     build_group.add_argument('-D', '--documentation', default=False, action='store_true',
                              help='With -M, make only the documentation')
 
-    build_group.add_argument('-H', '--hugo', default=False,
-                             help='Write images and Markdown into a Hugo statis site directory')
+    build_group.add_argument('-H', '--hugo', default=False, nargs='?',
+                             help='Write images and Markdown into a Hugo statis site directory. or use METAPACK_HUGO_DIR env var')
 
 
 def run_notebook(args):

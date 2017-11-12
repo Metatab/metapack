@@ -125,6 +125,18 @@ def doc_metadata(doc):
     return r
 
 def convert_hugo(nb_path, hugo_path):
+    from os import environ
+
+
+    # Total hack. Would like the -H to be allowed to have no arg, and then use the env var,
+    # but I don't know how to do that. This is the case where the user types
+    # -H nb_path, so just go with it.
+    if hugo_path and not nb_path:
+        nb_path = hugo_path
+        hugo_path = environ.get('METAPACK_HUGO_DIR')
+
+    if not hugo_path:
+        err("Must specify value for -H or the METAPACK_HUGO_DIR environment var")
 
     if not exists(nb_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
