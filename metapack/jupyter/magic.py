@@ -332,7 +332,7 @@ class MetatabMagic(Magics):
     @argument('-m','--materialize', help='Save the data for the dataframe during package conversion', action="store_true")
     @argument('-n','--name', help='Metadata reference name of the dataframe')
     @argument('-t','--title', help='Title of the dataframe')
-    @argument('-d', '--dump', help='Dump example schema for the dataframe', action="store_true")
+    @argument('-d', '--dump', help='Dump example schema for the dataframe. Implied when used as line magic', action="store_true")
     @argument('--feather', help='Materialize with feather', action="store_true")
     @argument('dataframe_name', nargs=1, help='Variable name of the dataframe name')
     @line_cell_magic
@@ -344,6 +344,12 @@ class MetatabMagic(Magics):
         from metatab.exc import ParserError
 
         args = parse_argstring(self.mt_add_dataframe, line)
+
+        if not cell:
+            is_line = True
+            args.dump = True
+        else:
+            is_line = False
 
         dataframe_name = args.dataframe_name[0]
 
@@ -404,6 +410,10 @@ class MetatabMagic(Magics):
 
         resource_term = None
 
+        ##
+        ## First, process the schema, extracting the columns from the dataframe.
+        ##
+
         if doc and ref:
             if not 'Resources' in doc:
                 doc.new_section('Resources')
@@ -414,19 +424,36 @@ class MetatabMagic(Magics):
             resource_term['title'] = title
             resource_term['description'] = description
 
+            df = df.reset_index()
+
             table = process_schema(doc, doc.resource(name), df)
 
             if not table:
                 table = doc['Schema'].find_first('Root.Table', name)
 
+        ##
+        ## Next, apply the names from  table description from the cell
+        ##
+
         if cell_table:
 
-            for c in table.find('Table.Column'):
+            cols_by_name = {c.name:c for c in cell_table.find('Table.Column') }
 
-                cell_column = cell_table.find_first('Table.Column', c.name)
+            for i,c in enumerate(table.find('Table.Column')):
+
+                cell_column = cols_by_name.get(c.name)
+                try:
+                    cell_col_by_pos = list(cols_by_name.values())[i]
+                except KeyError:
+                    cell_col_by_pos = None
 
                 if cell_column:
                     c.description = cell_column.description
+                    c.name = cell_column.name
+                elif cell_col_by_pos:
+                    c.description = cell_col_by_pos.description
+                    c.name = cell_col_by_pos.name
+
 
         if args.dump and table:
             print("Table:", resource_term.name)
@@ -439,6 +466,9 @@ class MetatabMagic(Magics):
                 print("Table.Column:", c.name)
                 print("  .Datatype:", c.datatype)
                 print("  .Description:",  c.description or '')
+
+            if is_line:
+                print("\nCopy the above into the cell, and change to a cell magic, with '%%' ")
 
 
     @magic_arguments()

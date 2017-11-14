@@ -473,3 +473,6 @@ class MetapackCliMemo(object):
         assert self.package_root._downloader
 
 
+    @property
+    def doc(self):
+        return MetapackDoc(self.mt_file)

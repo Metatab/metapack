@@ -7,7 +7,7 @@ CLI program for managing packages
 
 import json
 import re
-import sys
+
 from os import getcwd
 from os.path import dirname, abspath
 
@@ -16,7 +16,6 @@ from metapack import MetapackDoc, Downloader
 from metapack.cli.core import prt, err, warn, dump_resource, dump_resources, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
     process_schemas, extract_path_name, MetapackCliMemo
-from metapack.jupyter.convert import convert_documentation, convert_notebook
 from metapack.util import make_metatab_file, datetime_now
 from metatab import ConversionError
 from rowgenerators import SourceError
@@ -136,6 +135,7 @@ def metapack(subparsers):
 
 
 def run_metapack(args):
+
     m = MetapackCliMemo(args, downloader)
 
     if m.args.info:

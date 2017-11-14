@@ -9,6 +9,7 @@ from metatab import Term
 from rowgenerators import DownloadError, get_generator
 from rowpipe import RowProcessor
 
+from rowgenerators.exceptions import RowGeneratorError
 
 class Resource(Term):
     # These property names should return null if they aren't actually set.
@@ -35,8 +36,26 @@ class Resource(Term):
     @property
     def env(self):
         """The execution context for rowprocessors and row-generating notebooks and functions. """
+        from copy import copy
 
-        return self.doc.env
+        env = copy(self.doc.env)
+
+        env.update({
+            # These become their own env vars when calling a program.
+            'CACHE_DIR': self._doc._cache.getsyspath('/'),
+            'RESOURCE_NAME': self.name,
+            'RESOLVED_URL': str(self.resolved_url),
+            'WORKING_DIR': str(self._doc.doc_dir),
+            'METATAB_DOC': str(self._doc.ref),
+            'METATAB_WORKING_DIR': str(self._doc.doc_dir),
+            'METATAB_PACKAGE': str(self._doc.package_url)
+        })
+
+        env.update(self.all_props)
+
+        return env
+
+
 
     @property
     def code_path(self):
@@ -181,6 +200,7 @@ class Resource(Term):
             if c.term_is("Table.Column"):
 
                 p = c.all_props
+                p['pos'] = i
                 p['name'] = c.value
                 p['header'] = self._name_for_col_term(c, i)
 
@@ -223,23 +243,7 @@ class Resource(Term):
         else:
             return None
 
-    @property
-    def generator_env(self):
 
-        d = {
-            # These become their own env vars.
-            'CACHE_DIR': self._doc._cache.getsyspath('/'),
-            'RESOURCE_NAME': self.name,
-            'RESOLVED_URL': str(self.resolved_url),
-            'WORKING_DIR': str(self._doc.doc_dir),
-            'METATAB_DOC': str(self._doc.ref),
-            'METATAB_WORKING_DIR': str(self._doc.doc_dir),
-            'METATAB_PACKAGE': str(self._doc.package_url)
-        }
-
-        d.update(self.all_props)
-
-        return d
 
 
     @property
@@ -258,6 +262,10 @@ class Resource(Term):
 
         except AttributeError:
             pass
+        except RowGeneratorError:
+            # Err .. hopefully because the generator needs a env context, but
+            # could be something else we have to re-throw.
+            pass
 
         ut = ru.get_resource().get_target()
 
@@ -270,7 +278,7 @@ class Resource(Term):
 
         g = get_generator(ut, table=table, resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
-                          env=self.generator_env)
+                          env=self.env)
 
         assert g, ut
 
@@ -293,8 +301,10 @@ class Resource(Term):
 
         return headers
 
+
     def __iter__(self):
         """Iterate over the resource's rows"""
+        from copy import copy
 
         headers = self.headers
 
@@ -311,6 +321,8 @@ class Resource(Term):
             base_row_gen = self.row_generator
 
             assert base_row_gen is not None
+
+            assert type(self.env) == dict
 
             rg = RowProcessor(islice(base_row_gen, start, None),
                               self.row_processor_table(),
@@ -334,6 +346,7 @@ class Resource(Term):
     @property
     def iterdict(self):
         """Iterate over the resource in dict records"""
+        from collections import OrderedDict
 
         headers = None
 
@@ -343,7 +356,7 @@ class Resource(Term):
                 headers = row
                 continue
 
-            yield dict(zip(headers, row))
+            yield OrderedDict(zip(headers, row))
 
     @property
     def iterrows(self):
@@ -363,6 +376,31 @@ class Resource(Term):
                 continue
 
             yield row_proxy.set_row(row)
+
+
+    @property
+    def iterstruct(self):
+        """Yield structures build from the JSON header specifications"""
+        from rowpipe.json import add_to_struct
+
+        json_headers = [(c['pos'], c.get('json') or c['header']) for c in self.columns()]
+
+        for row in self:
+            d = {}
+            for pos, jh in json_headers:
+                add_to_struct(d, jh, row[pos])
+            yield d
+
+    def iterjson(self, *args, **kwargs):
+        from rowpipe.json import  VTEncoder
+        import json
+
+        if 'cls' not in kwargs:
+            kwargs['cls'] = VTEncoder
+
+        for s in self.iterstruct:
+            yield(json.dumps(s, *args, **kwargs))
+
 
     def dataframe(self, limit=None):
         """Return a pandas datafrome from the resource"""
@@ -415,6 +453,21 @@ class Resource(Term):
         with open(t.path) as f:
             return f.readlines()
 
+    def petl(self, *args, **kwargs):
+        """Return a PETL source object"""
+        import petl
+
+        t = self.resolved_url.get_resource().get_target()
+
+        print(t.target_format)
+
+        if t.target_format == 'txt':
+            return petl.fromtext(t.path, *args, **kwargs)
+        elif t.target_format == 'csv':
+            return petl.fromcsv(t.path, *args, **kwargs)
+        else:
+            raise Exception("Can't handle")
+
     def _repr_html_(self):
 
         try:
@@ -445,8 +498,18 @@ class Resource(Term):
 
 class Reference(Resource):
 
-    pass
 
+    @property
+    def env(self):
+        e =  super().env
+        e['reference'] = self
+        return e
+
+    def __iter__(self):
+        """Iterate over the resource's rows"""
+        from copy import copy
+
+        yield from self.row_generator
 
 class Distribution(Term):
 

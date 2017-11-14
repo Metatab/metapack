@@ -24,7 +24,7 @@ classifiers = [
 
 setup(
     name='metapack',
-    version='0.6.16',
+    version='0.6.17',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -58,6 +58,7 @@ setup(
             'metaaws=metapack.cli.metaaws:metaaws',
             'metasql=metapack.cli.metasql:metasql'
 
+
         ],
         'nbconvert.exporters': [
             'metapack = metapack.jupyter:MetapackExporter',
@@ -81,6 +82,8 @@ setup(
             's3=metapack.cli.metas3:metas3',
             'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook'
+            'run=metapack.cli.run:run'
+
         ]
 
 

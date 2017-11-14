@@ -81,6 +81,9 @@ class DocumentationExporter(MetatabExporter):
 
     @property
     def default_config(self):
+
+        import metapack.jupyter.templates
+
         c = Config()
 
         c.TemplateExporter.template_path = [dirname(metapack.jupyter.templates.__file__)]

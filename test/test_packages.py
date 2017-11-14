@@ -296,5 +296,23 @@ class TestPackages(unittest.TestCase):
 
         self.assertEqual('f02d53a3-6bbc-4095-a889-c4dde0ccf5',rows[5][1])
 
+    def test_petl(self):
+        from petl import look
+
+        m = MetapackUrl(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'), downloader=downloader)
+
+        doc = MetapackDoc(m)
+
+        r = doc.resource('simple-example')
+
+        t = r.resolved_url.get_resource().get_target()
+        print("!!!", t.path)
+
+        p = r.petl()
+
+        print(look(p))
+
+
+
 if __name__ == '__main__':
     unittest.main()

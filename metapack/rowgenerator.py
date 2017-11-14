@@ -78,11 +78,13 @@ class PandasDataframeSource(Source):
 
     def __iter__(self):
 
+        import numpy as np
+
         self.start()
 
         df = self._df
 
-        if len(df.index.names) == 1 and df.index.names[0] == None:
+        if len(df.index.names) == 1 and df.index.names[0] == None and df.index.dtype != np.dtype('O'):
             # For an unnamed, single index, assume that it is just a row number
             # and we don't really need it
 
@@ -95,7 +97,7 @@ class PandasDataframeSource(Source):
 
             # Otherwise, either there are more than
 
-            index_names = [n if n else "index{}".format(i) for i,n in enumerate(df.index.names)]
+            index_names = [n if n else "index{}".format(i) for i, n in enumerate(df.index.names)]
 
             yield index_names + list(df.columns)
 
