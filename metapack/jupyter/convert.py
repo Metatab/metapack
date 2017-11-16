@@ -17,7 +17,7 @@ from metapack import MetapackDoc
 from metapack.cli.core import prt, err
 from metapack.util import ensure_dir, copytree
 from metapack.jupyter.core import logger
-from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter
+from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter, WordpressExporter
 from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc, ExtractMetatabTerms
 from rowgenerators.util import fs_join as join
 
@@ -127,7 +127,6 @@ def doc_metadata(doc):
 def convert_hugo(nb_path, hugo_path):
     from os import environ
 
-
     # Total hack. Would like the -H to be allowed to have no arg, and then use the env var,
     # but I don't know how to do that. This is the case where the user types
     # -H nb_path, so just go with it.
@@ -155,3 +154,34 @@ def convert_hugo(nb_path, hugo_path):
 
     fw = FilesWriter()
     fw.write(output, resources, notebook_name=resources['unique_key'])
+
+def convert_wordpress(nb_path, hugo_path):
+    from os import environ
+
+    if not exists(nb_path):
+        err("Notebook path does not exist: '{}' ".format(nb_path))
+
+    c = Config()
+    c.WordpressExporter.staging_dir = hugo_path
+    he = WordpressExporter(config=c, log=logger)
+
+    output, resources = he.from_filename(nb_path)
+
+    prt('Writing Notebook to Wordpress HTML')
+
+    output_file = resources['unique_key'] + resources['output_extension']
+    prt('    Writing ', output_file)
+
+    resource_outputs = []
+
+    for k, v in resources['outputs'].items():
+        prt('    Writing ', k)
+        resource_outputs.append(k)
+
+    fw = FilesWriter()
+    fw.write(output, resources, notebook_name=resources['unique_key'])
+
+    return output_file, resource_outputs
+
+
+

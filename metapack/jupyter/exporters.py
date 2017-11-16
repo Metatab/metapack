@@ -10,6 +10,7 @@ import logging
 import sys
 import copy
 import io
+import json
 import metapack
 from metapack.exc import MetapackError
 from metapack.jupyter.exc import NotebookError
@@ -81,8 +82,6 @@ class DocumentationExporter(MetatabExporter):
 
     @property
     def default_config(self):
-
-        import metapack.jupyter.templates
 
         c = Config()
 
@@ -403,8 +402,6 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
 
                     attach_names.append((mime_type,k))
 
-
-
         nb, resources = super().preprocess_cell(cell, resources, cell_index)
 
         output_names = list(resources.get('outputs', {}).keys())
@@ -416,9 +413,9 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
             # reverse + zip matches the last len(attach_names) elements from output_names
 
             for output_name, (mimetype, an) in zip(reversed(output_names), reversed(attach_names)):
-
-                p = '\(attachment:{}\)'.format(an)
-                cell.source = re.sub(p,'(__IMGDIR__/{})'.format(output_name), cell.source)
+                # We'll post process to set the final output directory
+                cell.source = re.sub('\(attachment:{}\)'.format(an),
+                                     '(__IMGDIR__/{})'.format(output_name), cell.source)
 
         return nb, resources
 
@@ -550,3 +547,141 @@ class HugoExporter(MarkdownExporter):
 
         return output, resources
 
+
+
+
+class WordpressExporter(HTMLExporter):
+    """ Export a python notebook to markdown, with frontmatter for Hugo.
+    """
+
+    staging_dir = Unicode(help="Root of the Hugo directory").tag(config=True)
+
+
+    @property
+    def default_config(self):
+        import metapack.jupyter.templates
+
+        c = Config({
+
+        })
+
+        c.TemplateExporter.template_path = [dirname(metapack.jupyter.templates.__file__)]
+        c.TemplateExporter.template_file = 'html_wordpress.tpl'
+
+        c.HTMLExporter.preprocessors = [
+            'metapack.jupyter.preprocessors.OrganizeMetadata',
+            HugoOutputExtractor
+        ]
+
+        c.merge(super(WordpressExporter, self).default_config)
+
+        c.ExtractOutputPreprocessor.enabled = False
+
+        return c
+
+    def get_creators(self, meta):
+
+        for typ in ('wrangler', 'creator'):
+            try:
+                # Multiple authors
+                for e in meta[typ]:
+                    d = dict(e.items())
+                    d['type'] = typ
+
+                    yield d
+            except AttributeError:
+                # only one
+                d = meta[typ]
+                d['type'] = typ
+                yield d
+            except KeyError:
+                pass
+
+
+    def from_notebook_node(self, nb, resources=None, **kw):
+        from nbconvert.filters.highlight import Highlight2HTML
+        import nbformat
+
+        nb_copy = copy.deepcopy(nb)
+
+        resources = self._init_resources(resources)
+
+        if 'language' in nb['metadata']:
+            resources['language'] = nb['metadata']['language'].lower()
+
+        # Preprocess
+        nb_copy, resources = self._preprocess(nb_copy, resources)
+
+        # move over some more metadata
+        if 'authors' not  in nb_copy.metadata.frontmatter:
+            nb_copy.metadata.frontmatter['authors'] = list(self.get_creators(nb_copy.metadata.metatab))
+
+        # Other useful metadata
+        if not 'date' in nb_copy.metadata.frontmatter:
+            nb_copy.metadata.frontmatter['date'] = datetime.now().isoformat()
+
+        resources.setdefault('raw_mimetypes', self.raw_mimetypes)
+
+        resources['global_content_filter'] = {
+            'include_code': not self.exclude_code_cell,
+            'include_markdown': not self.exclude_markdown,
+            'include_raw': not self.exclude_raw,
+            'include_unknown': not self.exclude_unknown,
+            'include_input': not self.exclude_input,
+            'include_output': not self.exclude_output,
+            'include_input_prompt': not self.exclude_input_prompt,
+            'include_output_prompt': not self.exclude_output_prompt,
+            'no_prompt': self.exclude_input_prompt and self.exclude_output_prompt,
+        }
+
+        langinfo = nb.metadata.get('language_info', {})
+        lexer = langinfo.get('pygments_lexer', langinfo.get('name', None))
+        self.register_filter('highlight_code',
+                             Highlight2HTML(pygments_lexer=lexer, parent=self))
+
+        def format_datetime(value, format='%a, %B %d'):
+            from  dateutil.parser import parse
+            return parse(value).strftime(format)
+
+        self.register_filter('parsedatetime',format_datetime)
+
+        slug = nb_copy.metadata.frontmatter.slug
+
+        # Rebuild all of the image names
+        for cell_index, cell in enumerate(nb_copy.cells):
+            for output_index, out in enumerate(cell.get('outputs', [])):
+
+                if 'metadata' in out:
+                    for type_name, fn in list(out.metadata.get('filenames',{}).items()):
+                        if fn in resources['outputs']:
+                            html_path = join( slug ,basename(fn))
+                            file_path = join(self.staging_dir, html_path)
+
+                            resources['outputs'][file_path] = resources['outputs'][fn]
+                            del resources['outputs'][fn]
+
+                            # Can't put the '/' in the join() or it will be absolute
+
+                            out.metadata.filenames[type_name] = '/'+html_path
+
+        output = self.template.render(nb=nb_copy, resources=resources)
+
+        # Don't know why this isn't being set from the config
+        #resources['output_file_dir'] = self.config.NbConvertApp.output_base
+
+        # Setting full path to subvert the join() in the file writer. I can't
+        # figure out how to set the output directories from this function
+        resources['unique_key'] = join(self.staging_dir,  slug)
+
+        # Probably should be done with a postprocessor.
+        output = re.sub(r'__IMGDIR__','/'+slug,output)
+
+        output = re.sub(r'<style>.*</style>','', output, flags=re.MULTILINE|re.DOTALL)
+
+
+        resources['outputs'][join(self.staging_dir,  slug+'.json')] = \
+            json.dumps(nb_copy.metadata, indent=4).encode('utf-8')
+
+        resources['outputs'][join(self.staging_dir,  slug+'.ipynb')] = nbformat.writes(nb_copy).encode('utf-8')
+
+        return output, resources

@@ -484,6 +484,15 @@ class OrganizeMetadata(Preprocessor):
         nb.metadata['metatab'] = self.doc.as_dict()
         nb.metadata['metapack'] = self.metadata
 
+        # Reset the identity, name and descriptions, because they can have add forms
+        # in the data, which the Doc interface fixes.
+        nb.metadata['metatab']['name'] = self.doc.name
+        nb.metadata['metatab']['description'] = self.doc.description
+        nb.metadata['metatab']['identifier'] = self.doc.identifier
+
+        if not 'identifier' in nb.metadata['frontmatter']:
+            nb.metadata['frontmatter']['identifier'] = nb.metadata['metatab']['identifier']
+
         return nb, resources
 
     def preprocess_cell(self, cell, resources, index):

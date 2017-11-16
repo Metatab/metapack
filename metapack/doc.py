@@ -74,7 +74,20 @@ class MetapackDoc(MetatabDoc):
     def name(self):
         """Return the name from the metatab document, or the identity, and as a last resort,
         the slugified file reference"""
-        return self.get_value('root.name', self.get_value('root.identity',slugify(self._ref)))
+        return self.get_value('root.name', self.get_value('root.identifier',slugify(self._ref)))
+
+    @property
+    def identifier(self):
+
+        # Maybe there are multiple values
+        t = None
+        for t in self['Root'].find('root.identifier'):
+            pass
+
+        if t:
+            return t.value
+
+        return None
 
 
     def wrappable_term(self, term):

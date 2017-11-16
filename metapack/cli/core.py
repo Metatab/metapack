@@ -439,6 +439,8 @@ class MetapackCliMemo(object):
 
         self.cache = self.downloader.cache
 
+        self.config = get_config()
+
         frag = ''
 
         # Just the fragment was provided
@@ -476,3 +478,27 @@ class MetapackCliMemo(object):
     @property
     def doc(self):
         return MetapackDoc(self.mt_file)
+
+def get_config():
+    """Return a configuration dict"""
+    from os import environ
+    from pathlib import Path
+    import yaml
+
+    paths = [ environ.get("METAPACK_CONFIG"),'~/.metapack.yaml','/etc/metapack.yaml']
+
+    for p in paths:
+        try:
+            if Path(p).expanduser().exists():
+                with  Path(p).expanduser().open() as f:
+                    config = yaml.safe_load(f)
+                    config['_loaded_from'] = str(Path(p).expanduser() )
+                    return config
+        except TypeError:
+            pass
+
+
+    return {}
+
+
+

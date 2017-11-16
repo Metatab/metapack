@@ -49,6 +49,8 @@ setup(
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
 
+
+        'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
 
     entry_points={
@@ -81,7 +83,7 @@ setup(
             'pack=metapack.cli.metapack:metapack',
             's3=metapack.cli.metas3:metas3',
             'ckan=metapack.cli.metakan:metakan',
-            'notebook=metapack.cli.notebook:notebook'
+            'notebook=metapack.cli.notebook:notebook',
             'run=metapack.cli.run:run'
 
         ]

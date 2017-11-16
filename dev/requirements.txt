@@ -6,7 +6,6 @@ git+https://github.com/CivicKnowledge/rowpipe.git#egg=rowpipe
 git+https://github.com/CivicKnowledge/metatab-declarations.git#egg=metatabdecl
 git+https://github.com/CivicKnowledge/metatab.git#egg=metatab
 git+https://github.com/CivicKnowledge/metapack.git#egg=metapack
-git+https://github.com/CivicKnowledge/pandas-reporter.git#egg=pandas-reporter
 fiona
 shapely
 pyproj
