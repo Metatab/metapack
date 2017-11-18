@@ -24,12 +24,14 @@ classifiers = [
 
 setup(
     name='metapack',
-    version='0.6.19',
+    version='0.6.20',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
-    package_data={'metatab.jupyter': ['*.csv'],
-                  'metatab.jupyter.templates': ['*.tpl','*.tplx']},
+    package_data={
+        '': ['*.tpl', '*.tplx'],
+    },
+
     zip_safe=False,
     install_requires=[
 
