@@ -24,7 +24,7 @@ classifiers = [
 
 setup(
     name='metapack',
-    version='0.6.18',
+    version='0.6.19',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -49,6 +49,7 @@ setup(
         'metatab>=0.6.6',
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
+        'terminaltables'
 
 
         #'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
