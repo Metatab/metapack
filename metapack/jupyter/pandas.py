@@ -9,7 +9,7 @@ from pandas import DataFrame, Series
 
 class MetatabSeries(Series):
 
-    _metadata = [ 'metatab_resource', 'name', '_description'] # Name is defined in the parent
+    _metadata = [ 'metatab_resource', 'name', '_description', '_schema'] # Name is defined in the parent
 
     @property
     def _constructor(self):
@@ -51,8 +51,21 @@ class MetatabDataFrame(DataFrame):
     def geo(self):
         """Return a geopandas dataframe"""
         import geopandas as gpd
+        from shapely.geometry.polygon import BaseGeometry
+
         gdf = gpd.GeoDataFrame(self)
-        shapes = [row['geometry'].shape for i, row in gdf.iterrows()]
+
+        first = next(gdf.iterrows())[1].geometry
+
+        if not isinstance(first, BaseGeometry):
+            # If we are reading a metatab package, the geometry column's type should be
+            # 'geometry' which will give the geometry values class type of
+            # rowpipe.valuetype.geo.ShapeValue. However, there are other
+            # types of objects that have a 'shape' property.
+            shapes = [row['geometry'].shape for i, row in gdf.iterrows()]
+        else:
+            shapes = gdf['geometry']
+
         gdf['geometry'] = gpd.GeoSeries(shapes)
         gdf.set_geometry('geometry')
         return gdf

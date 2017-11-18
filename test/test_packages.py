@@ -1,13 +1,13 @@
 import unittest
 from csv import DictReader
-from metapack import MetapackDoc
 
 from appurl import parse_app_url
+from metapack import MetapackDoc
 from metapack import MetapackPackageUrl,  MetapackUrl, ResourceError, Downloader
 from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package, make_csv_package,
                                 PACKAGE_PREFIX, cli_init )
-from rowgenerators import get_generator, RowGeneratorError
 from metatab.generate import TextRowGenerator
+from rowgenerators import get_generator, RowGeneratorError
 
 downloader = Downloader()
 
@@ -207,8 +207,6 @@ class TestPackages(unittest.TestCase):
 
     def test_build_transform_package(self):
 
-        from rowpipe.valuetype.geo import ShapeValue
-
         m = MetapackUrl(test_data('packages/example.com/example.com-transforms/metadata.csv'), downloader=downloader)
 
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
@@ -220,7 +218,7 @@ class TestPackages(unittest.TestCase):
 
 
     def test_read_geo_packages(self):
-        from pandasreporter.dataframe import CensusDataFrame
+        from publicdata.censusreporter.dataframe import CensusDataFrame
         from metapack.jupyter.pandas import MetatabDataFrame
         from metapack.jupyter.pandas import MetatabSeries
         from geopandas.geoseries import GeoSeries

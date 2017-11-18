@@ -24,11 +24,12 @@ classifiers = [
 
 setup(
     name='metapack',
-    version='0.6.17',
+    version='0.6.18',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
-    package_data={'metatab.jupyter': ['*.csv']},
+    package_data={'metatab.jupyter': ['*.csv'],
+                  'metatab.jupyter.templates': ['*.tpl','*.tplx']},
     zip_safe=False,
     install_requires=[
 
@@ -50,7 +51,7 @@ setup(
         'geoid>=1.0.4',
 
 
-        'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
+        #'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
 
     entry_points={

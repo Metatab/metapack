@@ -35,6 +35,7 @@ class JupyterNotebookSource(Source):
         from os.path import join, isdir
         from csv import reader
         from shutil import rmtree
+        from appurl.exc import AppUrlError
 
         dr_name = None
 
@@ -49,7 +50,11 @@ class JupyterNotebookSource(Source):
             # The execute_motebook() function will add a cell with the '%mt_materialize' magic,
             # with a path that will case the file to be written to the same location as
             # path, below.
-            nb = execute_notebook(self.ref.path, dr_name, [self.ref.target_file], True)
+
+            if not self.ref.target_dataframe():
+                raise AppUrlError('Url did not specify a dataframe; use the "#" fragment ')
+
+            nb = execute_notebook(self.ref.path, dr_name, [self.ref.target_dataframe()], True)
 
             path = join(dr_name, self.ref.target_file + ".csv")
 

@@ -82,6 +82,7 @@ class DocumentationExporter(MetatabExporter):
 
     @property
     def default_config(self):
+        import metapack.jupyter.templates
 
         c = Config()
 

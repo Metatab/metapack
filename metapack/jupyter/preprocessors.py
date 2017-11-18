@@ -20,6 +20,7 @@ from metatab.generate import TextRowGenerator
 from appurl import Downloader, parse_app_url
 from metapack.appurl import MetapackPackageUrl
 
+
 class RemoveDocsFromImages(Preprocessor):
     """Change the file name for images, because they are in the sam dir as the HTML files"""
     doc = None
@@ -131,12 +132,13 @@ class ExtractMetatabTerms(Preprocessor):
             tags = cell['metadata'].get('tags', [])
 
             if 'Title' in tags:
-                self.terms.append(('Root','Root.Title', cell.source.strip().replace('#', '')))
+                self.terms.append(('Root', 'Root.Title', cell.source.strip().replace('#', '')))
 
             elif 'Description' in tags:
-                self.terms.append(('Root','Root.Description', cell.source.strip()))
+                self.terms.append(('Root', 'Root.Description', cell.source.strip()))
 
         return cell, resources
+
 
 class ExtractInlineMetatabDoc(ExtractMetatabTerms):
     """Extract the Inlined Metatab document. Will Apply the metatab cell vaules for
@@ -173,7 +175,7 @@ class ExtractInlineMetatabDoc(ExtractMetatabTerms):
                 self.extra_terms.append(('Root', 'Root.Description', cell.source.strip()))
 
         else:
-            cell, resources = super().preprocess_cell(cell,resources,index)
+            cell, resources = super().preprocess_cell(cell, resources, index)
 
         return cell, resources
 
@@ -193,12 +195,13 @@ class ExtractInlineMetatabDoc(ExtractMetatabTerms):
         self.doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n"),
                                package_url=parse_app_url(self.package_url))
 
-        self.preprocess(nb,{})
+        self.preprocess(nb, {})
 
         for section, term, value in self.extra_terms:
             self.doc[section].get_or_new_term(term, value)
 
         return self.doc
+
 
 class ExtractFinalMetatabDoc(Preprocessor):
     """Extract the metatab document produced from the %mt_show_metatab magic"""
@@ -210,7 +213,6 @@ class ExtractFinalMetatabDoc(Preprocessor):
     def preprocess_cell(self, cell, resources, index):
         import re
         from metatab.generate import TextRowGenerator
-
 
         if cell['metadata'].get('mt_final_metatab'):
             if cell['outputs']:
@@ -228,6 +230,7 @@ class ExtractFinalMetatabDoc(Preprocessor):
                         pass
 
         return cell, resources
+
 
 class ExtractMaterializedRefs(Preprocessor):
     """Extract the metatab document produced from the %mt_show_metatab magic"""
@@ -266,7 +269,6 @@ class ExtractLibDirs(Preprocessor):
             if cell['outputs']:
                 o = ''.join(e['text'] for e in cell['outputs'])
 
-
                 if o:
                     self.lib_dirs = loads(o)
 
@@ -280,8 +282,6 @@ class RemoveMetatab(Preprocessor):
         import re
 
         out_cells = []
-
-
 
         for cell in nb.cells:
 
@@ -380,35 +380,31 @@ class NoShowInput(Preprocessor):
         return nb, resources
 
 
-
 class AddEpilog(Preprocessor):
     """Add final cells that writes the Metatab file, materializes datasets, etc.  """
 
-
     pkg_dir = Unicode(help='Metatab package Directory').tag(config=True)
 
-    dataframes = List(help='Names of dataframes to materialize',trait=Unicode())
-
+    dataframes = List(help='Names of dataframes to materialize', trait=Unicode())
 
     def preprocess(self, nb, resources):
         from datetime import datetime
 
         # Well, now we adding prolog in the epilog ...
         nb.cells = [
-               from_dict({
-                   'cell_type': 'code',
-                   'outputs': [],
-                   'metadata': {'': True, 'prolog': True},
-                   'execution_count': None,
-                   'source': ("#{}\n".format(datetime.now()))+
-                       "%load_ext metapack.jupyter.magic"
-               })
-           ] + nb.cells
+                       from_dict({
+                           'cell_type': 'code',
+                           'outputs': [],
+                           'metadata': {'': True, 'prolog': True},
+                           'execution_count': None,
+                           'source': ("#{}\n".format(datetime.now())) +
+                                     "%load_ext metapack.jupyter.magic"
+                       })
+                   ] + nb.cells
 
         assert self.pkg_dir
 
         if len(self.dataframes) > 0:
-
             nb.cells.append(from_dict({
                 'cell_type': 'code',
                 'outputs': [],
@@ -451,17 +447,18 @@ class AddEpilog(Preprocessor):
 
         return nb, resources
 
+
 class OrganizeMetadata(Preprocessor):
     """Move a lot of metadata around """
 
     package_url = Unicode(help='Metapack Package Url').tag(config=True)
 
-    alt_title = None # Title extracted from markdown, without a Title tag
+    alt_title = None  # Title extracted from markdown, without a Title tag
 
     show_input = 'show'
 
     def __init__(self, **kw):
-        self.front_matter = { 'show_input': self.show_input}
+        self.front_matter = {'show_input': self.show_input}
         self.metadata = {}
 
         self.doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n"),
@@ -475,9 +472,9 @@ class OrganizeMetadata(Preprocessor):
 
         r = super().preprocess(nb, resources)
 
-        nb.cells = [cell for cell in nb.cells if cell.source ]
+        nb.cells = [cell for cell in nb.cells if cell.source]
 
-        self.front_matter['slug'] = slugify(self.front_matter.get('title',self.alt_title or str(uuid.uuid4())))
+        self.front_matter['slug'] = slugify(self.front_matter.get('title', self.alt_title or str(uuid.uuid4())))
 
         # move the metadata we collected back into the notebook metadata.
         nb.metadata['frontmatter'] = self.front_matter
@@ -521,7 +518,6 @@ class OrganizeMetadata(Preprocessor):
         if 'show' in tags:
             cell['metadata']['show_input'] = 'show'
 
-
         if 'hide' in tags:
             cell['metadata']['show_input'] = 'hide'
 
@@ -540,7 +536,6 @@ class OrganizeMetadata(Preprocessor):
             cell.source = ''
 
         if cell['source'].startswith('%%metatab'):
-
             tp = TermParser(TextRowGenerator(re.sub(r'\%\%metatab.*\n', '', cell['source'])),
                             resolver=self.doc.resolver, doc=self.doc)
 
@@ -552,11 +547,6 @@ class OrganizeMetadata(Preprocessor):
         if 'show_input' not in cell['metadata']:
             cell['metadata']['show_input'] = self.front_matter['show_input']
 
-
         cell['metadata']['hide_input'] = (cell['metadata']['show_input'] == 'hide')
 
         return cell, resources
-
-
-
-
