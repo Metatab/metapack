@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/Metatab/metapack.svg?branch=master
+    :target: https://travis-ci.org/Metatab/metapack
+
 Metapack, Metatab Data Packaging
 ================================
 
