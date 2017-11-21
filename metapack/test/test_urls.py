@@ -20,7 +20,7 @@ class TestUrls(unittest.TestCase):
             for l in DictReader(f):
 
                 u = parse_app_url(l['in_url'])
-                print(u)
+
                 self.assertEqual(l['url_class'], u.__class__.__name__)
                 self.assertEqual(l['url'], str(u))
                 self.assertEqual(l['package_url'],str(u.package_url))
@@ -43,9 +43,7 @@ class TestUrls(unittest.TestCase):
                 self.assertTrue(r.inner.exists())
 
                 t = r.get_target()
-
-                print(r, type(r), type(t))
-                self.assertTrue(t.inner.exists())
+                self.assertTrue(t.inner.exists(), t.inner)
 
                 # Check that the generator for the metadata gets the right number of rows
                 self.assertEqual(50,len(list(u.metadata_url.generator)))
@@ -121,27 +119,7 @@ class TestUrls(unittest.TestCase):
         self.assertEqual('metapack', ur.proto)
         self.assertIsInstance(ur, MetapackResourceUrl)
 
-        return
 
-        r = u.get_resource()
-        self.assertIsInstance(r, MetapackFileUrl)
-
-        rs = doc.resource('random-names')
-
-        self.assertEquals(101, len(list(rs)))
-
-        us += "#random_names"
-
-        u = parse_app_url(us)
-        self.assertEqual('metapack', u.proto)
-        self.assertIsInstance(u, MetapackWebUrl)
-
-        print (u.get_resource())
-        print(u.get_resource().get_target())
-
-        g = get_generator(u.get_resource().get_target())
-
-        print (len(list(rs)))
 
     def test_inner(self):
         u_s = 'metapack+http://public.source.civicknowledge.com.s3.amazonaws.com/example.com/geo/Parks_SD.zip#encoding=utf8'
@@ -188,7 +166,7 @@ class TestUrls(unittest.TestCase):
                            fragment='fragment',
                            )
 
-        print (repr(ru))
+        #print (repr(ru))
 
 
     def test_metatab_resource_xlsx(self):
@@ -205,13 +183,12 @@ class TestUrls(unittest.TestCase):
 
         r = doc.resource(u.target_file)
         ru = r.resolved_url
-        print(r.value)
-        print (ru)
+        #print(r.value)
+        #print (ru)
         rur = ru.get_resource()
-        print (rur)
+        #print (rur)
         rurt = rur.get_target()
-        print (rurt)
-
+        #print (rurt)
 
         self.assertEqual(101, len(list(r)))
 
@@ -223,7 +200,7 @@ class TestUrls(unittest.TestCase):
         doc = u.metadata_url.doc
 
         r = doc.resource(u.target_file)
-        print(r.resolved_url)
+
 
         self.assertEqual(101, len(list(r)))
 
@@ -237,8 +214,8 @@ class TestUrls(unittest.TestCase):
         r = u.resource
         ru = r.resolved_url
 
-        print(ru.inner)
-        print(ru.get_resource())
+        #print(ru.inner)
+        #print(ru.get_resource())
 
         return
 
@@ -254,7 +231,7 @@ class TestUrls(unittest.TestCase):
 
         u = parse_app_url(us)
 
-        print(u.package_url)
+
 
 if __name__ == '__main__':
     unittest.main()
