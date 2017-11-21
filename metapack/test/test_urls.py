@@ -14,6 +14,8 @@ class TestUrls(unittest.TestCase):
 
     def test_metapack_urls(self):
 
+
+
         groups = {}
 
         with open(test_data('mpurls.csv')) as f:
@@ -43,7 +45,7 @@ class TestUrls(unittest.TestCase):
                 self.assertTrue(r.inner.exists())
 
                 t = r.get_target()
-                self.assertTrue(t.inner.exists(), t.inner)
+                self.assertTrue(t.inner.exists(), (t.inner, r.inner))
 
                 # Check that the generator for the metadata gets the right number of rows
                 self.assertEqual(50,len(list(u.metadata_url.generator)))
