@@ -83,3 +83,19 @@ See `Getting Started <https://github.com/CivicKnowledge/metatab-py/blob/master/d
 for an initial tutorial, or the other guides in the
 `docs directory on Github <https://github.com/CivicKnowledge/metatab-py/tree/master/docs>`_
 
+Development Notes
+-----------------
+
+Clearing the Cache
+++++++++++++++++++
+
+Some tests can pass despite errors if the file the test  is looking for is cached. The cache can be set with
+an evironmental variable and cleared before the tests to solve this problem
+
+
+.. code-block:: bash
+
+    $ cache_dir=/tmp/some/dir
+    $ rm -rf $cache_dir
+    $ mkdir -p  $cache_dir
+    $ APPURL_CACHE=$cache_dir python setup.py test

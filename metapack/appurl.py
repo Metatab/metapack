@@ -158,12 +158,11 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def get_resource(self):
 
         if self.scheme == 'file':
-            return self
+            u = self
         else:
+            u = WebUrl(str(self), downloader=self._downloader).get_resource()
 
-            u = WebUrl(str(self), downloader=self._downloader)
-            r = u.get_resource()
-            return MetapackDocumentUrl(str(r), downloader=self._downloader)
+        return MetapackDocumentUrl(str(u), downloader=self._downloader)
 
     def get_target(self):
         return self.inner.get_target()
@@ -279,7 +278,8 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
 
 class MetapackResourceUrl(FileUrl, _MetapackUrl):
-    def __init__(self, url=None, downloader=None, **kwargs):
+    def __init__(self, url=None, downloader=None, base_url = None, **kwargs):
+
         kwargs['proto'] = 'metapack'
 
         super().__init__(url, downloader=downloader, **kwargs)
@@ -293,6 +293,9 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
 
         md = MetapackDocumentUrl(None,downloader = downloader, **d)
         self.path = md.path
+
+        self.base_url = base_url
+
 
     @classmethod
     def _match(cls, url, **kwargs):
@@ -330,18 +333,12 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
         else:
             u = WebUrl(str(self), downloader=self._downloader)
             r = u.get_resource()
-            mru = MetapackResourceUrl(str(r), downloader=self._downloader)
+            mru = MetapackResourceUrl(str(r), base_url = self, downloader=self._downloader)
             return mru
 
     def get_target(self):
-
         return self.resource
-        #return self.resolve_url(self.target_file)
-        #r = self.get_resource()
-        #pu = self.package_url
-        #resolved = pu.resolve_url(self.target_file)
-        #return resolved
-        #return self.inner.get_target()
+
 
     @property
     def generator(self):
@@ -351,8 +348,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     @property
     def resource(self):
 
-        doc = self.metadata_url.doc
-        r =  doc.resource(self.target_file)
+        r =  self.doc.resource(self.target_file)
         return r
 
 
