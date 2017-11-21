@@ -21,7 +21,7 @@ var
 sdist
 develop-eggs
 .installed.cfg
-lib
+lib/*
 lib64
 __pycache__
 
@@ -95,4 +95,4 @@ jspm_packages
 .node_repl_history
 
 _packages
-!/metapack/metapack/test/test-data/packages/example.com/example.com-transforms/lib/
+!test-data/packages/example.com/example.com-transforms/lib/
