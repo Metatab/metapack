@@ -482,17 +482,26 @@ class MetapackCliMemo(object):
 def get_config():
     """Return a configuration dict"""
     from os import environ
+    from os.path import expanduser
     from pathlib import Path
     import yaml
+
+    def pexp(p):
+        try:
+            return Path(p).expanduser()
+        except AttributeError:
+            # python 3.4
+            return Path(expanduser(p))
+
 
     paths = [ environ.get("METAPACK_CONFIG"),'~/.metapack.yaml','/etc/metapack.yaml']
 
     for p in paths:
         try:
-            if Path(p).expanduser().exists():
-                with  Path(p).expanduser().open() as f:
+            if pexp(Path(p)).exists():
+                with  pexp(Path(p)).open() as f:
                     config = yaml.safe_load(f)
-                    config['_loaded_from'] = str(Path(p).expanduser() )
+                    config['_loaded_from'] = str(pexp(Path(p)) )
                     return config
         except TypeError:
             pass
