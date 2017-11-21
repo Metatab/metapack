@@ -11,6 +11,7 @@ from rowpipe import RowProcessor
 
 from rowgenerators.exceptions import RowGeneratorError
 
+
 class Resource(Term):
     # These property names should return null if they aren't actually set.
     _common_properties = 'url name description schema'.split()
@@ -18,7 +19,6 @@ class Resource(Term):
     def __init__(self, term, value, term_args=False, row=None, col=None, file_name=None, file_type=None,
                  parent=None, doc=None, section=None,
                  ):
-
 
         self.errors = {}  # Typecasting errors
 
@@ -55,8 +55,6 @@ class Resource(Term):
 
         return env
 
-
-
     @property
     def code_path(self):
         from .util import slugify
@@ -69,7 +67,6 @@ class Resource(Term):
             pass
 
         return self.doc.cache.opendir(sub_dir).getsyspath(slugify(self.name) + '.py')
-
 
     @property
     def resolved_url(self):
@@ -102,7 +99,8 @@ class Resource(Term):
                 t.scheme_extension = parse_app_url(self.url).scheme_extension
 
                 # Another Hack!
-                t.fragment = u.fragment
+                if not t.fragment and u.fragment:
+                    t.fragment = u.fragment
 
                 # Yet more hack!
                 t = parse_app_url(str(t))
@@ -113,6 +111,11 @@ class Resource(Term):
                 raise
 
         return t
+
+    @property
+    def inner(self):
+        """For compatibility with the Appurl interface"""
+        return self.resolved_url.get_resource().get_target().inner
 
     @property
     def parsed_url(self):
@@ -198,7 +201,6 @@ class Resource(Term):
         for i, c in enumerate(t.children):
 
             if c.term_is("Table.Column"):
-
                 p = c.all_props
                 p['pos'] = i
                 p['name'] = c.value
@@ -206,7 +208,7 @@ class Resource(Term):
 
                 yield p
 
-    def row_processor_table(self):
+    def row_processor_table(self, ignore_none=False):
         """Create a row processor from the schema, to convert the text values from the
         CSV into real types"""
         from rowpipe.table import Table
@@ -229,6 +231,10 @@ class Resource(Term):
             col_n = 0
 
             for c in self.schema_term.children:
+
+                if ignore_none and c.name == EMPTY_SOURCE_HEADER:
+                    continue
+
                 if c.term_is('Table.Column'):
                     t.add_column(self._name_for_col_term(c, col_n),
                                  datatype=map_type(c.get_value('datatype')),
@@ -243,14 +249,11 @@ class Resource(Term):
         else:
             return None
 
-
-
-
     @property
     def row_generator(self):
         import sys
 
-        self.doc.set_sys_path() # Set sys path to package 'lib' dir in case of python function generator
+        self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
 
         ru = self.resolved_url
 
@@ -300,7 +303,6 @@ class Resource(Term):
         headers = RowIntuiter.coalesce_headers(header_rows)
 
         return headers
-
 
     def __iter__(self):
         """Iterate over the resource's rows"""
@@ -377,7 +379,6 @@ class Resource(Term):
 
             yield row_proxy.set_row(row)
 
-
     @property
     def iterstruct(self):
         """Yield structures build from the JSON header specifications"""
@@ -392,15 +393,14 @@ class Resource(Term):
             yield d
 
     def iterjson(self, *args, **kwargs):
-        from rowpipe.json import  VTEncoder
+        from rowpipe.json import VTEncoder
         import json
 
         if 'cls' not in kwargs:
             kwargs['cls'] = VTEncoder
 
         for s in self.iterstruct:
-            yield(json.dumps(s, *args, **kwargs))
-
+            yield (json.dumps(s, *args, **kwargs))
 
     def dataframe(self, limit=None):
         """Return a pandas datafrome from the resource"""
@@ -497,11 +497,9 @@ class Resource(Term):
 
 
 class Reference(Resource):
-
-
     @property
     def env(self):
-        e =  super().env
+        e = super().env
         e['reference'] = self
         return e
 
@@ -511,8 +509,8 @@ class Reference(Resource):
 
         yield from self.row_generator
 
-class Distribution(Term):
 
+class Distribution(Term):
     @property
     def type(self):
 

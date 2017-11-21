@@ -360,7 +360,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
 class MetapackUrl(Url):
     """Implements __new__ to return either a  MetapackResourceUrl or a MetapackDocumentUrl"""
 
-    match_priority = FileUrl.match_priority - 10
+    match_priority = WebUrl.match_priority - 1
 
     def __new__(cls, url=None, downloader=None, **kwargs):
 

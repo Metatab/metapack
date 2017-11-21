@@ -13,3 +13,4 @@ from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, Metap
 from .terms import Resource
 
 from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
+

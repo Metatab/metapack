@@ -90,11 +90,7 @@ class MetatabDataFrame(DataFrame):
         for c in df.columns:
             df[c].__class__ = MetatabSeries
 
-            try:
-                df[c].description = self[c].description
-            except Exception as e:
-                print(c, type(self[c]), self[c]._metadata)
-                pass
+
 
         return df
 

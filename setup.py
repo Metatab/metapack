@@ -22,14 +22,14 @@ classifiers = [
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
-setup(
+setup_d = dict(
     name='metapack',
     version='0.6.20',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
     package_data={
-        '': ['*.tpl', '*.tplx'],
+        '': ['*.tpl', '*.tplx', '*.csv', '*.json', '*.txt', '*.ipynb', ''],
     },
 
     zip_safe=False,
@@ -41,7 +41,6 @@ setup(
         'markdown',
         'boto3',
         'nbconvert',
-        'docopt',
         'IPython',
         'nameparser',
         'pybtex',
@@ -51,10 +50,10 @@ setup(
         'metatab>=0.6.6',
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
-        'terminaltables'
+        'terminaltables',
+        'docopt'
 
-
-        #'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
+        # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
 
     entry_points={
@@ -64,14 +63,13 @@ setup(
             'metaaws=metapack.cli.metaaws:metaaws',
             'metasql=metapack.cli.metasql:metasql'
 
-
         ],
         'nbconvert.exporters': [
             'metapack = metapack.jupyter:MetapackExporter',
             'hugo = metapack.jupyter:HugoExporter',
         ],
 
-        'appurl.urls' : [
+        'appurl.urls': [
             "metapack+ = metapack.appurl:MetapackUrl",
             "metatab+ = metapack.appurl:MetapackUrl",
             ".ipynb = metapack.appurl:JupyterNotebookUrl"
@@ -92,7 +90,6 @@ setup(
 
         ]
 
-
     },
 
     include_package_data=True,
@@ -103,8 +100,15 @@ setup(
     classifiers=classifiers,
     extras_require={
         'test': ['datapackage'],
-        'geo': ['fiona','shapely','pyproj'],
+        'geo': ['fiona', 'shapely', 'pyproj'],
 
     },
 
+    test_suite='metapack.test.test_suite.suite',
+    tests_require=['nose'],
+
+)
+
+setup(
+    **setup_d
 )

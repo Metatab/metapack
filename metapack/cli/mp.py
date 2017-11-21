@@ -6,8 +6,15 @@ Root program for metapack programs
 
 """
 
-from pkg_resources import iter_entry_points
+from pkg_resources import iter_entry_points, get_distribution, DistributionNotFound
+from .core import prt
 import argparse
+
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+   # package is not installed
+   pass
 
 from metapack.cli.core import  cli_init
 
@@ -17,7 +24,13 @@ def mp():
 
     parser = argparse.ArgumentParser(
         prog='metapack',
-        description='Create and manipulate metatab data packages')
+        description='Create and manipulate metatab data packages. ')
+
+    parser.add_argument('-v', '--version', default=False, action='store_true',
+                             help='Print Metapack versions')
+
+    parser.add_argument('-V', '--versions', default=False, action='store_true',
+                        help='Print version of several important packages')
 
     subparsers = parser.add_subparsers(help='Commands')
 
@@ -28,5 +41,32 @@ def mp():
 
     args = parser.parse_args()
 
-    args.run_command(args)
+    if args.version:
+        prt(get_distribution('metapack'))
+
+    elif args.versions:
+
+        from pkg_resources import EntryPoint
+
+        prt('--- Main Packages')
+
+        main_packages = ('metapack', 'metatab','appurl','rowgenerators','rowpipe','publicdata')
+
+        for pkg_name in main_packages:
+            try:
+                prt(get_distribution(pkg_name))
+            except DistributionNotFound as e:
+                # package is not installed
+
+                pass
+
+        prt('')
+        prt('--- Subcommands')
+
+        for ep in iter_entry_points(group='mt.subcommands'):
+            prt(ep.name,  ep.dist)
+
+
+    else:
+        args.run_command(args)
 

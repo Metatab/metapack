@@ -523,7 +523,7 @@ _{description}_
 """.format(
         title=doc.find_first_value('Root.Title'),
         modtime=modtime_str(doc),
-        description=doc.find_first_value('Root.Description'),
+        description=doc.description,
         name=doc.find_first_value('Root.Name'),
         doc_block=documentation_block(doc),
         contacts_block=contacts_block(doc)
@@ -600,7 +600,7 @@ def html(doc):
     """.format(
         title=doc.find_first_value('Root.Title'),
         modtime=modtime_str(doc),
-        description=doc.find_first_value('Root.Description'),
+        description=doc.description,
         identity_block=mdc(identity_block(doc)).replace('<dl>', "<dl class=\"dl-horizontal\">"),
         doc_block=mdc(documentation_block(doc)),
         contacts_block=mdc(contacts_block(doc)).replace('<dl>', "<dl class=\"dl-horizontal\">"),

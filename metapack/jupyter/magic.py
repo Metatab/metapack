@@ -446,6 +446,8 @@ class MetatabMagic(Magics):
                     cell_col_by_pos = list(cols_by_name.values())[i]
                 except KeyError:
                     cell_col_by_pos = None
+                except IndexError:
+                    cell_col_by_pos = None
 
                 if cell_column:
                     c.description = cell_column.description

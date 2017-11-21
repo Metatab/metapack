@@ -14,7 +14,7 @@ import json
 import metapack
 from metapack.exc import MetapackError
 from metapack.jupyter.exc import NotebookError
-#from metapack.jupyter.markdown import MarkdownExporter
+# from metapack.jupyter.markdown import MarkdownExporter
 from nbconvert.exporters.markdown import MarkdownExporter
 import nbformat
 from nbconvert.exporters import Exporter
@@ -35,6 +35,7 @@ from traitlets import default
 
 from metatab.util import ensure_dir
 
+
 def write_files(self, resources):
     self.log.info('Base dir: {}'.format(self.output_dir))
 
@@ -47,15 +48,14 @@ def write_files(self, resources):
             f.write(data)
             self.log.info("Wrote '{}' ".format(filename))
 
-class MetatabExporter(Exporter):
 
+class MetatabExporter(Exporter):
     template_path = List(['.']).tag(config=True, affects_environment=True)
 
     output_dir = Unicode(help='Output directory').tag(config=True)
     notebook_dir = Unicode(help='CWD in which notebook will be executed').tag(config=True)
     package_dir = Unicode(help='Directory in which to store generated package').tag(config=True)
     package_name = Unicode(help='Name of package to generate. Defaults to the Metatab Root.Name').tag(config=True)
-
 
     def __init__(self, config=None, **kw):
         # import pdb; pdb.set_trace();
@@ -67,12 +67,10 @@ class MetatabExporter(Exporter):
         return super().from_file(file_stream, resources, **kw)
 
     def from_filename(self, filename, resources=None, **kw):
-
         if not self.notebook_dir:
             self.notebook_dir = dirname(abspath(filename))
 
         return super().from_filename(filename, resources, **kw)
-
 
 
 class DocumentationExporter(MetatabExporter):
@@ -100,7 +98,7 @@ class DocumentationExporter(MetatabExporter):
         c.MarkdownExporter.preprocessors = ['metapack.jupyter.preprocessors.RemoveMagics']
 
         c.PDFExporter.preprocessors = [
-            #'metapack.jupyter.preprocessors.NoShowInput',
+            # 'metapack.jupyter.preprocessors.NoShowInput',
             'metapack.jupyter.preprocessors.RemoveMetatab',
             'metapack.jupyter.preprocessors.LatexBib',
             'metapack.jupyter.preprocessors.MoveTitleDescription'
@@ -108,7 +106,7 @@ class DocumentationExporter(MetatabExporter):
 
         c.PDFExporter.exclude_input_prompt = True
         # Excluding the output prompt also excludes the output tables.
-        #.PDFExporter.exclude_output_prompt = True
+        # .PDFExporter.exclude_output_prompt = True
 
         c.merge(super(DocumentationExporter, self).default_config)
         return c
@@ -144,7 +142,7 @@ class DocumentationExporter(MetatabExporter):
 
     def add_pdf(self, nb, resources):
 
-        template_file =  'notebook.tplx'
+        template_file = 'notebook.tplx'
 
         exp = PDFExporter(config=self.config, template_file=template_file)
 
@@ -200,11 +198,11 @@ class DocumentationExporter(MetatabExporter):
             elif name.endswith('.html'):
                 ds.new_term('Root.Documentation', 'docs/' + name, name=name, title='Documentation (HTML)')
             elif name.endswith('.md'):
-                ds.new_term('Root.Documentation', 'docs/'+ name, name=name, title='Documentation (Markdown)')
+                ds.new_term('Root.Documentation', 'docs/' + name, name=name, title='Documentation (Markdown)')
             elif name.endswith('.pdf'):
-                ds.new_term('Root.Documentation', 'docs/'+ name, name=name, title='Documentation (PDF)')
+                ds.new_term('Root.Documentation', 'docs/' + name, name=name, title='Documentation (PDF)')
             elif name.endswith('.png'):
-                ds.new_term('Root.Image', 'docs/'+name, name=name, title='Image for HTML Documentation')
+                ds.new_term('Root.Image', 'docs/' + name, name=name, title='Image for HTML Documentation')
             else:
                 pass
 
@@ -220,9 +218,9 @@ class NotebookExecutor(MetatabExporter):
 
     ])
 
-    extra_terms = [] # Terms set in the document
+    extra_terms = []  # Terms set in the document
 
-    lib_dirs = [] # Extra library directories
+    lib_dirs = []  # Extra library directories
 
     doc = None
 
@@ -236,8 +234,6 @@ class NotebookExecutor(MetatabExporter):
         c.merge(super(NotebookExecutor, self).default_config)
         return c
 
-
-
     def get_package_dir_name(self, nb):
         """This is the name of the package we will be creating. """
 
@@ -249,7 +245,7 @@ class NotebookExecutor(MetatabExporter):
         package_name = self.package_name
 
         if not package_name:
-            doc = ExtractInlineMetatabDoc(package_url="metapack+file:" +package_dir).run(nb)
+            doc = ExtractInlineMetatabDoc(package_url="metapack+file:" + package_dir).run(nb)
 
             if not doc:
                 raise NotebookError("Notebook does not have an inline metatab doc")
@@ -263,7 +259,7 @@ class NotebookExecutor(MetatabExporter):
 
         return package_dir, package_name
 
-    def get_output_dir(self,nb):
+    def get_output_dir(self, nb):
         """Open a notebook and determine the output directory from the name"""
         self.package_dir, self.package_name = self.get_package_dir_name(nb)
 
@@ -317,7 +313,6 @@ class NotebookExecutor(MetatabExporter):
 
         nb_copy, resources = self.exec_notebook(nb_copy, resources, self.notebook_dir)
 
-
         eld = ExtractLibDirs()
         eld.preprocess(nb_copy, {})
 
@@ -364,8 +359,8 @@ class NotebookExecutor(MetatabExporter):
 
         return nb, resources
 
-class HugoOutputExtractor(ExtractOutputPreprocessor):
 
+class HugoOutputExtractor(ExtractOutputPreprocessor):
     def preprocess(self, nb, resources):
         return super().preprocess(nb, resources)
 
@@ -384,7 +379,7 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
 
         # Just move the attachment into an output
 
-        for k, attach in cell.get('attachments',{}).items():
+        for k, attach in cell.get('attachments', {}).items():
             for mime_type in self.extract_output_types:
                 if mime_type in attach:
 
@@ -394,14 +389,14 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
                     o = NotebookNode({
                         'data': NotebookNode({mime_type: attach[mime_type]}),
                         'metadata': NotebookNode({
-                            'filenames': { mime_type: k} # Will get re-written
+                            'filenames': {mime_type: k}  # Will get re-written
                         }),
                         'output_type': 'display_data'
                     })
 
                     cell['outputs'].append(o)
 
-                    attach_names.append((mime_type,k))
+                    attach_names.append((mime_type, k))
 
         nb, resources = super().preprocess_cell(cell, resources, cell_index)
 
@@ -421,7 +416,6 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
         return nb, resources
 
 
-
 class HugoExporter(MarkdownExporter):
     """ Export a python notebook to markdown, with frontmatter for Hugo.
     """
@@ -429,8 +423,6 @@ class HugoExporter(MarkdownExporter):
     hugo_dir = Unicode(help="Root of the Hugo directory").tag(config=True)
 
     section = Unicode(help="Hugo section in which to write the converted notebook").tag(config=True)
-
-
 
     @default('section')
     def _section_file_default(self):
@@ -476,7 +468,6 @@ class HugoExporter(MarkdownExporter):
             except KeyError:
                 pass
 
-
     def from_notebook_node(self, nb, resources=None, **kw):
 
         nb_copy = copy.deepcopy(nb)
@@ -490,13 +481,12 @@ class HugoExporter(MarkdownExporter):
         nb_copy, resources = self._preprocess(nb_copy, resources)
 
         # move over some more metadata
-        if 'authors' not  in nb_copy.metadata.frontmatter:
+        if 'authors' not in nb_copy.metadata.frontmatter:
             nb_copy.metadata.frontmatter['authors'] = list(self.get_creators(nb_copy.metadata.metatab))
 
         # Other useful metadata
         if not 'date' in nb_copy.metadata.frontmatter:
             nb_copy.metadata.frontmatter['date'] = datetime.now().isoformat()
-
 
         resources.setdefault('raw_mimetypes', self.raw_mimetypes)
         resources['global_content_filter'] = {
@@ -518,9 +508,9 @@ class HugoExporter(MarkdownExporter):
             for output_index, out in enumerate(cell.get('outputs', [])):
 
                 if 'metadata' in out:
-                    for type_name, fn in list(out.metadata.get('filenames',{}).items()):
+                    for type_name, fn in list(out.metadata.get('filenames', {}).items()):
                         if fn in resources['outputs']:
-                            html_path = join('img', slug ,basename(fn))
+                            html_path = join('img', slug, basename(fn))
                             file_path = join(self.hugo_dir, 'static', html_path)
 
                             resources['outputs'][file_path] = resources['outputs'][fn]
@@ -528,27 +518,23 @@ class HugoExporter(MarkdownExporter):
 
                             # Can't put the '/' in the join() or it will be absolute
 
-                            out.metadata.filenames[type_name] = '/'+html_path
-
-
+                            out.metadata.filenames[type_name] = '/' + html_path
 
         output = self.template.render(nb=nb_copy, resources=resources)
 
-        section = nb_copy.metadata.frontmatter.get('section') or  self.section
+        section = nb_copy.metadata.frontmatter.get('section') or self.section
 
         # Don't know why this isn't being set from the config
-        #resources['output_file_dir'] = self.config.NbConvertApp.output_base
+        # resources['output_file_dir'] = self.config.NbConvertApp.output_base
 
         # Setting full path to subvert the join() in the file writer. I can't
         # figure out how to set the output directories from this function
-        resources['unique_key'] = join(self.hugo_dir, 'content', section,slug)
+        resources['unique_key'] = join(self.hugo_dir, 'content', section, slug)
 
         # Probably should be done with a postprocessor.
-        output = re.sub(r'__IMGDIR__',join('/img',slug),output)
+        output = re.sub(r'__IMGDIR__', join('/img', slug), output)
 
         return output, resources
-
-
 
 
 class WordpressExporter(HTMLExporter):
@@ -556,7 +542,6 @@ class WordpressExporter(HTMLExporter):
     """
 
     staging_dir = Unicode(help="Root of the Hugo directory").tag(config=True)
-
 
     @property
     def default_config(self):
@@ -598,7 +583,6 @@ class WordpressExporter(HTMLExporter):
             except KeyError:
                 pass
 
-
     def from_notebook_node(self, nb, resources=None, **kw):
         from nbconvert.filters.highlight import Highlight2HTML
         import nbformat
@@ -614,7 +598,7 @@ class WordpressExporter(HTMLExporter):
         nb_copy, resources = self._preprocess(nb_copy, resources)
 
         # move over some more metadata
-        if 'authors' not  in nb_copy.metadata.frontmatter:
+        if 'authors' not in nb_copy.metadata.frontmatter:
             nb_copy.metadata.frontmatter['authors'] = list(self.get_creators(nb_copy.metadata.metatab))
 
         # Other useful metadata
@@ -644,7 +628,7 @@ class WordpressExporter(HTMLExporter):
             from  dateutil.parser import parse
             return parse(value).strftime(format)
 
-        self.register_filter('parsedatetime',format_datetime)
+        self.register_filter('parsedatetime', format_datetime)
 
         slug = nb_copy.metadata.frontmatter.slug
 
@@ -653,9 +637,9 @@ class WordpressExporter(HTMLExporter):
             for output_index, out in enumerate(cell.get('outputs', [])):
 
                 if 'metadata' in out:
-                    for type_name, fn in list(out.metadata.get('filenames',{}).items()):
+                    for type_name, fn in list(out.metadata.get('filenames', {}).items()):
                         if fn in resources['outputs']:
-                            html_path = join( slug ,basename(fn))
+                            html_path = join(slug, basename(fn))
                             file_path = join(self.staging_dir, html_path)
 
                             resources['outputs'][file_path] = resources['outputs'][fn]
@@ -663,26 +647,25 @@ class WordpressExporter(HTMLExporter):
 
                             # Can't put the '/' in the join() or it will be absolute
 
-                            out.metadata.filenames[type_name] = '/'+html_path
+                            out.metadata.filenames[type_name] = '/' + html_path
 
         output = self.template.render(nb=nb_copy, resources=resources)
 
         # Don't know why this isn't being set from the config
-        #resources['output_file_dir'] = self.config.NbConvertApp.output_base
+        # resources['output_file_dir'] = self.config.NbConvertApp.output_base
 
         # Setting full path to subvert the join() in the file writer. I can't
         # figure out how to set the output directories from this function
-        resources['unique_key'] = join(self.staging_dir,  slug)
+        resources['unique_key'] = join(self.staging_dir, slug)
 
         # Probably should be done with a postprocessor.
-        output = re.sub(r'__IMGDIR__','/'+slug,output)
+        output = re.sub(r'__IMGDIR__', '/' + slug, output)
 
-        output = re.sub(r'<style>.*</style>','', output, flags=re.MULTILINE|re.DOTALL)
+        output = re.sub(r'<style>.*</style>', '', output, flags=re.MULTILINE | re.DOTALL)
 
-
-        resources['outputs'][join(self.staging_dir,  slug+'.json')] = \
+        resources['outputs'][join(self.staging_dir, slug + '.json')] = \
             json.dumps(nb_copy.metadata, indent=4).encode('utf-8')
 
-        resources['outputs'][join(self.staging_dir,  slug+'.ipynb')] = nbformat.writes(nb_copy).encode('utf-8')
+        resources['outputs'][join(self.staging_dir, slug + '.ipynb')] = nbformat.writes(nb_copy).encode('utf-8')
 
         return output, resources
