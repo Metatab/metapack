@@ -54,13 +54,14 @@ class TestIPython(unittest.TestCase):
 
         p = open_package(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'))
 
-        self.assertTrue(len(p._repr_html_()) > 6500 )
+
+        self.assertTrue(len(p._repr_html_()) > 6400, len(p._repr_html_()) )
 
         print ( list(e.name for e in p.find('Root.Resource')))
 
         r = p.find_first('Root.Resource', name='random-names')
 
-        self.assertTrue(len(r._repr_html_()) > 400 )
+        self.assertTrue(len(r._repr_html_()) > 400, len(r._repr_html_()))
 
     def test_dataframe(self):
 

@@ -474,7 +474,6 @@ class MetapackCliMemo(object):
         self.package_root = self.package_url.join(PACKAGE_PREFIX)
         assert self.package_root._downloader
 
-
     @property
     def doc(self):
         return MetapackDoc(self.mt_file)
@@ -493,15 +492,14 @@ def get_config():
             # python 3.4
             return Path(expanduser(p))
 
-
     paths = [ environ.get("METAPACK_CONFIG"),'~/.metapack.yaml','/etc/metapack.yaml']
 
     for p in paths:
         try:
-            if pexp(Path(p)).exists():
-                with  pexp(Path(p)).open() as f:
+            if pexp(p).exists():
+                with  pexp(p).open() as f:
                     config = yaml.safe_load(f)
-                    config['_loaded_from'] = str(pexp(Path(p)) )
+                    config['_loaded_from'] = str(pexp(p) )
                     return config
         except TypeError:
             pass

@@ -99,3 +99,38 @@ an evironmental variable and cleared before the tests to solve this problem
     $ rm -rf $cache_dir
     $ mkdir -p  $cache_dir
     $ APPURL_CACHE=$cache_dir python setup.py test
+
+
+Development Testing with Docker
++++++++++++++++++++++++++++++++
+
+Testing during development for other versions of Python is a bit of a pain, since you have
+to install the alternate version, and Tox will run all of the tests, not just the one you want.
+
+One way to deal with this is to install Docker locally, then run the docker test container
+on the source directory. This is done automatically from the Makefile in appurl/tests
+
+
+.. code-block:: bash
+
+    $ cd metapack/metapack/test
+    $ make build # to create the container image
+    $ make shell # to run bash the container
+
+You now have a docker container where the /code directory is the appurl source dir. Since the Docker
+container is running code from your host machine, you can edit it normally.
+
+Now, run tox to build the tox virtual environments, then enter the specific version you want to
+run tests for and activate the virtual environment.
+
+To run one environment. for example, Python 3.4
+
+.. code-block:: bash
+    # tox -e py34
+
+To run one test in one environment environment. for example, Python 3.4
+
+.. code-block:: bash
+    # tox -e py34 -- -s
+
+
