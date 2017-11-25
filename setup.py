@@ -24,7 +24,7 @@ classifiers = [
 
 setup_d = dict(
     name='metapack',
-    version='0.6.21',
+    version='0.6.22',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -51,7 +51,8 @@ setup_d = dict(
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
         'terminaltables',
-        'docopt'
+        'docopt',
+
 
         # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
@@ -105,7 +106,7 @@ setup_d = dict(
     },
 
     test_suite='metapack.test.test_suite.suite',
-    tests_require=['nose'],
+    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj'],
 
 )
 
