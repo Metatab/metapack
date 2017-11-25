@@ -346,7 +346,7 @@ def process_schemas(mt_file, cache=None, clean=False):
     except KeyError:
         doc.new_section('Schema', ['DataType', 'Altname', 'Description'])
 
-    for r in doc['References'].find('Root.Reference'):
+    for r in doc['Resources'].find('Root.Resource'):
 
         schema_term = r.schema_term
 

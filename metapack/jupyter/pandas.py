@@ -52,17 +52,23 @@ class MetatabDataFrame(DataFrame):
         """Return a geopandas dataframe"""
         import geopandas as gpd
         from shapely.geometry.polygon import BaseGeometry
+        from shapely.wkt import loads
 
         gdf = gpd.GeoDataFrame(self)
 
         first = next(gdf.iterrows())[1].geometry
 
-        if not isinstance(first, BaseGeometry):
+        if isinstance(first, str):
+            shapes = [ loads(row['geometry']) for i, row in gdf.iterrows()]
+
+        elif not isinstance(first, BaseGeometry):
             # If we are reading a metatab package, the geometry column's type should be
             # 'geometry' which will give the geometry values class type of
             # rowpipe.valuetype.geo.ShapeValue. However, there are other
             # types of objects that have a 'shape' property.
+
             shapes = [row['geometry'].shape for i, row in gdf.iterrows()]
+
         else:
             shapes = gdf['geometry']
 

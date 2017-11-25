@@ -6,17 +6,15 @@ from metapack.appurl import MetapackUrl, MetapackResourceUrl, MetapackDocumentUr
 from rowgenerators import get_generator
 from csv import DictReader
 from metapack.test.support import test_data
+from os.path import exists
 
 
 class TestUrls(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
 
-
     def test_metapack_urls(self):
 
         groups = {}
-
-
 
         with open(test_data('mpurls.csv')) as f:
             for l in DictReader(f):
@@ -25,13 +23,13 @@ class TestUrls(unittest.TestCase):
 
                 self.assertEqual(l['url_class'], u.__class__.__name__)
                 self.assertEqual(l['url'], str(u))
-                self.assertEqual(l['package_url'],str(u.package_url))
+                self.assertEqual(l['package_url'], str(u.package_url))
 
                 # The second instance in each group is a resource url for the the
                 # metadata url of the first instance.
-                if(l['url_class']== 'MetapackDocumentUrl'):
+                if (l['url_class'] == 'MetapackDocumentUrl'):
 
-                    self.assertNotIn(l['group'],groups)
+                    self.assertNotIn(l['group'], groups)
                     self.assertEqual(str(u), str(u.metadata_url))
                 else:
                     self.assertIn(l['group'], groups)
@@ -39,7 +37,7 @@ class TestUrls(unittest.TestCase):
 
                 groups[l['group']] = u
 
-                self.assertEqual(l['metadata_url'],str(u.metadata_url))
+                self.assertEqual(l['metadata_url'], str(u.metadata_url))
 
                 r = u.get_resource()
                 self.assertTrue(r.inner.exists())
@@ -51,10 +49,9 @@ class TestUrls(unittest.TestCase):
                     t = r.get_target()
 
                 # Check that the generator for the metadata gets the right number of rows
-                self.assertEqual(50,len(list(u.metadata_url.generator)))
+                self.assertEqual(50, len(list(u.metadata_url.generator)))
 
                 self.assertEqual('example.com-simple_example-2017-us-1', (u.doc.find_first_value('Root.Name')))
-
 
     def test_metapack_url(self):
 
@@ -113,7 +110,7 @@ class TestUrls(unittest.TestCase):
             'library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv'))
 
         self.assertTrue(str(ud.get_resource().get_target()).endswith(
-                       'library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv'))
+            'library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv'))
 
         # -----
         # Resource Urls
@@ -123,8 +120,6 @@ class TestUrls(unittest.TestCase):
         ur = parse_app_url(us)
         self.assertEqual('metapack', ur.proto)
         self.assertIsInstance(ur, MetapackResourceUrl)
-
-
 
     def test_inner(self):
         u_s = 'metapack+http://public.source.civicknowledge.com.s3.amazonaws.com/example.com/geo/Parks_SD.zip#encoding=utf8'
@@ -138,10 +133,9 @@ class TestUrls(unittest.TestCase):
         self.assertIsInstance(r, MetapackDocumentUrl)
         self.assertIsInstance(r.inner, ZipUrl)
 
+    def test_fs_resource(self):
 
-    def  test_fs_resource(self):
-
-        us='metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/#random_names'
+        us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/#random_names'
 
         u = parse_app_url(us)
 
@@ -153,9 +147,27 @@ class TestUrls(unittest.TestCase):
         self.assertEquals('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/',
                           str(u.package_url))
 
+    def test_xlsx_parse(self):
+
+        ru = parse_app_url('/foo/bar/bax.xlsx',
+                           fragment='fragment',
+                           )
+
+        # print (repr(ru))
+
+    def test_metatab_resource(self):
+
+        u_str = 'metapack+http://library.metatab.org/ffiec.gov-cra_aggregate_smb-orig-1.csv#sb_agg_loan_orig'
+
+        u = parse_app_url(u_str)
+
+        print(type(u))
+
+        print(u.resource)
+
     def test_metatab_resource_zip(self):
 
-        us='metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.zip#random-names'
+        us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.zip#random-names'
 
         u = parse_app_url(us)
 
@@ -165,22 +177,14 @@ class TestUrls(unittest.TestCase):
 
         self.assertEqual(101, len(list(r)))
 
-    def test_xlsx_parse(self):
-
-        ru = parse_app_url('/foo/bar/bax.xlsx',
-                           fragment='fragment',
-                           )
-
-        #print (repr(ru))
-
-
     def test_metatab_resource_xlsx(self):
 
         us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.xlsx#random-names'
 
         u = parse_app_url(us)
         self.assertIsInstance(u, MetapackResourceUrl)
-        self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.xlsx#random-names', str(u))
+        self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.xlsx#random-names',
+                         str(u))
         self.assertEqual('random-names', u.fragment[0])
         self.assertEqual('random-names', u.target_file)
 
@@ -188,12 +192,12 @@ class TestUrls(unittest.TestCase):
 
         r = doc.resource(u.target_file)
         ru = r.resolved_url
-        #print(r.value)
-        #print (ru)
+        # print(r.value)
+        # print (ru)
         rur = ru.get_resource()
-        #print (rur)
+        # print (rur)
         rurt = rur.get_target()
-        #print (rurt)
+        # print (rurt)
 
         self.assertEqual(101, len(list(r)))
 
@@ -205,7 +209,6 @@ class TestUrls(unittest.TestCase):
         doc = u.metadata_url.doc
 
         r = doc.resource(u.target_file)
-
 
         self.assertEqual(101, len(list(r)))
 
@@ -219,23 +222,20 @@ class TestUrls(unittest.TestCase):
         r = u.resource
         ru = r.resolved_url
 
-        #print(ru.inner)
-        #print(ru.get_resource())
+        # print(ru.inner)
+        # print(ru.get_resource())
 
         return
-
 
     def test_metatab_resource_zip(self):
 
         us = 'metapack+http://s3.amazonaws.com/library.metatab.org/ipums.org-income_homevalue-5.zip#income_homeval'
-
 
     def test_metatab_resource_fs_pkg(self):
 
         us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv'
 
         u = parse_app_url(us)
-
 
 
 if __name__ == '__main__':

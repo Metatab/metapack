@@ -3,9 +3,10 @@ from csv import DictReader
 
 from appurl import parse_app_url
 from metapack import MetapackDoc
-from metapack import MetapackPackageUrl,  MetapackUrl, ResourceError, Downloader
-from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package, make_csv_package,
-                                PACKAGE_PREFIX, cli_init )
+from metapack import MetapackPackageUrl, MetapackUrl, ResourceError, Downloader
+from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package,
+                               make_csv_package,
+                               PACKAGE_PREFIX, cli_init)
 from metapack.test.support import test_data
 from metatab.generate import TextRowGenerator
 from rowgenerators import get_generator, RowGeneratorError
@@ -14,8 +15,6 @@ downloader = Downloader()
 
 
 class TestPackages(unittest.TestCase):
-
-
     def test_resolve_resource_urls(self):
         """Test how resources are resolved in packages. The resource values must be one of:
             - A name, for excel and CSV packages
@@ -57,9 +56,6 @@ class TestPackages(unittest.TestCase):
                 except RowGeneratorError:
                     self.assertTrue(bool(l['generate_error']))
                     continue
-
-
-
 
     def test_build_package(self):
 
@@ -119,15 +115,13 @@ class TestPackages(unittest.TestCase):
 
         r = fs_doc.resource('random-names')
 
-
-
         # Excel
 
         _, url, created = make_excel_package(fs_url, package_dir, cache, {}, False)
 
         self.assertEquals(['random-names', 'renter_cost', 'unicode-latin1'], [r.name for r in url.doc.resources()])
 
-        self.assertEquals( ['random-names', 'renter_cost', 'unicode-latin1'], [r.url for r in url.doc.resources()])
+        self.assertEquals(['random-names', 'renter_cost', 'unicode-latin1'], [r.url for r in url.doc.resources()])
 
         # ZIP
 
@@ -155,7 +149,7 @@ class TestPackages(unittest.TestCase):
         from metapack.package import CsvPackageBuilder
 
         package_root = MetapackPackageUrl(
-            test_data('packages/example.com/example.com-simple_example-2017-us/_packages'),downloader=downloader)
+            test_data('packages/example.com/example.com-simple_example-2017-us/_packages'), downloader=downloader)
 
         source_url = 'http://library.metatab.org/example.com-simple_example-2017-us-2/metadata.csv'
 
@@ -163,7 +157,7 @@ class TestPackages(unittest.TestCase):
 
         t = u.get_resource().get_target()
 
-        p = CsvPackageBuilder(u, package_root, resource_root = u.dirname().as_type(MetapackPackageUrl))
+        p = CsvPackageBuilder(u, package_root, resource_root=u.dirname().as_type(MetapackPackageUrl))
 
         csv_url = p.save()
 
@@ -172,15 +166,14 @@ class TestPackages(unittest.TestCase):
         for r in doc.resources():
             print(r.name, r.url)
 
-        #with open(csv_url.path, mode='rb') as f:
-        #    print (f.read())
-        #    #urls.append(('csv', s3.write(f.read(), csv_url.target_file, acl)))
+            # with open(csv_url.path, mode='rb') as f:
+            #    print (f.read())
+            #    #urls.append(('csv', s3.write(f.read(), csv_url.target_file, acl)))
 
     @unittest.skip('References non existen url')
     def test_build_geo_package(self):
 
         from rowpipe.valuetype.geo import ShapeValue
-
 
         m = MetapackUrl(test_data('packages/sangis.org/sangis.org-census_regions/metadata.csv'), downloader=downloader)
 
@@ -194,9 +187,9 @@ class TestPackages(unittest.TestCase):
 
         r = doc.resource('sra')
 
-        rows =  list(r.iterdict)
+        rows = list(r.iterdict)
 
-        self.assertEqual(41,len(rows))
+        self.assertEqual(41, len(rows))
 
         self.assertIsInstance(rows[1]['geometry'], ShapeValue)
 
@@ -210,8 +203,6 @@ class TestPackages(unittest.TestCase):
 
         print(fs_url)
 
-
-
     def test_read_geo_packages(self):
         try:
             from publicdata.censusreporter.dataframe import CensusDataFrame
@@ -224,7 +215,7 @@ class TestPackages(unittest.TestCase):
         from geopandas.geoseries import GeoSeries
         from rowpipe.valuetype.geo import ShapeValue
 
-        with open(test_data('line','line-oriented-doc.txt')) as f:
+        with open(test_data('line', 'line-oriented-doc.txt')) as f:
             text = f.read()
 
         doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n" + text))
@@ -245,7 +236,7 @@ class TestPackages(unittest.TestCase):
 
         row = next(r.iterdict)
 
-        self.assertIsInstance(row['geometry'], ShapeValue)
+        self.assertIsInstance(row['geometry'], ShapeValue, type(row['geometry']))
 
     def test_program_resource(self):
 
@@ -276,7 +267,8 @@ class TestPackages(unittest.TestCase):
 
         r = doc.resource('simple-fixed')
 
-        self.assertEqual('fixed+http://public.source.civicknowledge.com/example.com/sources/simple-example.txt', str(r.url))
+        self.assertEqual('fixed+http://public.source.civicknowledge.com/example.com/sources/simple-example.txt',
+                         str(r.url))
         self.assertEqual('fixed+http://public.source.civicknowledge.com/example.com/sources/simple-example.txt',
                          str(r.resolved_url))
 
@@ -290,9 +282,9 @@ class TestPackages(unittest.TestCase):
 
         print('----')
         for row in rows:
-            print (row)
+            print(row)
 
-        self.assertEqual('f02d53a3-6bbc-4095-a889-c4dde0ccf5',rows[5][1])
+        self.assertEqual('f02d53a3-6bbc-4095-a889-c4dde0ccf5', rows[5][1])
 
     def test_petl(self):
         from petl import look
@@ -310,6 +302,17 @@ class TestPackages(unittest.TestCase):
 
         print(look(p))
 
+    def test_metapack_resources(self):
+
+        cli_init()
+
+        p = test_data('packages/example.com/example.com-metab_reuse/metadata.csv')
+
+        m = MetapackUrl(p,downloader=downloader)
+
+        print (m.doc.resources())
+
+        print(m.get_resource().get_target().exists())
 
 
 if __name__ == '__main__':

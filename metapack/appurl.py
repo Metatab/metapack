@@ -337,7 +337,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
             return mru
 
     def get_target(self):
-        return self.resource
+        return self.resource.resolved_url.get_resource().get_target()
 
 
     @property

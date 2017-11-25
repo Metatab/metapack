@@ -66,7 +66,5 @@ def mp():
         for ep in iter_entry_points(group='mt.subcommands'):
             prt(ep.name,  ep.dist)
 
-
     else:
         args.run_command(args)
-

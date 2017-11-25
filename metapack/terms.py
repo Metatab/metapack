@@ -88,6 +88,9 @@ class Resource(Term):
             t = t.as_type(type(u))
             t.fragment = u.fragment
 
+        elif u.proto == 'metapack':
+            return u.resource.resolved_url.get_resource().get_target()
+
         else:
             assert isinstance(self.doc.package_url, MetapackPackageUrl), (
                 type(self.doc.package_url), self.doc.package_url)
@@ -193,6 +196,13 @@ class Resource(Term):
 
     def columns(self):
 
+        try:
+            # For resources that are metapack packages.
+            r =  self.resolved_url.resource.columns()
+            yield from r
+        except AttributeError:
+            pass
+
         t = self.schema_term
 
         if not t:
@@ -251,23 +261,17 @@ class Resource(Term):
 
     @property
     def row_generator(self):
-        import sys
+        from rowgenerators import get_generator
 
         self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
 
         ru = self.resolved_url
 
         try:
-            # Probably a reference to a Metapack package
-            r = ru.generator
-            assert r is not None, ru
-            return r
+            resource = ru.resource # For Metapack urls
 
+            return resource.row_generator
         except AttributeError:
-            pass
-        except RowGeneratorError:
-            # Err .. hopefully because the generator needs a env context, but
-            # could be something else we have to re-throw.
             pass
 
         ut = ru.get_resource().get_target()
@@ -425,6 +429,11 @@ class Resource(Term):
 
         return df
 
+    def geoframe(self):
+        """Return a Geo dataframe"""
+
+        return self.dataframe().geo
+
     def read_csv(self, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_csv
 
@@ -470,6 +479,7 @@ class Resource(Term):
 
     def _repr_html_(self):
 
+
         try:
             return self.sub_resource._repr_html_()
         except AttributeError:
@@ -507,7 +517,11 @@ class Reference(Resource):
         """Iterate over the resource's rows"""
         from copy import copy
 
-        yield from self.row_generator
+        try:
+            # For Metapack references
+            yield from self.resolved_url.resource
+        except AttributeError:
+            yield from self.row_generator
 
 
 class Distribution(Term):

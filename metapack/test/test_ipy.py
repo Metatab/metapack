@@ -51,9 +51,7 @@ class TestIPython(unittest.TestCase):
 
     def test_html(self):
 
-
         p = open_package(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'))
-
 
         self.assertTrue(len(p._repr_html_()) > 6400, len(p._repr_html_()) )
 
@@ -79,29 +77,37 @@ class TestIPython(unittest.TestCase):
 
         print (df.describe())
 
-    @unittest.skip("Broken")
+
     def test_line_doc(self):
         from metapack.cli.core import process_schemas
         from os.path import splitext, basename, join
         import sys
+        from publicdata.censusreporter.dataframe import CensusDataFrame
+
+
+        from geopandas import GeoDataFrame, GeoSeries
+        from shapely.geometry.point import Point
 
         with open(test_data('line','line-oriented-doc.txt')) as f:
             text = f.read()
 
         doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest\n" + text))
 
-        process_schemas(doc)
+        #process_schemas(doc)
 
-        # Test Dataframes
-        if False:
-            r = doc.reference('tracts')
+        r = doc.reference('tracts')
 
-            self.assertEqual(628, len(list(r)))
+        self.assertEqual(628, len(list(r)))
 
-            tracts = r.dataframe()
+        tracts = r.dataframe()
 
-            self.assertEqual(-73427, tracts.lon.sum().astype(int))
+        self.assertEqual(-73427, tracts.lon.sum().astype(int))
 
+        tracts = r.read_csv()
+
+        self.assertEqual(-73427, tracts.lon.sum().astype(int))
+
+        r.dataframe()
 
         # Test loading a Python Library from a package.
 
@@ -121,13 +127,6 @@ class TestIPython(unittest.TestCase):
         if lib_path not in sys.path:
             sys.path.insert(0, lib_path)
 
-        from lib.incomedist import sum_densities
-
-        #
-
-        r = doc.reference('B09020')
-        df = r.dataframe()
-        print(type(df))
 
 
     def test_notebook_url(self):
@@ -176,9 +175,7 @@ class TestIPython(unittest.TestCase):
 
         r = doc.resource('basic_a')
 
-        self.assertEquals(2501, len(list(r)))
-
-
+        self.assertEqual(2501, len(list(r)))
 
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
 

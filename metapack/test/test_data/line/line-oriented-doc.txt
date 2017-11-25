@@ -20,21 +20,21 @@ Reference.Description: Relationship by Household Type (Including Living Alone) f
 #
 # Tract crosswalk
 #
-Reference: metatab+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#tract-sra-msa-xwalk
+Reference: metapack+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#tract-sra-msa-xwalk
 Reference.Name: tracts
 Reference.Description: Crosswalk between crosswalks, tracts, zip codes and SRAs in San Diego County
 
 #
 # Tract boundaries
 #
-Reference: metatab+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#tracts
+Reference: metapack+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#tracts
 Reference.Name: tracts_geo
 Reference.Description: Geographics Boundaries for Tracts
 
 #
 # SRA boundaries
 #
-Reference: metatab+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#sra
+Reference: metapack+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#sra
 Reference.Name: sra_geo
 Reference.Description: Geographics Boundaries for SRAs
 
