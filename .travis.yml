@@ -12,4 +12,3 @@ script: python setup.py test
 branches:
   only:
     - master
-
