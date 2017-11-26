@@ -5,7 +5,7 @@ python:
   - "3.6"
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y apt-get install gdal-bin libgdal-dev
+  - sudo apt-get install -y gdal-bin libgdal-dev
 install:
   - pip install -r requirements.txt
 script: python setup.py test
