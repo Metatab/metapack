@@ -13,6 +13,7 @@ from metapack.test.support import test_data, get_cache
 
 import logging
 from metapack.cli.core import cli_init
+import os
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -155,7 +156,7 @@ class TestIPython(unittest.TestCase):
 
         print(list(g))
 
-
+    @unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "Skipping this test on Travis CI.")
     def test_build_notebook_package(self):
 
         try:
