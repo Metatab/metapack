@@ -6,6 +6,7 @@ python:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y gdal-bin libgdal-dev
+  - sudo rm -f /etc/boto.cfg # Solves https://github.com/travis-ci/travis-ci/issues/7940
 install:
   - pip install -r requirements.txt
 script: python setup.py test
