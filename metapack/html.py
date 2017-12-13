@@ -6,7 +6,7 @@ Create Markdown and HTML of datasets.
 """
 
 import datetime
-from appurl import parse_app_url
+from rowgenerators import parse_app_url
 from markdown import markdown as convert_markdown
 from nameparser import HumanName
 from pybtex import PybtexEngine

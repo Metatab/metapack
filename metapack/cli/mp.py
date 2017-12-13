@@ -32,6 +32,9 @@ def mp():
     parser.add_argument('-V', '--versions', default=False, action='store_true',
                         help='Print version of several important packages')
 
+    parser.add_argument('-C', '--cache', default=False, action='store_true',
+                        help='Print the location of the cache')
+
     subparsers = parser.add_subparsers(help='Commands')
 
     for ep in iter_entry_points(group='mt.subcommands'):
@@ -44,18 +47,25 @@ def mp():
     if args.version:
         prt(get_distribution('metapack'))
 
+    if args.cache:
+        from shlex import quote
+        from metapack import MetapackDoc, Downloader
+        downloader = Downloader()
+
+        prt(quote(downloader.cache.getsyspath('/')))
+
     elif args.versions:
 
         from pkg_resources import EntryPoint
 
         prt('--- Main Packages')
 
-        main_packages = ('metapack', 'metatab','appurl','rowgenerators','rowpipe','publicdata')
+        main_packages = ('metapack', 'metatab','rowgenerators','publicdata')
 
         for pkg_name in main_packages:
             try:
                 prt(get_distribution(pkg_name))
-            except DistributionNotFound as e:
+            except (DistributionNotFound, ModuleNotFoundError) as e:
                 # package is not installed
 
                 pass

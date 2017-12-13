@@ -11,7 +11,8 @@ import nbformat
 from nbconvert.writers import FilesWriter
 from traitlets.config import Config
 
-from appurl import parse_app_url
+from rowgenerators import parse_app_url
+from rowgenerators.util import fs_join as join
 from metatab import DEFAULT_METATAB_FILE
 from metapack import MetapackDoc
 from metapack.cli.core import prt, err
@@ -19,8 +20,6 @@ from metapack.util import ensure_dir, copytree
 from metapack.jupyter.core import logger
 from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter, WordpressExporter
 from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc, ExtractMetatabTerms
-from rowgenerators.util import fs_join as join
-
 
 
 

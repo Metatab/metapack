@@ -7,7 +7,7 @@ from os.path import join
 from metapack import PackageError
 from metapack.util import datetime_now
 from metapack.package.core import PackageBuilder
-from appurl import parse_app_url
+from rowgenerators import parse_app_url
 
 class CsvPackageBuilder(PackageBuilder):
     """"""

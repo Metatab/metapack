@@ -1,15 +1,11 @@
 from itertools import islice
 
-from appurl import parse_app_url, WebUrl
-from metapack import MetapackError
+from metapack.appurl import MetapackPackageUrl
 from metapack.doc import EMPTY_SOURCE_HEADER
 from metapack.exc import MetapackError, ResourceError
-from metapack.appurl import MetapackPackageUrl
 from metatab import Term
-from rowgenerators import DownloadError, get_generator
-from rowpipe import RowProcessor
-
-from rowgenerators.exceptions import RowGeneratorError
+from rowgenerators import DownloadError, parse_app_url
+from rowgenerators.rowpipe import RowProcessor
 
 
 class Resource(Term):
@@ -221,7 +217,7 @@ class Resource(Term):
     def row_processor_table(self, ignore_none=False):
         """Create a row processor from the schema, to convert the text values from the
         CSV into real types"""
-        from rowpipe.table import Table
+        from rowgenerators.rowpipe import Table
 
         type_map = {
             None: None,
@@ -310,7 +306,6 @@ class Resource(Term):
 
     def __iter__(self):
         """Iterate over the resource's rows"""
-        from copy import copy
 
         headers = self.headers
 
@@ -386,7 +381,7 @@ class Resource(Term):
     @property
     def iterstruct(self):
         """Yield structures build from the JSON header specifications"""
-        from rowpipe.json import add_to_struct
+        from rowgenerators.rowpipe import add_to_struct
 
         json_headers = [(c['pos'], c.get('json') or c['header']) for c in self.columns()]
 
@@ -397,7 +392,7 @@ class Resource(Term):
             yield d
 
     def iterjson(self, *args, **kwargs):
-        from rowpipe.json import VTEncoder
+        from rowgenerators.rowpipe import VTEncoder
         import json
 
         if 'cls' not in kwargs:
@@ -515,7 +510,6 @@ class Reference(Resource):
 
     def __iter__(self):
         """Iterate over the resource's rows"""
-        from copy import copy
 
         try:
             # For Metapack references

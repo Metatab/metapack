@@ -351,7 +351,7 @@ def add_resource(mt_file, ref, cache):
     # The web and file URLs don't list the same.
 
     if u.proto == 'file':
-        entries = u.list
+        entries = u.list()
     else:
         entries = [ssu for su in u.list() for ssu in su.list()]
 

@@ -24,7 +24,7 @@ classifiers = [
 
 setup_d = dict(
     name='metapack',
-    version='0.6.22',
+    version='0.6.23',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -44,9 +44,7 @@ setup_d = dict(
         'IPython',
         'nameparser',
         'pybtex',
-        'appurl>=0.1.5',
-        'rowgenerators>=0.7.0',
-        'rowpipe>=0.1.5',
+        'rowgenerators>=0.7.13',
         'metatab>=0.6.6',
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',

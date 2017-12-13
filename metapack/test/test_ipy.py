@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import unittest
 
-from appurl import parse_app_url
+from rowgenerators import parse_app_url
 from metapack import open_package, MetapackDoc, Downloader
 from metatab.util import flatten
 from metatab.generate import TextRowGenerator
@@ -20,7 +20,6 @@ logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
 
 downloader = Downloader()
-
 
 class TestIPython(unittest.TestCase):
     def compare_dict(self, a, b):

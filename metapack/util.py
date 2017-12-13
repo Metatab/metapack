@@ -12,7 +12,7 @@ from os.path import join, basename, dirname
 import unicodecsv as csv
 
 
-from appurl.util import slugify # Unused here, but imported from elsewhere.
+from rowgenerators.appurl.util import slugify # Unused here, but imported from elsewhere.
 
 def declaration_path(name):
     """Return the path to an included declaration"""

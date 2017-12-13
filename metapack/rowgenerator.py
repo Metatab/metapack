@@ -35,7 +35,7 @@ class JupyterNotebookSource(Source):
         from os.path import join, isdir
         from csv import reader
         from shutil import rmtree
-        from appurl.exc import AppUrlError
+        from rowgenerators.exceptions import AppUrlError
 
         dr_name = None
 

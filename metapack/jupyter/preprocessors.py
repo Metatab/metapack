@@ -5,20 +5,18 @@
 NBConvert preprocessors
 """
 
-import re
-from traitlets import Integer, Unicode, List
-from nbconvert.preprocessors import Preprocessor
 from textwrap import dedent
-from .magic import MetatabMagic
-from nbformat.notebooknode import from_dict
-from IPython.core.magic_arguments import (argument, magic_arguments,
-                                          parse_argstring)
 
-from metatab import TermParser
+from IPython.core.magic_arguments import (parse_argstring)
+from nbconvert.preprocessors import Preprocessor
+from nbformat.notebooknode import from_dict
+from traitlets import Unicode, List
+
 from metapack import MetapackDoc
+from metatab import TermParser
 from metatab.generate import TextRowGenerator
-from appurl import Downloader, parse_app_url
-from metapack.appurl import MetapackPackageUrl
+from rowgenerators import parse_app_url
+from .magic import MetatabMagic
 
 
 class RemoveDocsFromImages(Preprocessor):
@@ -206,12 +204,9 @@ class ExtractInlineMetatabDoc(ExtractMetatabTerms):
 class ExtractFinalMetatabDoc(Preprocessor):
     """Extract the metatab document produced from the %mt_show_metatab magic"""
 
-    from nbformat.notebooknode import NotebookNode
-
     doc = None
 
     def preprocess_cell(self, cell, resources, index):
-        import re
         from metatab.generate import TextRowGenerator
 
         if cell['metadata'].get('mt_final_metatab'):
@@ -235,13 +230,9 @@ class ExtractFinalMetatabDoc(Preprocessor):
 class ExtractMaterializedRefs(Preprocessor):
     """Extract the metatab document produced from the %mt_show_metatab magic"""
 
-    from nbformat.notebooknode import NotebookNode
-
     materialized = None
 
     def preprocess_cell(self, cell, resources, index):
-        import re
-        from metatab.generate import TextRowGenerator
 
         from json import loads
 
@@ -279,7 +270,6 @@ class RemoveMetatab(Preprocessor):
     """NBConvert preprocessor to remove the %metatab block"""
 
     def preprocess(self, nb, resources):
-        import re
 
         out_cells = []
 
@@ -329,8 +319,6 @@ class PrepareScript(Preprocessor):
     """Add an import so converted scripts can handle some magics"""
 
     def preprocess(self, nb, resources):
-        import re
-
         nb.cells = [from_dict({
             'cell_type': 'code',
             'outputs': [],

@@ -11,18 +11,15 @@ from os import walk
 from os.path import dirname, abspath, basename, splitext, join, isdir
 
 
-
-from appurl import Url, parse_app_url
-
 from metapack.appurl import MetapackUrl, MetapackPackageUrl
 from metapack.exc import PackageError
 from metapack.terms import Resource
 from metapack.util import Bunch
-from appurl.util import slugify
+from rowgenerators.util import slugify
 from metatab import DEFAULT_METATAB_FILE
-from rowgenerators import get_generator
+from rowgenerators import get_generator, Url, parse_app_url, Downloader as _Downloader
 from tableintuit import RowIntuiter
-from appurl import Downloader as _Downloader
+
 
 DEFAULT_CACHE_NAME = 'metapack'
 

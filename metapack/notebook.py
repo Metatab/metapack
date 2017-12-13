@@ -1,6 +1,7 @@
 
 
 
+
 class NotebootUrl(Url):
     """IPYthon Notebook URL"""
 
@@ -8,6 +9,9 @@ class NotebootUrl(Url):
         kwargs['proto'] = 'ipynb'
 
         super(NotebootUrl, self).__init__(url, **kwargs)
+
+        raise NotImplementedError("Is this used?") # Added 20171201
+
 
     @classmethod
     def match(cls, url, **kwargs):

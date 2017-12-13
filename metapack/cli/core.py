@@ -6,8 +6,8 @@ from os.path import join
 from uuid import uuid4
 
 import six
+from tableintuit import TypeIntuiter
 
-from appurl import parse_app_url
 from metapack import MetapackDoc, MetapackUrl
 from metapack.package.csv import CsvPackageBuilder
 from metapack.package.excel import ExcelPackageBuilder
@@ -16,8 +16,7 @@ from metapack.package.s3 import S3PackageBuilder
 from metapack.package.zip import ZipPackageBuilder
 from metatab import  DEFAULT_METATAB_FILE
 from metatab.util import make_metatab_file
-from rowgenerators import SelectiveRowGenerator
-from tableintuit import TypeIntuiter
+from rowgenerators import SelectiveRowGenerator, parse_app_url
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -94,7 +93,7 @@ def dump_resource(doc, name, lines=None):
     import sys
     from itertools import islice
     from tabulate import tabulate
-    from rowpipe.exceptions import CasterExceptionError, TooManyCastingErrors
+    from rowgenerators.rowpipe.exceptions import CasterExceptionError, TooManyCastingErrors
 
     r = doc.resource(name=name)
 

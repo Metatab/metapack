@@ -10,11 +10,10 @@ EMPTY_SOURCE_HEADER = '_NONE_'  # Marker for a column that is in the destination
 from metatab import MetatabDoc, WebResolver
 
 from metapack.appurl import MetapackDocumentUrl, MetapackResourceUrl, MetapackUrl
-from appurl import parse_app_url
 from .html import linkify
 from .util import slugify
 from metapack.package.core import Downloader
-from rowgenerators import Source
+from rowgenerators import Source, parse_app_url
 from metapack.util import datetime_now
 
 class Resolver(WebResolver):

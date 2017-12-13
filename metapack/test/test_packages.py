@@ -1,7 +1,6 @@
 import unittest
 from csv import DictReader
 
-from appurl import parse_app_url
 from metapack import MetapackDoc
 from metapack import MetapackPackageUrl, MetapackUrl, ResourceError, Downloader
 from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package,
@@ -9,7 +8,7 @@ from metapack.cli.core import (make_filesystem_package, make_s3_package, make_ex
                                PACKAGE_PREFIX, cli_init)
 from metapack.test.support import test_data
 from metatab.generate import TextRowGenerator
-from rowgenerators import get_generator, RowGeneratorError
+from rowgenerators import get_generator, RowGeneratorError, parse_app_url
 
 downloader = Downloader()
 
@@ -138,9 +137,10 @@ class TestPackages(unittest.TestCase):
 
         self.assertEquals(['random-names', 'renter_cost', 'unicode-latin1'], [r.name for r in url.doc.resources()])
 
+
         self.assertEquals(
             ['com-simple_example-2017-us-2/data/random-names.csv',
-             '.com-simple_example-2017-us-2/data/renter_cost.csv',
+             'ecom-simple_example-2017-us-2/data/renter_cost.csv',
              'm-simple_example-2017-us-2/data/unicode-latin1.csv'],
             [str(r.url)[-50:] for r in url.doc.resources()])
 
@@ -173,7 +173,7 @@ class TestPackages(unittest.TestCase):
     @unittest.skip('References non existen url')
     def test_build_geo_package(self):
 
-        from rowpipe.valuetype.geo import ShapeValue
+        from rowgenerators.valuetype import ShapeValue
 
         m = MetapackUrl(test_data('packages/sangis.org/sangis.org-census_regions/metadata.csv'), downloader=downloader)
 
@@ -213,7 +213,7 @@ class TestPackages(unittest.TestCase):
         from metapack.jupyter.pandas import MetatabDataFrame
         from metapack.jupyter.pandas import MetatabSeries
         from geopandas.geoseries import GeoSeries
-        from rowpipe.valuetype.geo import ShapeValue
+        from rowgenerators.valuetype import ShapeValue
 
         with open(test_data('line', 'line-oriented-doc.txt')) as f:
             text = f.read()

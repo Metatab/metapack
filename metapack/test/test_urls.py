@@ -1,5 +1,5 @@
 import unittest
-from appurl import parse_app_url, match_url_classes, WebUrl, FileUrl, ZipUrl, CsvFileUrl
+from rowgenerators import parse_app_url, match_url_classes, WebUrl, FileUrl, ZipUrl, CsvFileUrl
 
 from metapack import MetapackDoc
 from metapack.appurl import MetapackUrl, MetapackResourceUrl, MetapackDocumentUrl

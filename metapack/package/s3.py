@@ -9,7 +9,7 @@ from os import walk
 import boto3
 import unicodecsv as csv
 
-from appurl import parse_app_url
+from rowgenerators import parse_app_url
 from metatab import DEFAULT_METATAB_FILE
 
 from .core import PackageBuilder

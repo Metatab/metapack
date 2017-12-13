@@ -1,13 +1,6 @@
-
-
-
 import unittest
-from appurl import parse_app_url, match_url_classes, WebUrl, FileUrl, ZipUrl, CsvFileUrl
 
 from metapack import MetapackDoc
-from metapack.appurl import MetapackUrl, MetapackResourceUrl, MetapackDocumentUrl
-from rowgenerators import get_generator
-from csv import DictReader
 from metapack.test.support import test_data
 from metatab.generate import TextRowGenerator
 
@@ -52,7 +45,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             print(c.get('name'), c.get('description'))
 
     def test_refs_not_using_schemas(self):
-        from rowpipe.valuetype.geo import ShapeValue
+        from rowgenerators.valuetype import ShapeValue
 
         with open(test_data('line', 'line-oriented-doc.txt')) as f:
             text = f.read()

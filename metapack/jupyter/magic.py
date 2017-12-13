@@ -26,8 +26,7 @@ from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
 from IPython.display import  display, HTML, Latex
 
-from appurl import Downloader
-from appurl import parse_app_url
+from rowgenerators import Downloader, parse_app_url
 from metapack import MetapackDoc
 from metapack.appurl import MetapackPackageUrl
 from metapack.cli.core import process_schemas
@@ -281,7 +280,7 @@ class MetatabMagic(Magics):
         """
 
         from json import dumps
-        from appurl import get_cache
+        from rowgenerators import get_cache
         from metapack.rowgenerator import PandasDataframeSource
         import csv
         from os.path import join

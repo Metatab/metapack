@@ -4,8 +4,7 @@
 Record objects for the Simple Data Package format.
 """
 
-from appurl import parse_app_url
-from rowgenerators import get_generator
+from rowgenerators import get_generator, parse_app_url
 from .exc import *
 from .doc import MetapackDoc, Resolver
 from .package import open_package, Downloader

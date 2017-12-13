@@ -11,7 +11,7 @@ from os import getcwd, makedirs, remove
 from os.path import join, dirname, isdir
 
 from nbconvert.writers import FilesWriter
-from appurl import parse_app_url
+from rowgenerators import parse_app_url
 from metatab.datapackage import convert_to_datapackage
 from metatab import DEFAULT_METATAB_FILE
 from .core import PackageBuilder
