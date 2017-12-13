@@ -63,6 +63,9 @@ class TestUrls(unittest.TestCase):
         self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.zip#metadata.csv',
                          str(ud))
         self.assertIsInstance(ud, MetapackDocumentUrl)
+        print("!!!", type(ud.inner))
+        import sys
+        print("!!!", sys.modules[type(ud.inner).__module__].__file__)
         self.assertIsInstance(ud.inner, WebUrl)
 
         r = ud.get_resource()
