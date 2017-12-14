@@ -24,7 +24,7 @@ classifiers = [
 
 setup_d = dict(
     name='metapack',
-    version='0.6.23',
+    version='0.7.0',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
