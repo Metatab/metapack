@@ -328,6 +328,7 @@ class Resource(Term):
             rg = RowProcessor(islice(base_row_gen, start, None),
                               self.row_processor_table(),
                               source_headers=self.source_headers,
+                              manager = self,
                               env=self.env,
                               code_path=self.code_path)
 
@@ -361,7 +362,7 @@ class Resource(Term):
 
     @property
     def iterrows(self):
-        """Iterate over the resource as row proxy objects"""
+        """Iterate over the resource as row proxy objects, which allow acessing colums as attributes"""
 
         from rowgenerators.rowproxy import RowProxy
 
@@ -380,8 +381,8 @@ class Resource(Term):
 
     @property
     def iterstruct(self):
-        """Yield structures build from the JSON header specifications"""
-        from rowgenerators.rowpipe import add_to_struct
+        """Yield data structures build from the JSON header specifications in a table"""
+        from rowgenerators.rowpipe.json import add_to_struct
 
         json_headers = [(c['pos'], c.get('json') or c['header']) for c in self.columns()]
 
@@ -392,7 +393,8 @@ class Resource(Term):
             yield d
 
     def iterjson(self, *args, **kwargs):
-        from rowgenerators.rowpipe import VTEncoder
+        """Yields the data structures from iterstruct as JSON strings"""
+        from rowgenerators.rowpipe.json import VTEncoder
         import json
 
         if 'cls' not in kwargs:

@@ -10,7 +10,7 @@ from os.path import basename
 
 from botocore.exceptions import  NoCredentialsError
 
-from appurl import parse_app_url
+
 from metapack import MetapackDoc, MetapackUrl
 from metapack import MetapackPackageUrl
 from metapack.cli.core import prt, err, make_s3_package, PACKAGE_PREFIX
@@ -18,6 +18,7 @@ from metapack.package import *
 from metapack.package.s3 import S3Bucket
 from metapack.util import datetime_now
 from metatab import DEFAULT_METATAB_FILE
+from rowgenerators import parse_app_url
 from rowgenerators.util import clean_cache
 from rowgenerators.util import fs_join as join
 

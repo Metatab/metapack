@@ -11,14 +11,14 @@ import re
 from os import getcwd
 from os.path import dirname, abspath
 
-from appurl import parse_app_url
+
 from metapack import MetapackDoc, Downloader
 from metapack.cli.core import prt, err, warn, dump_resource, dump_resources, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
     process_schemas, extract_path_name, MetapackCliMemo
 from metapack.util import make_metatab_file, datetime_now
 from metatab import ConversionError
-from rowgenerators import SourceError
+from rowgenerators import SourceError, parse_app_url
 from rowgenerators.util import clean_cache
 from rowgenerators.util import fs_join as join
 from tableintuit import RowIntuitError

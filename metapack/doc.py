@@ -26,6 +26,8 @@ class Resolver(WebResolver):
 
 class MetapackDoc(MetatabDoc):
 
+    lib_dir_names = ('lib', 'pylib') # Names of subdirs to look for to find a loadable module
+
     def __init__(self, ref=None, decl=None,  cache=None, resolver=None, package_url=None, clean_cache=False,
                  downloader=None):
 
@@ -59,6 +61,7 @@ class MetapackDoc(MetatabDoc):
                 package_url = None
 
         super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
+
 
     @property
     def path(self):
@@ -131,7 +134,7 @@ class MetapackDoc(MetatabDoc):
         try:
             return self.get_lib_module_dict()
         except ImportError:
-            return None
+            return {}
 
     def set_sys_path(self):
         from os.path import join, isdir, dirname, abspath
@@ -144,12 +147,13 @@ class MetapackDoc(MetatabDoc):
         doc_dir = dirname(abspath(u.path))
         # Add the dir with the metatab file to the system path
 
-        if isdir(join(doc_dir, 'lib')):
-            if not 'docdir' in sys.path:
-                sys.path.insert(0, doc_dir)
-            return True
-        else:
-            return False
+        for lib_dir_name in  self.lib_dir_names:
+            if isdir(join(doc_dir, lib_dir_name)):
+                if not 'docdir' in sys.path:
+                    sys.path.insert(0, doc_dir)
+                return True
+
+        return False
 
     def get_lib_module_dict(self):
         """Load the 'lib' directory as a python module, so it can be used to provide functions
@@ -162,17 +166,21 @@ class MetapackDoc(MetatabDoc):
 
         u = parse_app_url(self.ref)
 
+
         if u.scheme == 'file':
 
             if not self.set_sys_path():
                 return {}
 
-            try:
-                m = import_module("lib")
-                return {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
-            except ImportError as e:
+            for module_name in self.lib_dir_names:
 
-                raise ImportError("Failed to import python module form 'lib' directory: ", str(e))
+                try:
+                    m = import_module(module_name)
+                    return {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
+                except ImportError as e:
+                    continue
+
+                raise ImportError(f"Failed to import python module from lib directory; tried: {lib_dir_names}; ", str(e))
 
         else:
             return {}
