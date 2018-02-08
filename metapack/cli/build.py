@@ -5,24 +5,30 @@
 CLI program for managing packages
 """
 
+import json
 import re
+
+from os import getcwd
+from os.path import dirname, abspath
+
 
 from metapack import MetapackDoc, Downloader
 from metapack.cli.core import prt, err, warn, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
     process_schemas, extract_path_name, MetapackCliMemo
 from metapack.util import make_metatab_file, datetime_now
+from metatab import ConversionError
 from rowgenerators import SourceError, parse_app_url
 from rowgenerators.util import clean_cache
+from rowgenerators.util import fs_join as join
 from tableintuit import RowIntuitError
 
 downloader = Downloader()
 
-
-def metapack(subparsers):
+def build(subparsers):
     parser = subparsers.add_parser(
-        'pack',
-        help='Manipulate data packages',
+        'build',
+        help='Build derived packages',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
     parser.set_defaults(run_command=run_metapack)
@@ -30,36 +36,35 @@ def metapack(subparsers):
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
+    parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
+
+    parser.add_argument('-F', '--force', action='store_true', default=False,
+                             help='Force some operations, like updating the name and building packages')
+
     parser.add_argument('--exceptions', default=False, action='store_true',
                         help='Show full stack tract for some unhandled exceptions')
 
 
     parser.set_defaults(handler=None)
 
+
+
     ##
-    ## Build Group
+    ## Derived Package Group
 
-    build_group = parser.add_argument_group('Manipulate Metatab Files', 'Create and alter metatab files')
+    derived_group = parser.add_argument_group('Derived Packages', 'Generate other types of packages')
 
-    build_group.add_argument('-c', '--create', action='store', nargs='?', default=False,
-                             help="Create a new metatab file, from named template. With no argument, uses the "
-                                  "'metatab' template ")
+    derived_group.add_argument('-e', '--excel', action='store_true', default=False,
+                               help='Create an excel archive from a metatab file')
 
-    build_group.add_argument('-a', '--add', default=False,
-                             help='Add a file or url to the resources. With a directory add a data files in the directory. '
-                                  'If given a URL to a web page, will add all links that point to CSV, Excel Files and'
-                                  'data files in ZIP files. (Caution: it will download and cache all of these files. )')
+    derived_group.add_argument('-z', '--zip', action='store_true', default=False,
+                               help='Create a zip archive from a metatab file')
 
-    build_group.add_argument('-s', '--schemas', default=False, action='store_true',
-                             help='Rebuild the schemas for files referenced in the resource section')
+    derived_group.add_argument('-f', '--filesystem', action='store_true', default=False,
+                               help='Create a filesystem archive from a metatab file')
 
-    build_group.add_argument('-u', '--update', action='store_true', default=False,
-                             help="Update the Name from the Datasetname, Origin and Version terms")
-
-    build_group.add_argument('-F', '--force', action='store_true', default=False,
-                             help='Force some operations, like updating the name and building packages')
-
-
+    derived_group.add_argument('-v', '--csv', action='store_true', default=False,
+                               help='Create a CSV archive from a metatab file')
 
 
     ##
@@ -76,12 +81,11 @@ def metapack(subparsers):
     admin_group.add_argument('-i', '--info', default=False, action='store_true',
                              help="Show configuration information")
 
-    admin_group.add_argument('-n', '--name', default=False, action='store_true',
-                             help="Print the name of the package")
+    admin_group.add_argument('--html', default=False, action='store_true',
+                             help='Generate HTML documentation')
 
-    admin_group.add_argument('-E', '--enumerate',
-                             help='Enumerate the resources referenced from a URL. Does not alter the Metatab file')
-
+    admin_group.add_argument('--markdown', default=False, action='store_true',
+                             help='Generate Markdown documentation')
 
 
 def run_metapack(args):
@@ -92,8 +96,12 @@ def run_metapack(args):
         metatab_info(m.cache)
         exit(0)
 
+    if m.args.profile:
+        from metatab.s3 import set_s3_profile
+        set_s3_profile(m.args.profile)
+
     try:
-        for handler in (metatab_build_handler,  metatab_admin_handler):
+        for handler in ( metatab_derived_handler, metatab_admin_handler):
             handler(m)
     except Exception as e:
         if m.args.exceptions:
@@ -104,57 +112,80 @@ def run_metapack(args):
     clean_cache(m.cache)
 
 
-def metatab_build_handler(m):
-    if m.args.create is not False:
 
-        template = m.args.create if m.args.create else 'metatab'
+def metatab_derived_handler(m, skip_if_exists=None):
+    """Create local Zip, Excel and Filesystem packages
 
-        if not m.mt_file.exists():
+    :param m:
+    :param skip_if_exists:
+    :return:
+    """
+    from metapack.exc import PackageError
 
-            doc = make_metatab_file(template)
+    create_list = []
+    url = None
 
-            doc['Root']['Created'] = datetime_now()
+    doc = MetapackDoc(m.mt_file)
 
-            write_doc(doc, m.mt_file)
+    env = get_lib_module_dict(doc)
 
-            prt('Created', m.mt_file)
-        else:
-            err('File', m.mt_file, 'already exists')
-
-    if m.args.add:
-
+    if (m.args.excel is not False or m.args.zip is not False or
+            (hasattr(m.args, 'filesystem') and m.args.filesystem is not False)):
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
 
-        add_resource(m.mt_file, m.args.add, cache=m.cache)
+    if m.args.force:
+        skip_if_exists = False
 
-    if m.args.schemas:
-        update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
+    try:
 
-        process_schemas(m.mt_file, cache=m.cache, clean=m.args.clean)
+        # Always create a filesystem package before ZIP or Excel, so we can use it as a source for
+        # data for the other packages. This means that Transform processes and programs only need
+        # to be run once.
+        if any([m.args.filesystem, m.args.excel, m.args.zip]):
+            _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, skip_if_exists)
+            create_list.append(('fs', url, created))
 
+            m.mt_file = url
 
-    if m.mtfile_url.scheme == 'file' and m.args.update:
-        update_name(m.mt_file, fail_on_missing=True, force=m.args.force)
+            env = {}  # Don't need it anymore, since no more programs will be run.
 
+        if m.args.excel is not False:
+            _, url, created = make_excel_package(m.mt_file, m.package_root, m.cache, env, skip_if_exists)
+            create_list.append(('xlsx', url, created))
+
+        if m.args.zip is not False:
+            _, url, created = make_zip_package(m.mt_file, m.package_root, m.cache, env, skip_if_exists)
+            create_list.append(('zip', url, created))
+
+        if m.args.csv is not False:
+            _, url, created = make_csv_package(m.mt_file, m.package_root, m.cache, env, skip_if_exists)
+            create_list.append(('csv', url, created))
+
+    except PackageError as e:
+        err("Failed to generate package: {}".format(e))
+
+    return create_list
 
 
 def metatab_admin_handler(m):
-    if m.args.enumerate:
 
-        from metatab.util import enumerate_contents
+    if m.args.html:
+        from metatab.html import html
+        doc = MetapackDoc(m.mt_file)
 
-        specs = list(enumerate_contents(m.args.enumerate, m.cache, callback=prt))
+        # print(doc.html)
+        prt(html(doc))
 
-        for s in specs:
-            prt(classify_url(s.url), s.target_format, s.url, s.target_segment)
+    if m.args.markdown:
+        from metatab.html import markdown
+
+        doc = MetapackDoc(m.mt_file)
+        prt(markdown(doc))
 
     if m.args.clean_cache:
         clean_cache('metapack')
 
-    if m.args.name:
-        doc = MetapackDoc(m.mt_file)
-        prt(doc.find_first_value("Root.Name"))
-        exit(0)
+
 
 def classify_url(url):
     ss = parse_app_url(url)

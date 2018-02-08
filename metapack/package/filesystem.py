@@ -137,10 +137,9 @@ class FileSystemPackageBuilder(PackageBuilder):
         if exists(path):
             remove(path)
 
-
         gen = islice(source_r, 1, None)
         headers = source_r.headers
-        write_csv(path, headers, gen)
+        self.write_csv(path, headers, gen)
 
         # Writting between resources so row-generating programs and notebooks can
         # access previously created resources. We have to clean the doc before writing it

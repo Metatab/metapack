@@ -82,6 +82,7 @@ setup_d = dict(
         ],
         'mt.subcommands': [
             'pack=metapack.cli.metapack:metapack',
+            'build=metapack.cli.build:build',
             's3=metapack.cli.metas3:metas3',
             'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook',

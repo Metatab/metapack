@@ -72,7 +72,15 @@ class Resource(Term):
         if not self.url:
             return None
 
-        u = parse_app_url(self.url)
+        # SQL Urls can be split into a Dsn part ( connection info ) and the SQL
+        #  so the Sql urls have special handing for the references.
+        dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
+
+        if self.get('dsn'):
+            u = parse_app_url(dsns[self.get_value('dsn')])
+            u.sql = self.value
+        else:
+            u = parse_app_url(self.url)
 
         if u.scheme != 'file':
             # Hopefully means the URL is http, https, ftp, etc.
@@ -464,8 +472,6 @@ class Resource(Term):
         import petl
 
         t = self.resolved_url.get_resource().get_target()
-
-        print(t.target_format)
 
         if t.target_format == 'txt':
             return petl.fromtext(t.path, *args, **kwargs)

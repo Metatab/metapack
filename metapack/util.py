@@ -9,7 +9,6 @@ from genericpath import exists
 from os import makedirs
 from os.path import join, basename, dirname
 
-import unicodecsv as csv
 
 
 from rowgenerators.util import slugify # Unused here, but imported from elsewhere.

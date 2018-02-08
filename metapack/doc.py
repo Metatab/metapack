@@ -132,6 +132,7 @@ class MetapackDoc(MetatabDoc):
         """Return the module associated with a package's python library"""
 
         try:
+
             return self.get_lib_module_dict()
         except ImportError:
             return {}
@@ -165,7 +166,6 @@ class MetapackDoc(MetatabDoc):
             return {}
 
         u = parse_app_url(self.ref)
-
 
         if u.scheme == 'file':
 

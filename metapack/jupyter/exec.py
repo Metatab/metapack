@@ -5,6 +5,7 @@
 Functions for executing Jupyter notebooks
 """
 
+from .exc import NotebookError
 
 def x_execute(nb_path, env):
     """Convert the notebook to a python script and execute it, returning the local context
@@ -62,6 +63,10 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False):
 
         raise CellExecutionError("Errors executing noteboook. See notebook at {} for details.\n{}"
                                  .format(err_nb_path, ''))
+
+    except ImportError as e:
+        raise NotebookError("Failed to import a library required for notebook execution: {}".format(str(e)))
+
 
     if write_notebook:
         if write_notebook is True:

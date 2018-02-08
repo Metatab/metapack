@@ -19,7 +19,8 @@ from rowgenerators.util import slugify
 from metatab import DEFAULT_METATAB_FILE
 from rowgenerators import get_generator, Url, parse_app_url, Downloader as _Downloader
 from tableintuit import RowIntuiter
-
+import unicodecsv as csv # legacy; shoudl convert to csv package.
+from time import time
 
 DEFAULT_CACHE_NAME = 'metapack'
 
@@ -357,9 +358,7 @@ class PackageBuilder(object):
 
         assert type(self.doc) == MetapackDoc
 
-
         for r in self.datafiles:
-
 
             if not r.url:
                 self.warn("No value for URL for {} ".format(r.term))
@@ -382,11 +381,59 @@ class PackageBuilder(object):
                 raise PackageError("Resource '{}' of type {} does not have a headers property"
                                    .format(r.url, type(r)))
 
-
-            self._load_resource(r)
+            try:
+                self._load_resource(r)
+            except Exception as e:
+                if r.props.get('ignoreerrors'):
+                    self.warn(f"Ignoring errors for {r.name}: {str(e)}")
+                    pass
+                else:
+                    raise e
 
     def _load_resource(self, source_r):
         raise NotImplementedError()
+
+    def write_csv(self, path_or_flo, headers, gen):
+
+        try:
+            f = open(path_or_flo, "wb")
+
+        except TypeError:
+            f = path_or_flo  # Assume that it's already a file-like-object
+
+        last_time = start_time = time()
+        i = 0
+        try:
+            w = csv.writer(f)
+            w.writerow(headers)
+
+            row = None
+            try:
+                for row in gen:
+                    w.writerow(row)
+                    i += 1
+
+                    if time() - last_time > 25:
+                        dt = time()-start_time
+                        rate = float(i)/(dt)
+                        self.prt(f'Processed {i} rows in {round(dt,0)} sec, rate = {round(rate,2)} rows/sec')
+                        last_time = time()
+
+            except:
+                import sys
+                print("write_csv: ERROR IN ROW", row, file=sys.stderr)
+                raise
+
+            try:
+                return f.getvalue()
+            except AttributeError:
+                return None
+
+        finally:
+            dt = time() - start_time
+            rate = float(i) / (dt)
+            self.prt(f'Processed {i} rows in {round(dt,0)} sec, rate = {round(rate,2)} rows/sec')
+            f.close()
 
     def _get_ref_contents(self, t):
 
