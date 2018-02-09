@@ -446,7 +446,7 @@ class PackageBuilder(object):
         else:
             u = uv
 
-        return u.get_resource()
+        return u.get_resource() if u else None
 
     def _load_documentation_files(self):
         """Copy all of the Datafile entries into the Excel file"""

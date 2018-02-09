@@ -27,7 +27,12 @@ def run(subparsers):
 
     parser.set_defaults(run_command=run_run)
 
-    group = parser.add_mutually_exclusive_group()
+    #
+    # What resource to run
+
+    reference_group = parser.add_argument_group("Resource or Reference specification")
+
+    group = reference_group.add_mutually_exclusive_group()
 
     group.add_argument('-r', '--resource',
                         help="Name of the Root.Resource to run  ")
@@ -35,7 +40,14 @@ def run(subparsers):
     group.add_argument('-f', '--reference',
                         help="Name of the Root.Reference to run  ")
 
-    group = parser.add_mutually_exclusive_group()
+
+
+    #
+    # Output format
+
+    format_group = parser.add_argument_group("Output format")
+
+    group = format_group.add_mutually_exclusive_group()
 
     group.add_argument('-c', '--CSV', default=False, action='store_true',
                              help='Output as CSV')
@@ -43,24 +55,36 @@ def run(subparsers):
     group.add_argument('-t', '--tabs', default=False, action='store_true',
                        help='Output as tab-delimited rows')
 
-    group.add_argument('-T', '--table', default=False, action='store_true',
-                       help='Output 20 rows in a table format. Truncates columns to width of terminal')
-
     group.add_argument('-j', '--json', default=False, action='store_true',
-                       help='Output JSON')
+                       help='Output JSON lines. Each line is a completel JSON object')
 
     group.add_argument('-y', '--yaml', default=False, action='store_true',
                        help='Output YAML')
 
-    # Arguments for Table
-    parser.add_argument('-p', '--pivot', default=False, action='store_true',
+    group.add_argument('-T', '--table', default=False, action='store_true',
+                       help='Output 20 rows in a table format. Truncates columns to width of terminal')
+
+    #
+    # Table format options
+
+    table_group = parser.add_argument_group('Options for Table ( -T ) format')
+
+    table_group.add_argument('-p', '--pivot', default=False, action='store_true',
                        help='When outputting a table, transpose rows for columns')
 
-    parser.add_argument('-m', '--markdown', default=False, action='store_true',
+    table_group.add_argument('-m', '--markdown', default=False, action='store_true',
                        help='When outputting a table, use Markdown format')
 
-    parser.add_argument('metatabfile', nargs='?',
+    table_group.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+
+    #
+    # Other options
+
+    output_group = parser.add_argument_group("General output options")
+
+    output_group.add_argument('-L', '--limit', type=int,
+                       help="Limit the number of output rows ")
 
     parser.set_defaults(handler=None)
 
@@ -76,7 +100,6 @@ def list_rr(doc):
     prt(tabulate(d, 'Type Name Url'.split()))
 
 def run_run(args):
-
 
     m = MetapackCliMemo(args, downloader)
 
@@ -100,9 +123,12 @@ def run_run(args):
             sys.exit(1)
 
         if m.args.table:
+
+            limit = args.limit if args.limit else 20
+
             t_width = shutil.get_terminal_size()[0]
 
-            rows = list(islice(r, None, 20))
+            rows = list(islice(r, None, limit))
 
             if m.args.pivot:
                 rows = list(zip(*rows))
@@ -135,14 +161,28 @@ def run_run(args):
             at.inner_row_border = True
             print (at.table)
 
-        elif m.args.json:
-            print('[')
-            for i,j in enumerate(r.iterjson()):
-                term = ",\n" if i > 0 else ""
-                print(term, j,end='')
-            print(']')
-
         else:
+            import csv
 
-            for row in r:
-                print(row)
+            if args.limit:
+                gen_wrap = lambda g: islice(g, None, args.limit)
+            else:
+                gen_wrap = lambda g: g
+
+            if m.args.json:
+                for i,j in enumerate(gen_wrap(r.iterjson())):
+                    print(j, j,end='')
+
+            elif m.args.yaml:
+                for i,j in enumerate(gen_wrap(r.iteryaml())):
+                    print(j, j,end='')
+            elif m.args.tabs:
+                w = csv.writer(sys.stdout, delimiter='\t')
+                for i,j in enumerate(gen_wrap(r)):
+                    w.writerow(j)
+
+            else: # m.args.csv:
+                w = csv.writer(sys.stdout)
+                for i,j in enumerate(gen_wrap(r)):
+                    w.writerow(j)
+

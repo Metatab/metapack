@@ -389,7 +389,7 @@ class Resource(Term):
 
     @property
     def iterstruct(self):
-        """Yield data structures build from the JSON header specifications in a table"""
+        """Yield data structures built from the JSON header specifications in a table"""
         from rowgenerators.rowpipe.json import add_to_struct
 
         json_headers = [(c['pos'], c.get('json') or c['header']) for c in self.columns()]
@@ -410,6 +410,17 @@ class Resource(Term):
 
         for s in self.iterstruct:
             yield (json.dumps(s, *args, **kwargs))
+
+    def iteryaml(self, *args, **kwargs):
+        """Yields the data structures from iterstruct as YAML strings"""
+        from rowgenerators.rowpipe.json import VTEncoder
+        import yaml
+
+        if 'cls' not in kwargs:
+            kwargs['cls'] = VTEncoder
+
+        for s in self.iterstruct:
+            yield (yaml.safe_dump(s))
 
     def dataframe(self, limit=None):
         """Return a pandas datafrome from the resource"""
