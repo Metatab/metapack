@@ -140,7 +140,7 @@ class TestPackages(unittest.TestCase):
 
         self.assertEquals(
             ['com-simple_example-2017-us-2/data/random-names.csv',
-             'ecom-simple_example-2017-us-2/data/renter_cost.csv',
+             '.com-simple_example-2017-us-2/data/renter_cost.csv',
              'm-simple_example-2017-us-2/data/unicode-latin1.csv'],
             [str(r.url)[-50:] for r in url.doc.resources()])
 

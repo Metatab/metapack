@@ -547,7 +547,6 @@ class Reference(Resource):
         except AttributeError:
             yield from self.row_generator
 
-
 class Distribution(Term):
     @property
     def type(self):

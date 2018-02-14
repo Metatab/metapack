@@ -54,8 +54,8 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         r = doc.reference('sra_geo')
 
-        self.assertEquals('civicknowledge.com-rcfe_affordability-2015-4',r.doc.name)
-        self.assertEquals('sangis.org-census_regions-2010-sandiego-7', r.resolved_url.resource.doc.name)
+        self.assertEqual('civicknowledge.com-rcfe_affordability-2015-4',r.doc.name)
+        self.assertEqual('sangis.org-census_regions-2010-sandiego-7', r.resolved_url.resource.doc.name)
 
         rs = r.resolved_url.resource
 
