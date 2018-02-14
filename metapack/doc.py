@@ -365,6 +365,7 @@ class MetapackDoc(MetatabDoc):
             'Root.Time',
             'Root.Space',
             'Root.Grain',
+            'Root.Variant',
             'Root.Version',
             'Root.Group',
             'Root.Tag',

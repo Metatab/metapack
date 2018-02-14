@@ -5,22 +5,16 @@
 CLI program for managing packages
 """
 
-import json
 import re
-
-from os import getcwd
-from os.path import dirname, abspath
-
+from os import getenv
 
 from metapack import MetapackDoc, Downloader
+from metapack.appurl import SearchUrl
 from metapack.cli.core import prt, err, warn, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
-    process_schemas, extract_path_name, MetapackCliMemo
-from metapack.util import make_metatab_file, datetime_now
-from metatab import ConversionError
+    extract_path_name, MetapackCliMemo, cli_init
 from rowgenerators import SourceError, parse_app_url
 from rowgenerators.util import clean_cache
-from rowgenerators.util import fs_join as join
 from tableintuit import RowIntuitError
 
 downloader = Downloader()
@@ -67,6 +61,9 @@ def build(subparsers):
                                help='Create a CSV archive from a metatab file')
 
 
+    derived_group.add_argument('-I', '--install', default=False, action='store_true',
+                             help="Install the packages to the data directory after building")
+
     ##
     ## Administration Group
 
@@ -89,6 +86,7 @@ def build(subparsers):
 
 
 def run_metapack(args):
+
 
     m = MetapackCliMemo(args, downloader)
 

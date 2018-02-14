@@ -69,16 +69,17 @@ class Resource(Term):
         """Return a URL that properly combines the base_url and a possibly relative
         resource url"""
 
-        if not self.url:
+        if (self.term_is('root.sql') and not self.query) or (not self.term_is('root.sql') and  not self.url):
             return None
 
         # SQL Urls can be split into a Dsn part ( connection info ) and the SQL
         #  so the Sql urls have special handing for the references.
         dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
 
-        if self.get('dsn'):
+        if self.term_is('root.sql'):
             u = parse_app_url(dsns[self.get_value('dsn')])
-            u.sql = self.value
+            u.sql = self.query
+
         else:
             u = parse_app_url(self.url)
 
@@ -92,10 +93,13 @@ class Resource(Term):
             t = t.as_type(type(u))
             t.fragment = u.fragment
 
+            return t
+
         elif u.proto == 'metapack':
             return u.resource.resolved_url.get_resource().get_target()
 
         else:
+
             assert isinstance(self.doc.package_url, MetapackPackageUrl), (
                 type(self.doc.package_url), self.doc.package_url)
 
@@ -112,12 +116,14 @@ class Resource(Term):
                 # Yet more hack!
                 t = parse_app_url(str(t))
 
+                return t
+
             except ResourceError as e:
                 # This case happens when a filesystem packages has a non-standard metadata name
                 # Total hack
                 raise
 
-        return t
+
 
     @property
     def inner(self):
@@ -283,7 +289,8 @@ class Resource(Term):
         # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)
 
-        ut.encoding = source_url.encoding or self.get_value('encoding')
+        # soruce_url will be None for Sql terms.
+        ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
 
         table = self.row_processor_table()
 
@@ -388,13 +395,17 @@ class Resource(Term):
             yield row_proxy.set_row(row)
 
     @property
+    def json_headers(self):
+        return [(c['pos'], c.get('json') or c['header']) for c in self.columns() if c.get('json')]
+
+    @property
     def iterstruct(self):
         """Yield data structures built from the JSON header specifications in a table"""
         from rowgenerators.rowpipe.json import add_to_struct
 
-        json_headers = [(c['pos'], c.get('json') or c['header']) for c in self.columns()]
+        json_headers = self.json_header
 
-        for row in self:
+        for row in islice(self, 1, None): # islice skips header
             d = {}
             for pos, jh in json_headers:
                 add_to_struct(d, jh, row[pos])

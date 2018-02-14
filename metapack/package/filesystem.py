@@ -7,7 +7,7 @@
 import json
 import shutil
 from genericpath import exists, getmtime
-from os import getcwd, makedirs, remove
+from os import getcwd, makedirs, remove, getenv
 from os.path import join, dirname, isdir
 
 from nbconvert.writers import FilesWriter
@@ -16,7 +16,7 @@ from metatab.datapackage import convert_to_datapackage
 from metatab import DEFAULT_METATAB_FILE
 from .core import PackageBuilder
 from metapack.util import ensure_dir, write_csv, slugify, datetime_now
-from metapack.appurl import MetapackUrl
+from metapack.appurl import MetapackUrl, SearchUrl
 
 
 class FileSystemPackageBuilder(PackageBuilder):
@@ -123,10 +123,23 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         from itertools import islice
 
-
         r = self.datafile(source_r.name)
 
         self.prt("Loading data for '{}' ".format(r.name))
+
+        if r.term_is('root.sql'):
+            new_r = self.doc['Resources'].new_term('Root.Datafile', '')
+            new_r.name = r.name
+
+            self.doc.remove_term(r)
+
+            # Also remove the dsn
+            dsn = r.get_value('dsn')
+
+            dsn_t = self.doc.find_first('Root.Dsn', name=dsn)
+            self.doc.remove_term(dsn_t)
+
+            r = new_r
 
         r.url = 'data/' + r.name + '.csv'
 
@@ -151,6 +164,7 @@ class FileSystemPackageBuilder(PackageBuilder):
         # jupyter Notebooks, ) does not load them.
         p = FileSystemPackageBuilder(ref, self.package_root)
         p._clean_doc()
+
         ref = p._write_doc()
 
     def _load_documentation_files(self):

@@ -6,9 +6,10 @@ CLI program for managing packages
 """
 
 import sys
+from os import getenv
 from metapack import Downloader
-from metapack.cli.core import prt, err, MetapackCliMemo
-from metapack.jupyter.convert import convert_documentation, convert_notebook, extract_metatab, convert_hugo
+from metapack.cli.core import prt, err, MetapackCliMemo, cli_init
+from metapack.appurl import SearchUrl
 from tabulate import tabulate
 import shutil
 from itertools import islice
@@ -83,6 +84,8 @@ def run(subparsers):
 
     output_group = parser.add_argument_group("General output options")
 
+    output_group.add_argument('-S', '--sample', type=str, help="Sample values from a column")
+
     output_group.add_argument('-L', '--limit', type=int,
                        help="Limit the number of output rows ")
 
@@ -99,90 +102,111 @@ def list_rr(doc):
 
     prt(tabulate(d, 'Type Name Url'.split()))
 
+
+def get_resource(m):
+
+
+    if m.resource:
+        r = m.doc.resource(m.resource)
+        return r if r else m.doc.reference(m.resource)
+    elif m.args.resource:
+        return m.doc.resource(m.args.resource)
+    elif m.args.reference:
+        return m.doc.reference(m.args.reference)
+    else:
+        err("Must specify a resource or a reference")
+
+
 def run_run(args):
 
     m = MetapackCliMemo(args, downloader)
 
+    r = get_resource(m)
+
     doc = m.doc
 
-    if not m.args.resource and not m.args.reference:
+    if not r:
         list_rr(doc)
         sys.exit(0)
 
+
+    if not r:
+        prt("ERROR: No resource or reference for '{}' valid terms are:\n".format(m.args.resource))
+        list_rr(doc)
+        sys.exit(1)
+
+    if m.args.sample:
+
+        from collections import Counter
+
+        limit = args.limit if args.limit else 5000
+
+        c = Counter( r[m.args.sample] for r in islice(r.iterrows, None, limit))
+
+        prt(tabulate(c.most_common(10), headers='Value Count'.split()))
+
+
+    elif m.args.table:
+
+        limit = args.limit if args.limit else 20
+
+        t_width = shutil.get_terminal_size()[0]
+
+        rows = list(islice(r, None, limit))
+
+        if m.args.pivot:
+            rows = list(zip(*rows))
+            header = ['Column Name'] + ['Column{}'.format(i) for i in range(1,len(rows[1])) ]
+            rows = [header] + rows
+
+        # Only display the colums that will fit in the terminal window
+        # If I were good, this would be a comprehension
+        max_lengths = [0] * len(rows[0])
+        for row in rows:
+            for i, col in enumerate(row):
+                v = str(col)
+                if '\n' in v:
+                    ln = max(len(l)+3 for l in v.splitlines() )
+                else:
+                    ln = len(str(col))+3
+
+                max_lengths[i] = max(max_lengths[i], ln )
+
+        display_cols = bisect([ sum(max_lengths[:i]) for i in range(1,len(max_lengths)+1)],t_width-4)
+
+        # print(tabulate( [row[:display_cols] for row in rows], tablefmt="psql"))
+
+        if m.args.markdown:
+            table_class = GithubFlavoredMarkdownTable
+        else:
+            table_class = SingleTable
+
+        at = table_class([row[:display_cols] for row in rows])
+        at.inner_row_border = True
+        print (at.table)
+
     else:
+        import csv
 
-        if m.args.resource:
-            r = doc.resource(m.args.resource)
-
+        if args.limit:
+            gen_wrap = lambda g: islice(g, None, args.limit)
         else:
-            r = doc.reference(m.args.reference)
+            gen_wrap = lambda g: g
 
-        if not r:
-            prt("ERROR: No resource or reference for '{}' valid terms are:\n".format(m.args.resource))
-            list_rr(doc)
-            sys.exit(1)
+        if m.args.json:
+            for i,j in enumerate(gen_wrap(r.iterjson())):
+                print(j)
 
-        if m.args.table:
+        elif m.args.yaml:
+            for i,j in enumerate(gen_wrap(r.iteryaml())):
+                print(j, j,end='')
+        elif m.args.tabs:
+            w = csv.writer(sys.stdout, delimiter='\t')
+            for i,j in enumerate(gen_wrap(r)):
+                w.writerow(j)
 
-            limit = args.limit if args.limit else 20
-
-            t_width = shutil.get_terminal_size()[0]
-
-            rows = list(islice(r, None, limit))
-
-            if m.args.pivot:
-                rows = list(zip(*rows))
-                header = ['Column Name'] + ['Column{}'.format(i) for i in range(1,len(rows[1])) ]
-                rows = [header] + rows
-
-            # Only display the colums that will fit in the terminal window
-            # If I were good, this would be a comprehension
-            max_lengths = [0] * len(rows[0])
-            for row in rows:
-                for i, col in enumerate(row):
-                    v = str(col)
-                    if '\n' in v:
-                        ln = max(len(l)+3 for l in v.splitlines() )
-                    else:
-                        ln = len(str(col))+3
-
-                    max_lengths[i] = max(max_lengths[i], ln )
-
-            display_cols = bisect([ sum(max_lengths[:i]) for i in range(1,len(max_lengths)+1)],t_width-4)
-
-            # print(tabulate( [row[:display_cols] for row in rows], tablefmt="psql"))
-
-            if m.args.markdown:
-                table_class = GithubFlavoredMarkdownTable
-            else:
-                table_class = SingleTable
-
-            at = table_class([row[:display_cols] for row in rows])
-            at.inner_row_border = True
-            print (at.table)
-
-        else:
-            import csv
-
-            if args.limit:
-                gen_wrap = lambda g: islice(g, None, args.limit)
-            else:
-                gen_wrap = lambda g: g
-
-            if m.args.json:
-                for i,j in enumerate(gen_wrap(r.iterjson())):
-                    print(j, j,end='')
-
-            elif m.args.yaml:
-                for i,j in enumerate(gen_wrap(r.iteryaml())):
-                    print(j, j,end='')
-            elif m.args.tabs:
-                w = csv.writer(sys.stdout, delimiter='\t')
-                for i,j in enumerate(gen_wrap(r)):
-                    w.writerow(j)
-
-            else: # m.args.csv:
-                w = csv.writer(sys.stdout)
-                for i,j in enumerate(gen_wrap(r)):
-                    w.writerow(j)
+        else: # m.args.csv:
+            w = csv.writer(sys.stdout)
+            for i,j in enumerate(gen_wrap(r)):
+                w.writerow(j)
 

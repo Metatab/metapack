@@ -44,7 +44,7 @@ setup_d = dict(
         'IPython',
         'nameparser',
         'pybtex',
-        'rowgenerators>=0.7.13',
+        'rowgenerators>=0.7.15',
         'metatab>=0.6.6',
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
@@ -71,7 +71,8 @@ setup_d = dict(
         'appurl.urls': [
             "metapack+ = metapack.appurl:MetapackUrl",
             "metatab+ = metapack.appurl:MetapackUrl",
-            ".ipynb = metapack.appurl:JupyterNotebookUrl"
+            ".ipynb = metapack.appurl:JupyterNotebookUrl",
+            "search: = metapack.appurl:SearchUrl"
 
         ],
         'rowgenerators': [
@@ -84,9 +85,11 @@ setup_d = dict(
             'pack=metapack.cli.metapack:metapack',
             'build=metapack.cli.build:build',
             's3=metapack.cli.metas3:metas3',
+            'install=metapack.cli.install:install',
             'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook',
-            'run=metapack.cli.run:run'
+            'run=metapack.cli.run:run',
+            'search=metapack.cli.search:search'
 
         ]
 

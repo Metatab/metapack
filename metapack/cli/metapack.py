@@ -10,7 +10,7 @@ import re
 from metapack import MetapackDoc, Downloader
 from metapack.cli.core import prt, err, warn, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
-    process_schemas, extract_path_name, MetapackCliMemo
+    process_schemas, extract_path_name, MetapackCliMemo, cli_init
 from metapack.util import make_metatab_file, datetime_now
 from rowgenerators import SourceError, parse_app_url
 from rowgenerators.util import clean_cache

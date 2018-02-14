@@ -4,6 +4,8 @@ from genericpath import exists
 from itertools import islice
 from os.path import join
 from uuid import uuid4
+from os import getenv
+from metapack.appurl import SearchUrl
 
 import six
 from tableintuit import TypeIntuiter
@@ -16,7 +18,7 @@ from metapack.package.s3 import S3PackageBuilder
 from metapack.package.zip import ZipPackageBuilder
 from metatab import  DEFAULT_METATAB_FILE
 from metatab.util import make_metatab_file
-from rowgenerators import SelectiveRowGenerator, parse_app_url
+from rowgenerators import SelectiveRowGenerator, parse_app_url, AppUrlError
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -35,6 +37,13 @@ def cli_init(log_level=logging.INFO):
     out_hdlr.setLevel(logging.WARN)
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
+
+    if getenv('METAPACK_DATA'):
+        try:
+            search_func = SearchUrl.search_indexed_directory(getenv('METAPACK_DATA'))
+            SearchUrl.register_search(search_func)
+        except AppUrlError as e:
+            warn("Failed to register package search function: "+str(e))
 
 def prt(*args, **kwargs):
     logger.info(' '.join(str(e) for e in args),**kwargs)
@@ -442,6 +451,9 @@ class MetapackCliMemo(object):
 
         frag = ''
 
+        if isinstance(args.metatabfile, (list, tuple)):
+            args.metatabfile = args.metatabfile.pop(0)
+
         # Just the fragment was provided
         if args.metatabfile and args.metatabfile.startswith('#'):
             frag = args.metatabfile
@@ -454,6 +466,7 @@ class MetapackCliMemo(object):
         if not mtf:
             mtf = join(self.cwd, DEFAULT_METATAB_FILE)
 
+
         self.init_stage2(mtf, frag)
 
 
@@ -464,7 +477,11 @@ class MetapackCliMemo(object):
 
         self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
 
-        self.resource = self.mtfile_url.fragment
+        # Find the target for a search URL
+        if self.mtfile_url.scheme =='search':
+            self.mtfile_url = parse_app_url(self.mtfile_arg, downloader=self.downloader).get_resource()
+
+        self.resource = self.mtfile_url.resource_name
 
         self.package_url = self.mtfile_url.package_url
         self.mt_file = self.mtfile_url.metadata_url

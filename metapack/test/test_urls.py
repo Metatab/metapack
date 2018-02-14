@@ -231,14 +231,44 @@ class TestUrls(unittest.TestCase):
         return
 
     def test_metatab_resource_zip(self):
+        from metapack.appurl import MetapackResourceUrl
 
         us = 'metapack+http://s3.amazonaws.com/library.metatab.org/ipums.org-income_homevalue-5.zip#income_homeval'
 
+        u = parse_app_url(us)
+
+        self.assertIsInstance(u, MetapackResourceUrl)
+
+
     def test_metatab_resource_fs_pkg(self):
+        from metapack.appurl import MetapackDocumentUrl
 
         us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv'
 
         u = parse_app_url(us)
+
+        self.assertIsInstance(u, MetapackDocumentUrl)
+
+
+    def test_search_url(self):
+        from metapack.appurl import SearchUrl
+        from os import getenv
+        from unittest import SkipTest
+
+        us = 'search:bc.edu-creations-comments#comments'
+
+        u = parse_app_url(us)
+
+        if getenv('METAPACK_DATA') is None:
+            raise SkipTest("Test requires the METAPACK_DATA envoironment variable to be set")
+
+        search_func = SearchUrl.search_indexed_directory(getenv('METAPACK_DATA'))
+
+        SearchUrl.register_search(search_func)
+
+        self.assertEqual('metapack+file:/Volumes/Storage/Data/metapack/bc.edu-creations-comments-3.zip#comments',
+                          str(u.get_resource()))
+
 
 
 if __name__ == '__main__':

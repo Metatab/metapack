@@ -90,7 +90,10 @@ class PackageBuilder(object):
     @property
     def datafiles(self):
         """Iterate over data file *in the original document*. Don't alter these! """
-        for r in self._source_doc['Resources'].find(['root.datafile', 'root.suplimentarydata', 'root.datadictionary']):
+        for r in self._source_doc['Resources'].find(['root.datafile',
+                                                     'root.suplimentarydata',
+                                                     'root.datadictionary',
+                                                     'root.sql']):
             yield r
 
     def datafile(self, ref):
@@ -360,35 +363,52 @@ class PackageBuilder(object):
 
         for r in self.datafiles:
 
-            if not r.url:
-                self.warn("No value for URL for {} ".format(r.term))
-                continue
+            if r.term_is('root.sql'):
 
-            try:
-                if self._resource.exists(r):
-                    self.prt("Resource '{}' exists, skipping".format(r.name))
-                continue
-            except AttributeError:
-                pass
+                if not r.value:
+                    self.warn("No value for SQL URL for {} ".format(r.term))
+                    continue
 
-            self.prt("Reading resource {} from {} ".format(r.name, r.resolved_url))
+                try:
+                    self._load_resource(r)
+                except Exception as e:
+                    if r.props.get('ignoreerrors'):
+                        self.warn(f"Ignoring errors for {r.name}: {str(e)}")
+                        pass
+                    else:
+                        raise e
 
-            try:
-                if not r.headers:
-                    raise PackageError("Resource {} does not have header. Have schemas been generated?"
-                                        .format(r.name))
-            except AttributeError:
-                raise PackageError("Resource '{}' of type {} does not have a headers property"
-                                   .format(r.url, type(r)))
+            else:
 
-            try:
-                self._load_resource(r)
-            except Exception as e:
-                if r.props.get('ignoreerrors'):
-                    self.warn(f"Ignoring errors for {r.name}: {str(e)}")
+                if not r.url:
+                    self.warn("No value for URL for {} ".format(r.term))
+                    continue
+
+                try:
+                    if self._resource.exists(r):
+                        self.prt("Resource '{}' exists, skipping".format(r.name))
+                    continue
+                except AttributeError:
                     pass
-                else:
-                    raise e
+
+                self.prt("Reading resource {} from {} ".format(r.name, r.resolved_url))
+
+                try:
+                    if not r.headers:
+                        raise PackageError("Resource {} does not have header. Have schemas been generated?"
+                                            .format(r.name))
+                except AttributeError:
+                    raise PackageError("Resource '{}' of type {} does not have a headers property"
+                                       .format(r.url, type(r)))
+
+                try:
+                    self._load_resource(r)
+                except Exception as e:
+                    if r.props.get('ignoreerrors'):
+                        self.warn(f"Ignoring errors for {r.name}: {str(e)}")
+                        pass
+                    else:
+                        raise e
 
     def _load_resource(self, source_r):
         raise NotImplementedError()

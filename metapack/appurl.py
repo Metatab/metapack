@@ -5,13 +5,11 @@
 
 """
 
-from os.path import basename, join, dirname
+from os.path import basename, join, dirname, exists
 from metapack.exc import MetapackError, ResourceError
 from rowgenerators import Url, parse_app_url, DownloadError, WebUrl, FileUrl, file_ext
-
-
-
-
+from rowgenerators.exceptions import AppUrlError
+import json
 
 from metatab import DEFAULT_METATAB_FILE
 
@@ -26,6 +24,10 @@ class _MetapackUrl(object):
         else:
             # Hack, really ought to implement exeists() for web urls.
             return True
+
+    @property
+    def resource_name(self):
+        return self.fragment[0]
 
 
 class MetapackDocumentUrl(Url, _MetapackUrl):
@@ -55,8 +57,6 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
             frag = DEFAULT_METATAB_FILE
 
         self.fragment = [frag,None]
-
-
 
     @classmethod
     def _match(cls, url, **kwargs):
@@ -172,6 +172,14 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
             return self.inner.join_dir(tf)
         else:
             return self.inner.join_target(tf)
+
+    @property
+    def resource(self):
+        """Return the Metapack resource, different from the URL resource returned by get_resource"""
+
+        r =  self.doc.resource(self.fragment[0])
+        return r
+
 
 
 class MetapackPackageUrl(FileUrl, _MetapackUrl):
@@ -348,7 +356,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     @property
     def resource(self):
 
-        r =  self.doc.resource(self.target_file)
+        r =  self.doc.resource(self.fragment[0])
         return r
 
 
@@ -400,6 +408,88 @@ class JupyterNotebookUrl(FileUrl):
         return None
 
 
+class SearchUrl(Url):
+    """Look up a url using a list of callbacks. """
+
+    match_priority = FileUrl.match_priority - 10
+
+    search_callbacks = []
+
+    def __init__(self, url=None, **kwargs):
+        kwargs['scheme'] = 'search'
+        super().__init__(url, **kwargs)
+
+    @classmethod
+    def _match(cls, url, **kwargs):
+        return url.scheme == 'search'
+
+    @classmethod
+    def register_search(cls, f):
+        """Register a function that will lookup the search URL and return a URL if found"""
+
+        cls.search_callbacks.append(f)
+
+    @staticmethod
+    def search_indexed_directory(directory):
+        """Return a search function for searching a directory of packages, which has an index.json file
+        created by the `mp install file` command. """
+
+        from metapack.appurl import MetapackPackageUrl
+        from metapack import Downloader
+
+        index_file = join(directory, 'index.json')
+
+        if not exists(index_file):
+            raise AppUrlError(f"Failed to find directory index file, {index_file}")
+
+        with open(index_file) as f:
+            index = json.load(f)
+
+        def _search_function(url):
+
+            try:
+
+                resource_str = '#'+url.target_file if url.fragment[0] else ''
+
+                return parse_app_url('metapack+file:'+index[url.path]+resource_str, downloader=url.downloader)
+            except KeyError as e:
+                return None
 
 
+        return _search_function
+
+
+    def search(self):
+        """Search for a url by returning the value from the first callback that
+        returns a non-None value"""
+
+        for cb in SearchUrl.search_callbacks:
+            try:
+                v = cb(self)
+                if v is not None:
+                    return v
+            except Exception as e:
+                raise
+
+    def get_resource(self):
+
+        u = self.search()
+
+        if not u:
+            raise AppUrlError(f"Search URL failed to resolve reference to {str(self)}")
+
+        return u.get_resource()
+
+
+    def get_target(self):
+        return self
+
+    def target_dataframe(self):
+        if self._target_file:
+            return self._target_file
+
+        if self.fragment[0]:
+            return self.fragment[0]
+
+        return None
 
