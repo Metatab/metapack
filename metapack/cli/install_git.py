@@ -71,8 +71,10 @@ def run_git_install(args):
     try:
         repo = Repo(target)
         repo.remotes.origin.pull()
+        prt(f"Pulling to existing repo, '{target} ")
     except InvalidGitRepositoryError:
         repo = Repo.clone_from(giturl, target)
+        prt(f"Cloning to new repo, '{target} ")
 
     update_index(args.directory, target, suffix='source')
 

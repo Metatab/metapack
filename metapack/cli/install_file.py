@@ -37,6 +37,9 @@ def install_file(subparsers):
 
     parser.set_defaults(run_command=run_file_install)
 
+    parser.add_argument('-l', '--list', default=False, action='store_true',
+                             help="List installed packages")
+
     parser.add_argument('metatabfile', nargs='?', default='./',
                         help='Path to a Metatab file. Optional; if not specified, use metatab.csv for package specification ')
 
@@ -51,6 +54,17 @@ def install_file(subparsers):
                         help='Directory to which to install files. '+defaults_to)
 
 def run_file_install(args):
+
+    if args.list:
+        index_path = join(args.directory, 'index.json')
+
+        if exists(index_path):
+            with open(index_path) as f:
+                packages = json.load(f)
+                for n in packages.keys():
+                    if not n.startswith('_'):
+                        prt(n)
+        return
 
     try:
         args.directory = args.directory.pop(0) # Its a list
