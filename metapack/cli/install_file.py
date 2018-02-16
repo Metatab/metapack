@@ -198,6 +198,7 @@ def update_index(d, package_path, suffix=''):
         for p in yield_packages(d):
             add_package_to_index(p, packages, suffix=None)
 
+        ensure_dir(join(d,'source'))
 
         for p in yield_packages(join(d,'source')):
             add_package_to_index(p, packages, suffix='source')
