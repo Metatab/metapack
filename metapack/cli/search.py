@@ -1,10 +1,10 @@
 # Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the
 # MIT License, included in this distribution as LICENSE
 
-from metapack import Downloader, parse_app_url
+from metapack import Downloader
 from metapack.cli.core import prt, err, MetapackCliMemo
 from metapack.appurl import SearchUrl
-from rowgenerators import AppUrlError
+from rowgenerators import AppUrlError, parse_app_url
 
 downloader = Downloader()
 
@@ -17,18 +17,22 @@ def search(subparsers):
 
     parser.set_defaults(run_command=run_search)
 
-    parser.add_argument('metatabfile', nargs=1,help="Path or URL to a metatab file")
+    parser.add_argument('search', nargs=1, help="Path or URL to a metatab file")
 
 def run_search(args):
 
-    m = MetapackCliMemo(args, downloader)
+    if args.search[0].startswith('index'):
+        url_s = args.search[0]
+    else:
+        url_s = 'index:'+args.search[0]
 
     try:
-        u = parse_app_url('search:'+m.mtfile_arg)
+        u = parse_app_url(url_s)
 
         prt(str(u.get_resource()))
-    except AppUrlError:
-        err(f"Nothing found for '{m.mtfile_arg}'")
+
+    except AppUrlError as e:
+        err(f"Failed to resolve: {str(u)}; {str(e)}")
 
 
 

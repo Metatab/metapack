@@ -1,24 +1,21 @@
 import logging
+import shutil
 import sys
-from genericpath import exists
 from itertools import islice
-from os.path import join
+from os import getenv, listdir
+from os.path import join, exists, isdir, splitext, abspath
 from uuid import uuid4
-from os import getenv
-from metapack.appurl import SearchUrl
 
 import six
-from tableintuit import TypeIntuiter
-
 from metapack import MetapackDoc, MetapackUrl
-from metapack.package.csv import CsvPackageBuilder
-from metapack.package.excel import ExcelPackageBuilder
-from metapack.package.filesystem import FileSystemPackageBuilder
-from metapack.package.s3 import S3PackageBuilder
-from metapack.package.zip import ZipPackageBuilder
-from metatab import  DEFAULT_METATAB_FILE
+from metapack.appurl import SearchUrl
+from metapack.package import *
+from metapack.util import ensure_dir
+from metatab import DEFAULT_METATAB_FILE
 from metatab.util import make_metatab_file
 from rowgenerators import SelectiveRowGenerator, parse_app_url, AppUrlError
+from tableintuit import TypeIntuiter
+
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -38,12 +35,11 @@ def cli_init(log_level=logging.INFO):
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
 
-    if getenv('METAPACK_DATA'):
-        try:
-            search_func = SearchUrl.search_indexed_directory(getenv('METAPACK_DATA'))
-            SearchUrl.register_search(search_func)
-        except AppUrlError as e:
-            warn("Failed to register package search function: "+str(e))
+    try:
+        search_func = SearchUrl.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
+        SearchUrl.register_search(search_func)
+    except AppUrlError as e:
+        pass
 
 def prt(*args, **kwargs):
     logger.info(' '.join(str(e) for e in args),**kwargs)
@@ -522,6 +518,67 @@ def get_config():
 
 
     return {}
+
+def add_package_to_index(pkg, package_db):
+
+    ref_url = pkg.package_url.clone()
+    ref_url.path = abspath(ref_url.path)
+
+    ref = str(ref_url).encode('utf8')
+
+    package_db[pkg.get_value('Root.Identifier')] = ref # identifier
+
+    nv_name =(pkg._generate_identity_name(mod_version=None)) # Non versioned-name, for the latest package
+
+    try:
+        # JSON stores strings, DBM stores bytes
+        try:
+            max_package = open_package(package_db[nv_name].decode('utf8'))
+        except AttributeError:
+            max_package = open_package(package_db[nv_name])
+
+        if max_package and max_package.get_value('Root.Version') < pkg.get_value('Root.Version'):
+            max_package_ref = ref
+        else:
+            max_package_ref = package_db[nv_name]
+
+    except (KeyError, ValueError):
+        max_package_ref = ref
+
+    package_db[pkg._generate_identity_name()] = max_package_ref
+    package_db[nv_name] = max_package_ref
+
+
+def update_index(packages, package_path, suffix=''):
+
+
+    if packages:
+        # Just update one packages
+        add_package_to_index(package_path, packages, suffix=suffix)
+
+    else:
+        # Build the whole package index
+        packages = {}
+
+        def yield_packages(d):
+
+            for e in listdir(d):
+                path = join(d, e)
+                bn, ext = splitext(path)
+                if isdir(path):
+                    if exists(join(path, 'metadata.csv')):
+                        yield join(path, 'metadata.csv')
+                elif ext in ('.xls', '.xlsx', '.zip'):
+                    yield path
+
+        for p in yield_packages(d):
+            add_package_to_index(p, packages, suffix=None)
+
+
+
+    return packages
+
+
 
 
 

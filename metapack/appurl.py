@@ -304,11 +304,9 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
 
         self.base_url = base_url
 
-
     @classmethod
     def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be contructed through matching")
-
 
     @property
     def target_file(self):
@@ -318,7 +316,6 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
             return self.fragment[0]
 
         return None
-
 
     @property
     def doc(self):
@@ -416,12 +413,12 @@ class SearchUrl(Url):
     search_callbacks = []
 
     def __init__(self, url=None, **kwargs):
-        kwargs['scheme'] = 'search'
+        kwargs['scheme'] = 'index'
         super().__init__(url, **kwargs)
 
     @classmethod
     def _match(cls, url, **kwargs):
-        return url.scheme == 'search'
+        return url.scheme == 'search' or url.scheme == 'index'
 
     @classmethod
     def register_search(cls, f):
@@ -430,7 +427,7 @@ class SearchUrl(Url):
         cls.search_callbacks.append(f)
 
     @staticmethod
-    def search_indexed_directory(directory):
+    def search_json_indexed_directory(directory):
         """Return a search function for searching a directory of packages, which has an index.json file
         created by the `mp install file` command. """
 
@@ -451,7 +448,7 @@ class SearchUrl(Url):
 
                 resource_str = '#'+url.target_file if url.fragment[0] else ''
 
-                return parse_app_url('metapack+file:'+index[url.path]+resource_str, downloader=url.downloader)
+                return parse_app_url(index[url.path]+resource_str, downloader=url.downloader)
             except KeyError as e:
                 return None
 

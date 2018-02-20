@@ -296,7 +296,6 @@ class TestPackages(unittest.TestCase):
         r = doc.resource('simple-example')
 
         t = r.resolved_url.get_resource().get_target()
-        print("!!!", t.path)
 
         p = r.petl()
 

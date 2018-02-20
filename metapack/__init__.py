@@ -4,7 +4,7 @@
 Record objects for the Simple Data Package format.
 """
 
-from rowgenerators import get_generator, parse_app_url
+from rowgenerators import get_generator, get_cache
 from .exc import *
 from .doc import MetapackDoc, Resolver
 from .package import open_package, Downloader
@@ -13,3 +13,6 @@ from .terms import Resource
 
 from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
 
+import rowgenerators.appurl.url
+
+rowgenerators.appurl.url.default_downloader = Downloader(get_cache('metapack'))

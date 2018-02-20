@@ -73,7 +73,7 @@ setup_d = dict(
             "metapack+ = metapack.appurl:MetapackUrl",
             "metatab+ = metapack.appurl:MetapackUrl",
             ".ipynb = metapack.appurl:JupyterNotebookUrl",
-            "search: = metapack.appurl:SearchUrl"
+            "index: = metapack.appurl:SearchUrl"
 
         ],
         'rowgenerators': [
@@ -86,7 +86,7 @@ setup_d = dict(
             'pack=metapack.cli.metapack:metapack',
             'build=metapack.cli.build:build',
             's3=metapack.cli.metas3:metas3',
-            'install=metapack.cli.install:install',
+            'index=metapack.cli.index:index_args',
             'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook',
             'run=metapack.cli.run:run',

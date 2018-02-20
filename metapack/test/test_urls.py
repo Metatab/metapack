@@ -1,9 +1,9 @@
 import unittest
-from rowgenerators import parse_app_url, match_url_classes, WebUrl, FileUrl, ZipUrl, CsvFileUrl
+from rowgenerators import match_url_classes, WebUrl, FileUrl, ZipUrl, CsvFileUrl
 
 from metapack import MetapackDoc
 from metapack.appurl import MetapackUrl, MetapackResourceUrl, MetapackDocumentUrl
-from rowgenerators import get_generator
+from rowgenerators import get_generator, parse_app_url
 from csv import DictReader
 from metapack.test.support import test_data
 from os.path import exists
@@ -63,9 +63,9 @@ class TestUrls(unittest.TestCase):
         self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.zip#metadata.csv',
                          str(ud))
         self.assertIsInstance(ud, MetapackDocumentUrl)
-        print("!!!", type(ud.inner))
+
         import sys
-        print("!!!", sys.modules[type(ud.inner).__module__].__file__)
+
         self.assertIsInstance(ud.inner, WebUrl)
 
         r = ud.get_resource()
@@ -259,10 +259,10 @@ class TestUrls(unittest.TestCase):
 
         u = parse_app_url(us)
 
-        if getenv('METAPACK_DATA') is None:
+        if getenv('METAPACK_DATA') is None or not exists(getenv('METAPACK_DATA')):
             raise SkipTest("Test requires the METAPACK_DATA envoironment variable to be set")
 
-        search_func = SearchUrl.search_indexed_directory(getenv('METAPACK_DATA'))
+        search_func = SearchUrl.search_json_indexed_directory(getenv('METAPACK_DATA'))
 
         SearchUrl.register_search(search_func)
 

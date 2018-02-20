@@ -28,52 +28,34 @@ class MetapackCliMemo(_MetapackCliMemo):
         self
 
 
-def install_file(subparsers):
+def index_args(subparsers):
 
     parser = subparsers.add_parser(
         'file',
-        help='Install packages to a filesystem'
+        help='Index packages for searching. '
     )
 
-    parser.set_defaults(run_command=run_file_install)
+    parser.set_defaults(run_command=index)
 
     parser.add_argument('-l', '--list', default=False, action='store_true',
-                             help="List installed packages")
+                             help="List the packages that would be indexed")
 
-    parser.add_argument('metatabfile', nargs='?', default='./',
-                        help='Path to a Metatab file. Optional; if not specified, use metatab.csv for package specification ')
+    parser.add_argument('metatab_url', nargs='?', default='./',
+                        help='URL to a metatab package or container for packages')
 
-    if getenv('METAPACK_DATA'):
-       d_args = '?'
-       defaults_to=f"Defaults to METAPACK_DATA env var, '{getenv('METAPACK_DATA')}'"
-    else:
-        d_args = 1
-        defaults_to = 'May also be set with the METAPACK_DATA env var'
 
-    parser.add_argument('directory', nargs=d_args, default=getenv('METAPACK_DATA'),
-                        help='Directory to which to install files. '+defaults_to)
 
-def run_file_install(args):
+def index(args):
 
-    if args.list:
-        index_path = join(args.directory, 'index.json')
+    from rowgenerators import parse_app_url
 
-        if exists(index_path):
-            with open(index_path) as f:
-                packages = json.load(f)
-                for n in packages.keys():
-                    if not n.startswith('_'):
-                        prt(n)
-        return
 
-    try:
-        args.directory = args.directory.pop(0) # Its a list
-    except AttributeError:
-        pass # its a string
+    u = parse_app_url(args.metatab_url)
 
-    m = MetapackCliMemo(args, downloader=downloader)
+    for e in u.list():
+        print(e)
 
-    copy_packages(m)
+
 
 def find_packages(name, pkg_dir):
     """Locate pre-built packages in the _packages directory"""
@@ -99,26 +81,6 @@ def copy_packages(m):
         elif ptype == 'fs':
             copy_dir(m, purl.path, dest)
 
-
-def copy_file(m, source, dest):
-
-    if exists(dest):
-        remove(dest)
-
-    prt(f"Copy file {source} to {dest} ")
-    shutil.copy(source, dest)
-
-    update_index(m.args.directory, join(dest))
-
-def copy_dir(m, source, dest):
-
-    if exists(dest):
-        shutil.rmtree(dest)
-
-    prt(f"Copy dir {source} to {dest}")
-    shutil.copytree(source, dest)
-
-    update_index(m.args.directory, dest)
 
 def update_index(d, package_path, suffix=''):
 

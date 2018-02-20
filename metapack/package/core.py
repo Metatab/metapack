@@ -29,8 +29,14 @@ class Downloader(_Downloader):
 
     ok = True
 
+    def __init__(self, cache=None, account_accessor=None, logger=None, working_dir='', callback=None):
+        from rowgenerators import get_cache
+        super().__init__(cache or get_cache('metapack'),
+                         account_accessor, logger, working_dir, callback)
+
     def download(self, url):
         return super().download(url)
+
 
 
 class PackageBuilder(object):
