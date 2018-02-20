@@ -44,7 +44,7 @@ setup_d = dict(
         'IPython',
         'nameparser',
         'pybtex',
-        'rowgenerators>=0.7.15',
+        'rowgenerators>=0.7.16',
         'metatabdecl>=1.0.0',
         'metatab>=0.6.6',
         'tableintuit>=0.0.6',

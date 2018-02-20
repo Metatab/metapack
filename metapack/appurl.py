@@ -452,7 +452,6 @@ class SearchUrl(Url):
             except KeyError as e:
                 return None
 
-
         return _search_function
 
 

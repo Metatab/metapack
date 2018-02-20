@@ -15,24 +15,40 @@ def search(subparsers):
         help='Search for packages',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
+    parser.add_argument('-l', '--list', default=False, action='store_true',
+                        help="List the packages that would be indexed ( Only from the JSON index")
+
     parser.set_defaults(run_command=run_search)
 
-    parser.add_argument('search', nargs=1, help="Path or URL to a metatab file")
+    parser.add_argument('search', nargs='?', help="Path or URL to a metatab file")
 
 def run_search(args):
 
-    if args.search[0].startswith('index'):
-        url_s = args.search[0]
+    if not args.search or args.list:
+        import json
+        from tabulate import tabulate
+
+        index_file = Downloader().cache.getsyspath('index.json')
+
+        with open(index_file) as f:
+            print(tabulate(sorted([(k,v) for k,v in json.load(f).items()]),
+                                   headers='Key Url'.split()))
+
+
     else:
-        url_s = 'index:'+args.search[0]
 
-    try:
-        u = parse_app_url(url_s)
+        if args.search.startswith('index'):
+            url_s = args.search
+        else:
+            url_s = 'index:'+args.search
 
-        prt(str(u.get_resource()))
+        try:
+            u = parse_app_url(url_s)
 
-    except AppUrlError as e:
-        err(f"Failed to resolve: {str(u)}; {str(e)}")
+            prt(str(u.get_resource()))
+
+        except AppUrlError as e:
+            err(f"Failed to resolve: {str(u)}; {str(e)}")
 
 
 
