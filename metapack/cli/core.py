@@ -331,7 +331,7 @@ def write_doc(doc, mt_file):
 
 
 def process_schemas(mt_file, cache=None, clean=False):
-    from rowgenerators import SourceError
+    from rowgenerators import SourceError, SchemaError
     from requests.exceptions import ConnectionError
 
     if isinstance(mt_file, MetapackDoc):
@@ -354,15 +354,23 @@ def process_schemas(mt_file, cache=None, clean=False):
 
         schema_term = r.schema_term
 
-        if schema_term:
+        col_count = len(list(r.columns()))
+        datatype_count = sum(1 for c in r.columns() if c['datatype'])
+
+        if schema_term and col_count == datatype_count:
             prt("Found table for '{}'; skipping".format(r.schema_name))
             continue
 
-        path, name = extract_path_name(r.url)
+        if col_count != datatype_count:
+            prt(f"Found table for '{r.schema_name}'; but {col_count-datatype_count} columns don't have datatypes")
 
-        prt("Processing {}".format(r.url))
+        prt("Processing {}".format(r.name))
 
-        slice = islice(r.row_generator, 500)
+        try:
+            slice = islice(r.row_generator, 500)
+        except SchemaError:
+            warn("Failed to build row processor table, using raw row generator")
+            slice = islice(r.raw_row_generator, 500)
 
         si = SelectiveRowGenerator(slice,
                                    headers=[int(i) for i in r.get_value('headerlines', '0').split(',')],
@@ -371,24 +379,36 @@ def process_schemas(mt_file, cache=None, clean=False):
         try:
             ti = TypeIntuiter().run(si)
         except SourceError as e:
-            warn("Failed to process '{}'; {}".format(path, e))
+            warn("Failed to process resource '{}'; {}".format(r.name, e))
             continue
         except ConnectionError as e:
-            warn("Failed to download '{}'; {}".format(path, e))
+            warn("Failed to download resource '{}'; {}".format(r.name, e))
             continue
 
-        table = doc['Schema'].new_term('Table', r.schema_name)
+        if schema_term:
+            table = schema_term
+            prt("Updating table '{}' ".format(r.schema_name))
 
-        prt("Adding table '{}' ".format(r.schema_name))
+            col_map = { c.name.lower():c for c in table.children if c.term_is('Table.Column')}
 
-        for i, c in enumerate(ti.to_rows()):
+            for i, c in enumerate(ti.to_rows()):
+                extant = col_map.get(c['header'])
+                if extant:
+                    extant.datatype = type_map.get(c['resolved_type'], c['resolved_type'])
 
-            raw_alt_name = alt_col_name(c['header'], i)
-            alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
+        else:
 
-            t = table.new_child('Column', c['header'],
-                            datatype=type_map.get(c['resolved_type'], c['resolved_type']),
-                            altname=alt_name)
+            table = doc['Schema'].new_term('Table', r.schema_name)
+            prt("Adding table '{}' ".format(r.schema_name))
+
+            for i, c in enumerate(ti.to_rows()):
+
+                raw_alt_name = alt_col_name(c['header'], i)
+                alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
+
+                t = table.new_child('Column', c['header'],
+                                datatype=type_map.get(c['resolved_type'], c['resolved_type']),
+                                altname=alt_name)
 
     if write_doc_to_file:
         write_doc(doc, mt_file)

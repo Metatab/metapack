@@ -48,6 +48,7 @@ class MetapackDoc(MetatabDoc):
         self.register_term_class('root.resource', 'metapack.terms.Resource')
         self.register_term_class('root.reference', 'metapack.terms.Reference')
         self.register_term_class('root.distribution', 'metapack.terms.Distribution')
+        self.register_term_class('root.sql', 'metapack.terms.SqlQuery')
 
         resolver = resolver or Resolver()
 
@@ -61,7 +62,6 @@ class MetapackDoc(MetatabDoc):
                 package_url = None
 
         super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
-
 
     @property
     def path(self):

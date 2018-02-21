@@ -69,19 +69,10 @@ class Resource(Term):
         """Return a URL that properly combines the base_url and a possibly relative
         resource url"""
 
-        if (self.term_is('root.sql') and not self.query) or (not self.term_is('root.sql') and  not self.url):
+        if not self.url:
             return None
 
-        # SQL Urls can be split into a Dsn part ( connection info ) and the SQL
-        #  so the Sql urls have special handing for the references.
-        dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
-
-        if self.term_is('root.sql'):
-            u = parse_app_url(dsns[self.get_value('dsn')])
-            u.sql = self.query
-
-        else:
-            u = parse_app_url(self.url)
+        u = parse_app_url(self.url)
 
         if u.scheme != 'file':
             # Hopefully means the URL is http, https, ftp, etc.
@@ -270,6 +261,38 @@ class Resource(Term):
             return None
 
     @property
+    def raw_row_generator(self):
+        """Like rowgenerator, but does not try to create a row processor table"""
+        from rowgenerators import get_generator
+
+        self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
+
+        ru = self.resolved_url
+
+        try:
+            resource = ru.resource # For Metapack urls
+
+            return resource.row_generator
+        except AttributeError:
+            pass
+
+        ut = ru.get_resource().get_target()
+
+        # Encoding is supposed to be preserved in the URL but isn't
+        source_url = parse_app_url(self.url)
+
+        # source_url will be None for Sql terms.
+        ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
+
+        g = get_generator(ut,  resource=self,
+                          doc=self._doc, working_dir=self._doc.doc_dir,
+                          env=self.env)
+
+        assert g, ut
+
+        return g
+
+    @property
     def row_generator(self):
         from rowgenerators import get_generator
 
@@ -289,7 +312,7 @@ class Resource(Term):
         # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)
 
-        # soruce_url will be None for Sql terms.
+        # source_url will be None for Sql terms.
         ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
 
         table = self.row_processor_table()
@@ -547,6 +570,59 @@ class Reference(Resource):
         except AttributeError:
             yield from self.row_generator
 
+class SqlQuery(Resource):
+
+    @property
+    def context(self):
+        """Build the interpolation context from the schemas"""
+
+        # Can't use self.columns b/c of recursion with resolved_url
+
+        t = self.schema_term
+
+        if not t:
+            return {}
+
+        sql_columns = []
+        all_columns = []
+
+
+        for i, c in enumerate(t.children):
+            if c.term_is("Table.Column"):
+                p = c.all_props
+
+                if p.get('sqlselect'): # has a value for SqlSqlect
+                    sql_columns.append(p.get('sqlselect'))
+
+                all_columns.append(c.name)
+
+        return {
+            'SQL_COLUMNS': ', '.join(sql_columns),
+            'ALL_COLUMNS': ', '.join(all_columns)
+        }
+
+
+
+
+    @property
+    def resolved_url(self):
+
+        if not self.query:
+            return None
+
+        # SQL Urls can be split into a Dsn part ( connection info ) and the SQL
+        #  so the Sql urls have special handing for the references.
+        dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
+
+        u = parse_app_url(dsns[self.get_value('dsn')])
+        u.sql = self.query.format(**self.context)
+
+        assert isinstance(self.doc.package_url, MetapackPackageUrl), (
+            type(self.doc.package_url), self.doc.package_url)
+
+        return u
+
+
 class Distribution(Term):
     @property
     def type(self):
@@ -573,3 +649,5 @@ class Distribution(Term):
     def metadata_url(self):
         from metapack import MetapackDocumentUrl
         return MetapackDocumentUrl(self.value, downloader=self.doc.downloader)
+
+

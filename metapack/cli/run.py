@@ -114,7 +114,7 @@ def get_resource(m):
     elif m.args.reference:
         return m.doc.reference(m.args.reference)
     else:
-        err("Must specify a resource or a reference")
+        return None
 
 
 def run_run(args):

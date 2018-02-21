@@ -359,6 +359,12 @@ class PackageBuilder(object):
                 col['altname'] = None
                 col['transform'] = None
 
+        # Remove any DSNs
+
+        for dsn_t in self.doc.find('Root.Dsn'):
+            self.doc.remove_term(dsn_t)
+
+
         return doc
 
     def _load_resources(self):

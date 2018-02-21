@@ -133,11 +133,7 @@ class FileSystemPackageBuilder(PackageBuilder):
 
             self.doc.remove_term(r)
 
-            # Also remove the dsn
-            dsn = r.get_value('dsn')
 
-            dsn_t = self.doc.find_first('Root.Dsn', name=dsn)
-            self.doc.remove_term(dsn_t)
 
             r = new_r
 
