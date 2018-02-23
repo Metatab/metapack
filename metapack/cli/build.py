@@ -6,13 +6,11 @@ CLI program for managing packages
 """
 
 import re
-from os import getenv
 
 from metapack import MetapackDoc, Downloader
-from metapack.appurl import SearchUrl
 from metapack.cli.core import prt, err, warn, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
-    extract_path_name, MetapackCliMemo, cli_init
+    extract_path_name, MetapackCliMemo
 from rowgenerators import SourceError, parse_app_url
 from rowgenerators.util import clean_cache
 from tableintuit import RowIntuitError

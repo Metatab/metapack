@@ -467,14 +467,19 @@ class SearchUrl(Url):
             except Exception as e:
                 raise
 
-    def get_resource(self):
-
+    def resolve(self):
         u = self.search()
 
         if not u:
             raise AppUrlError(f"Search URL failed to resolve reference to {str(self)}")
 
-        return u.get_resource()
+        u.set_fragment(self.fragment)
+
+        return u
+
+    def get_resource(self):
+
+        return self.resolve().get_resource()
 
 
     def get_target(self):

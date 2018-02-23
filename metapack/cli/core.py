@@ -39,6 +39,7 @@ def cli_init(log_level=logging.INFO):
         search_func = SearchUrl.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
         SearchUrl.register_search(search_func)
     except AppUrlError as e:
+
         pass
 
 def prt(*args, **kwargs):
@@ -494,7 +495,7 @@ class MetapackCliMemo(object):
         self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
 
         # Find the target for a search URL
-        if self.mtfile_url.scheme =='search':
+        if self.mtfile_url.scheme =='index':
             self.mtfile_url = parse_app_url(self.mtfile_arg, downloader=self.downloader).get_resource()
 
         self.resource = self.mtfile_url.resource_name
@@ -568,6 +569,7 @@ def add_package_to_index(pkg, package_db):
     package_db[pkg._generate_identity_name()] = max_package_ref
     package_db[nv_name] = max_package_ref
 
+    return [pkg.get_value('Root.Identifier'), pkg._generate_identity_name(), nv_name]
 
 def update_index(packages, package_path, suffix=''):
 

@@ -15,4 +15,5 @@ from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extens
 
 import rowgenerators.appurl.url
 
+
 rowgenerators.appurl.url.default_downloader = Downloader(get_cache('metapack'))

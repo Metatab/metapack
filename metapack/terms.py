@@ -426,7 +426,7 @@ class Resource(Term):
         """Yield data structures built from the JSON header specifications in a table"""
         from rowgenerators.rowpipe.json import add_to_struct
 
-        json_headers = self.json_header
+        json_headers = self.json_headers
 
         for row in islice(self, 1, None): # islice skips header
             d = {}
