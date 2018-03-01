@@ -426,6 +426,15 @@ class SearchUrl(Url):
 
         cls.search_callbacks.append(f)
 
+    @classmethod
+    def initialize(cls):
+        from metapack.package.core import Downloader
+        try:
+            search_func = cls.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
+            SearchUrl.register_search(search_func)
+        except AppUrlError as e:
+            pass
+
     @staticmethod
     def search_json_indexed_directory(directory):
         """Return a search function for searching a directory of packages, which has an index.json file
@@ -439,8 +448,13 @@ class SearchUrl(Url):
         if not exists(index_file):
             raise AppUrlError(f"Failed to find directory index file, {index_file}")
 
-        with open(index_file) as f:
-            index = json.load(f)
+        try:
+            with open(index_file) as f:
+                index = json.load(f)
+        except json.JSONDecodeError as e:
+            from warnings import warn
+            warn(f"Failed to load JSON index file from '{index_file}'; ignorning; {str(e)} ")
+            index = {}
 
         def _search_function(url):
 
@@ -453,6 +467,7 @@ class SearchUrl(Url):
                 return None
 
         return _search_function
+
 
 
     def search(self):

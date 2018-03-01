@@ -90,7 +90,8 @@ setup_d = dict(
             'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook',
             'run=metapack.cli.run:run',
-            'search=metapack.cli.search:search'
+            'search=metapack.cli.search:search',
+            'info=metapack.cli.info:info_args'
 
         ]
 

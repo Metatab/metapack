@@ -8,16 +8,14 @@ CLI program for managing packages
 import re
 
 from metapack import MetapackDoc, Downloader
-from metapack.cli.core import prt, err, warn, metatab_info, get_lib_module_dict, write_doc, \
-    make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
-    process_schemas, extract_path_name, MetapackCliMemo, cli_init
+from metapack.cli.core import prt, err, warn, metatab_info, write_doc, \
+    update_name, process_schemas, extract_path_name, MetapackCliMemo
 from metapack.util import make_metatab_file, datetime_now
 from rowgenerators import SourceError, parse_app_url
 from rowgenerators.util import clean_cache
 from tableintuit import RowIntuitError
 
 downloader = Downloader()
-
 
 def metapack(subparsers):
     parser = subparsers.add_parser(
@@ -32,7 +30,6 @@ def metapack(subparsers):
 
     parser.add_argument('--exceptions', default=False, action='store_true',
                         help='Show full stack tract for some unhandled exceptions')
-
 
     parser.set_defaults(handler=None)
 
@@ -58,9 +55,6 @@ def metapack(subparsers):
 
     build_group.add_argument('-F', '--force', action='store_true', default=False,
                              help='Force some operations, like updating the name and building packages')
-
-
-
 
     ##
     ## Administration Group

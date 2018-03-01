@@ -282,7 +282,9 @@ class Resource(Term):
         source_url = parse_app_url(self.url)
 
         # source_url will be None for Sql terms.
-        ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
+
+
+        ut.encoding = self.get_value('encoding') or (source_url.encoding if source_url else 'utf-8')
 
         g = get_generator(ut,  resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
@@ -586,7 +588,6 @@ class SqlQuery(Resource):
         sql_columns = []
         all_columns = []
 
-
         for i, c in enumerate(t.children):
             if c.term_is("Table.Column"):
                 p = c.all_props
@@ -600,9 +601,6 @@ class SqlQuery(Resource):
             'SQL_COLUMNS': ', '.join(sql_columns),
             'ALL_COLUMNS': ', '.join(all_columns)
         }
-
-
-
 
     @property
     def resolved_url(self):

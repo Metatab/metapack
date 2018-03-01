@@ -35,12 +35,8 @@ def cli_init(log_level=logging.INFO):
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
 
-    try:
-        search_func = SearchUrl.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
-        SearchUrl.register_search(search_func)
-    except AppUrlError as e:
+    SearchUrl.initialize() # Setup the JSON index search.
 
-        pass
 
 def prt(*args, **kwargs):
     logger.info(' '.join(str(e) for e in args),**kwargs)

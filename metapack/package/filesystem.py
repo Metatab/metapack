@@ -122,18 +122,20 @@ class FileSystemPackageBuilder(PackageBuilder):
             CSV package is built from a file system ackage on a publically acessible server. """
 
         from itertools import islice
+        from metapack.exc import MetapackError
 
         r = self.datafile(source_r.name)
 
         self.prt("Loading data for '{}' ".format(r.name))
+
+        if not r.name:
+            raise MetapackError(f"Resource/reference term has no name: {str(r)}")
 
         if r.term_is('root.sql'):
             new_r = self.doc['Resources'].new_term('Root.Datafile', '')
             new_r.name = r.name
 
             self.doc.remove_term(r)
-
-
 
             r = new_r
 

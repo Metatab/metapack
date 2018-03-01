@@ -53,11 +53,12 @@ def index_args(subparsers):
 def try_open(path):
     try:
         p = open_package(path)
+
         if p.get_value('Root.Issued'):
             yield p
         else:
-            if exists(join(path, PACKAGE_PREFIX)):
-                yield from yield_packages(parse_app_url((join(path, PACKAGE_PREFIX))))
+            if exists(join( p.ref.dirname().path, PACKAGE_PREFIX)):
+                yield from yield_packages(parse_app_url((join( p.ref.dirname().path, PACKAGE_PREFIX))))
 
     except RowGeneratorError as e:
         return

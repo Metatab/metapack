@@ -56,7 +56,7 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False):
         ep = ExecutePreprocessor(config=c)
 
         nb, _ = ep.preprocess(nb, {'metadata': {'path': dirname(nb_path)}})
-    except CellExecutionError as e:
+    except (CellExecutionError, TimeoutError) as e:
         err_nb_path = join(dirname(nb_path), root + '-errors' + ext)
         with open(err_nb_path, 'wt') as f:
             nbformat.write(nb, f)

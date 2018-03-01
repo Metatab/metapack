@@ -5,19 +5,20 @@
 CLI program for managing packages
 """
 
-import sys
-from os import getenv
-from metapack import Downloader
-from metapack.cli.core import prt, err, MetapackCliMemo, cli_init
-from metapack.appurl import SearchUrl
-from tabulate import tabulate
 import shutil
-from itertools import islice
+import sys
 from bisect import bisect
-from terminaltables import AsciiTable, SingleTable, DoubleTable, GithubFlavoredMarkdownTable
+from itertools import islice
+from os import environ
+
+from metapack import Downloader
+from metapack.cli.core import prt, MetapackCliMemo
+from tabulate import tabulate
+from terminaltables import SingleTable, GithubFlavoredMarkdownTable
 
 downloader = Downloader()
 
+Downloader.context.update(environ)
 
 def run(subparsers):
 

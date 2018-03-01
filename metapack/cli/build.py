@@ -85,7 +85,6 @@ def build(subparsers):
 
 def run_metapack(args):
 
-
     m = MetapackCliMemo(args, downloader)
 
     if m.args.info:
