@@ -467,9 +467,9 @@ class PackageBuilder(object):
             self.prt(f'Processed {i} rows in {round(dt,0)} sec, rate = {round(rate,2)} rows/sec')
             f.close()
 
-    def _get_ref_contents(self, t):
+    def _get_ref_contents(self, t, working_dir=None):
 
-        uv = parse_app_url(t.value)
+        uv = parse_app_url(t.value, working_dir=abspath(self.source_dir))
 
         # In the case that the input doc is a file, and the ref is to a file,
         # try interpreting the file as relative.

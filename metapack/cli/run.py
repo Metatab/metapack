@@ -101,6 +101,7 @@ def list_rr(doc):
     for r in doc.references():
         d.append(('Reference', r.name, r.url))
 
+
     prt(tabulate(d, 'Type Name Url'.split()))
 
 
@@ -130,7 +131,6 @@ def run_run(args):
         list_rr(doc)
         sys.exit(0)
 
-
     if not r:
         prt("ERROR: No resource or reference for '{}' valid terms are:\n".format(m.args.resource))
         list_rr(doc)
@@ -145,7 +145,6 @@ def run_run(args):
         c = Counter( r[m.args.sample] for r in islice(r.iterrows, None, limit))
 
         prt(tabulate(c.most_common(10), headers='Value Count'.split()))
-
 
     elif m.args.table:
 

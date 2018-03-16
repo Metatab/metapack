@@ -3,11 +3,13 @@
 
 """ """
 
-from os.path import join
+from os.path import join, dirname, exists, abspath
+from os import unlink, symlink
 from metapack import PackageError
 from metapack.util import datetime_now
 from metapack.package.core import PackageBuilder
 from rowgenerators import parse_app_url
+
 
 class CsvPackageBuilder(PackageBuilder):
     """"""
@@ -29,6 +31,8 @@ class CsvPackageBuilder(PackageBuilder):
             self.resource_root = source_ref.dirname().as_type(MetapackPackageUrl)
 
         assert isinstance(self.resource_root, MetapackPackageUrl), (type(self.resource_root), self.resource_root)
+
+        self._last_write_path = None
 
     @classmethod
     def make_package_path(cls, package_root, package_name):
@@ -58,7 +62,6 @@ class CsvPackageBuilder(PackageBuilder):
 
     def save(self, path=None):
         from metapack import MetapackPackageUrl
-        from os.path import abspath
 
         # HACK ...
         if not self.doc.ref:
@@ -84,6 +87,22 @@ class CsvPackageBuilder(PackageBuilder):
 
         self.doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
 
+        self._last_write_path = path
+
         self.doc.write_csv(path)
 
         return parse_app_url(abspath(path)).as_type(MetapackPackageUrl)
+
+    def create_nv_link(self):
+        """After a save(), write a link to the saved file using a non-versioned name"""
+
+        nv_name = self.doc.as_version(None)
+
+        from_path =  abspath(self._last_write_path or self.package_path.path)
+        to_path = join(dirname(from_path), nv_name+'.csv')
+
+        if exists(to_path):
+            unlink(to_path)
+
+        symlink(from_path, to_path)
+

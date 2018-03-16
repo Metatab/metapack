@@ -55,7 +55,7 @@ def build(subparsers):
     derived_group.add_argument('-f', '--filesystem', action='store_true', default=False,
                                help='Create a filesystem archive from a metatab file')
 
-    derived_group.add_argument('-v', '--csv', action='store_true', default=False,
+    derived_group.add_argument('-c', '--csv', action='store_true', default=False,
                                help='Create a CSV archive from a metatab file')
 
 

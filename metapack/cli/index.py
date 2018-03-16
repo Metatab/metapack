@@ -95,7 +95,6 @@ def index(args):
         except (FileNotFoundError, json.JSONDecodeError):
             db = {}
 
-        f = open(index_file, 'w')
 
     prt('Index file:', index_file)
 
@@ -111,13 +110,15 @@ def index(args):
         for key in keys:
             key_vals.append((key, p.package_url))
 
-    if f:
+    if args.dbm:
+        db.close()
+    else:
         # DBM expects bytes, json expects strings.
         db = {k:(v.decode('utf8') if not isinstance(v, str) else v) for k, v in db.items()}
-        json.dump(db, f, indent=4)
-        f.close()
-    else:
-        db.close()
+
+        with open(index_file,'w') as f:
+            json.dump(db, f, indent=4)
+
 
     from tabulate import tabulate
     print(tabulate(key_vals))

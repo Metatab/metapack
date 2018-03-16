@@ -253,6 +253,8 @@ def make_csv_package(file, package_root, cache, env, skip_if_exists):
         created = False
         url = p.package_path.path
 
+    p.create_nv_link()
+
     return p, MetapackUrl(url, downloader=package_root.downloader), created
 
 def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='public-read'):
@@ -306,7 +308,8 @@ def write_doc(doc, mt_file):
     import subprocess
 
     try:
-        out = subprocess.run(['git', 'remote', 'show','origin'], stdout=subprocess.PIPE, timeout=6)\
+        out = subprocess.run(['git', 'remote', 'show','origin'], stdout=subprocess.PIPE,
+                             stderr= subprocess.DEVNULL, timeout=6)\
             .stdout.decode('utf-8')
 
         fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l )

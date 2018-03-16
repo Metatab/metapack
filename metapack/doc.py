@@ -185,14 +185,13 @@ class MetapackDoc(MetatabDoc):
         else:
             return {}
 
-
     def resources(self, term='Root.Resource', section='Resources'):
         return self.find(term=term, section=section)
 
     def resource(self, name=None, term='Root.Resource', section='Resources'):
         return self.find_first(term=term, name=name, section=section)
 
-    def references(self, term='Root.Reference', section='References'):
+    def references(self, term='Root.Resource', section='References'):
         return self.find(term=term, section=section)
 
     def reference(self, name=None, term='Root.Reference', section='References'):
@@ -207,7 +206,6 @@ class MetapackDoc(MetatabDoc):
             'markdown.extensions.extra',
             'markdown.extensions.admonition'
         ]
-
 
         def resource_repr(r, anchor=kwargs.get('anchors', False)):
             return "<p><strong>{name}</strong> - <a target=\"_blank\" href=\"{url}\">{url}</a> {description}</p>" \
@@ -378,5 +376,7 @@ class MetapackDoc(MetatabDoc):
             'Root.Access',
             'Root.Distribution'
         ])
+
+
 
         return super().write_csv(path)

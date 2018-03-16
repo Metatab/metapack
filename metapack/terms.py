@@ -283,8 +283,7 @@ class Resource(Term):
 
         # source_url will be None for Sql terms.
 
-
-        ut.encoding = self.get_value('encoding') or (source_url.encoding if source_url else 'utf-8')
+        ut.encoding = self.get_value('encoding') or (source_url.encoding if source_url else None)
 
         g = get_generator(ut,  resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
@@ -612,8 +611,18 @@ class SqlQuery(Resource):
         #  so the Sql urls have special handing for the references.
         dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
 
-        u = parse_app_url(dsns[self.get_value('dsn')])
-        u.sql = self.query.format(**self.context)
+        try:
+            u = parse_app_url(dsns[self.get_value('dsn')])
+        except KeyError:
+            raise MetapackError(f"Sql term '{self.name}' does not have a Dsn property")
+
+        if self.query.startswith('file:'): # .query resolves to value
+            qu = parse_app_url(self.query, working_dir=self._doc.doc_dir).get_resource().get_target()
+
+            with open(qu.path) as f:
+                u.sql = f.read().format(**self.context)
+        else:
+            u.sql = self.query.format(**self.context)
 
         assert isinstance(self.doc.package_url, MetapackPackageUrl), (
             type(self.doc.package_url), self.doc.package_url)
