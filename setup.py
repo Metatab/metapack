@@ -87,6 +87,7 @@ setup_d = dict(
             'build=metapack.cli.build:build',
             's3=metapack.cli.metas3:metas3',
             'index=metapack.cli.index:index_args',
+            'new=metapack.cli.new:new_args',
             'ckan=metapack.cli.metakan:metakan',
             'notebook=metapack.cli.notebook:notebook',
             'run=metapack.cli.run:run',

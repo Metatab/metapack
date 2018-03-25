@@ -564,6 +564,8 @@ def open_package(ref, cache=None, clean_cache=False, downloader=None):
     if downloader is None:
         downloader = Downloader()
 
+    resource = None
+
     if isinstance(ref, MetapackUrl):
         u = ref
     else:
@@ -571,12 +573,18 @@ def open_package(ref, cache=None, clean_cache=False, downloader=None):
         ref = str(ref)
 
         if ref.startswith('index:'):
+            from metapack.appurl import  SearchUrl
+            SearchUrl.initialize()
             ref = str(parse_app_url(ref).resolve())
 
         u = MetapackUrl(ref, downloader=downloader)
 
+        resource = u.resource
+
     cache = cache if cache else downloader.cache
 
-    return MetapackDoc(u, downloader=downloader)
+    p = MetapackDoc(u, downloader=downloader)
+    p.default_resource = resource
+    return p
 
 

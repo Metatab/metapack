@@ -39,6 +39,7 @@ def cli_init(log_level=logging.INFO):
 
 
 def prt(*args, **kwargs):
+
     logger.info(' '.join(str(e) for e in args),**kwargs)
 
 def warn(*args, **kwargs):
@@ -510,6 +511,7 @@ class MetapackCliMemo(object):
     def doc(self):
         return MetapackDoc(self.mt_file)
 
+
 def get_config():
     """Return a configuration dict"""
     from os import environ
@@ -539,39 +541,43 @@ def get_config():
 
     return {}
 
+def make_package_entry(url, type):
+
+    return {
+        'url': url,
+        'type': type
+    }
+
+
 def add_package_to_index(pkg, package_db):
+    from operator import itemgetter
 
     ref_url = pkg.package_url.clone()
     ref_url.path = abspath(ref_url.path)
 
-    ref = str(ref_url).encode('utf8')
+    ref = str(ref_url)
 
-    package_db[pkg.get_value('Root.Identifier')] = ref # identifier
+    package_db[pkg.get_value('Root.Identifier')] = make_package_entry(ref, 'ident') # identifier
 
     nv_name =(pkg._generate_identity_name(mod_version=None)) # Non versioned-name, for the latest package
 
     try:
-        # JSON stores strings, DBM stores bytes
-        try:
-            max_package = open_package(package_db[nv_name].decode('utf8'))
-        except AttributeError:
-            max_package = open_package(package_db[nv_name])
+        max_package = open_package(package_db[nv_name]['url'])
 
         if max_package and max_package.get_value('Root.Version') < pkg.get_value('Root.Version'):
             max_package_ref = ref
         else:
-            max_package_ref = package_db[nv_name]
+            max_package_ref = package_db[nv_name]['url']
 
     except (KeyError, ValueError):
         max_package_ref = ref
 
-    package_db[pkg._generate_identity_name()] = max_package_ref
-    package_db[nv_name] = max_package_ref
+    package_db[pkg._generate_identity_name()] = make_package_entry(max_package_ref,'vname')
+    package_db[nv_name] = make_package_entry(max_package_ref,'nvname')
 
     return [pkg.get_value('Root.Identifier'), pkg._generate_identity_name(), nv_name]
 
 def update_index(packages, package_path, suffix=''):
-
 
     if packages:
         # Just update one packages
@@ -595,11 +601,16 @@ def update_index(packages, package_path, suffix=''):
         for p in yield_packages(d):
             add_package_to_index(p, packages, suffix=None)
 
-
-
     return packages
 
+def get_search_index():
 
+    from metapack import Downloader
+    import json
 
+    downloader = Downloader()
 
+    index_file = Downloader().cache.getsyspath('index.json')
 
+    with open(index_file) as f:
+        return json.load(f)

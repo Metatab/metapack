@@ -412,6 +412,8 @@ class SearchUrl(Url):
 
     search_callbacks = []
 
+    _search_initialized = False
+
     def __init__(self, url=None, **kwargs):
         kwargs['scheme'] = 'index'
         super().__init__(url, **kwargs)
@@ -428,12 +430,15 @@ class SearchUrl(Url):
 
     @classmethod
     def initialize(cls):
-        from metapack.package.core import Downloader
-        try:
-            search_func = cls.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
-            SearchUrl.register_search(search_func)
-        except AppUrlError as e:
-            pass
+        if SearchUrl._search_initialized is False:
+            from metapack.package.core import Downloader
+            try:
+                search_func = cls.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
+                SearchUrl.register_search(search_func)
+            except AppUrlError as e:
+                pass
+
+            SearchUrl._search_initialized = True
 
     @staticmethod
     def search_json_indexed_directory(directory):
@@ -457,12 +462,10 @@ class SearchUrl(Url):
             index = {}
 
         def _search_function(url):
-
             try:
-
                 resource_str = '#'+url.target_file if url.fragment[0] else ''
 
-                return parse_app_url(index[url.path]+resource_str, downloader=url.downloader)
+                return parse_app_url(index[url.path]['url']+resource_str, downloader=url.downloader)
             except KeyError as e:
                 return None
 

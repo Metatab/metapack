@@ -25,15 +25,11 @@ def search(subparsers):
 def run_search(args):
 
     if not args.search or args.list:
-        import json
+        from .core import get_search_index
         from tabulate import tabulate
 
-        index_file = Downloader().cache.getsyspath('index.json')
-
-        with open(index_file) as f:
-            print(tabulate(sorted([(k,v) for k,v in json.load(f).items()]),
-                                   headers='Key Url'.split()))
-
+        print(tabulate(sorted([(k,v['type'],v['url']) for k,v in get_search_index().items()]),
+                                headers='Key Type Url'.split()))
 
     else:
 

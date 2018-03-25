@@ -10,7 +10,7 @@ First, the URL must have a ``python`` scheme:
 
 ..
 
-    Datafile: python:lib#extract
+    Datafile: python:pylib#extract
 
 The ``lib`` component references the module that holds the function to use, and
 the fragement (``#extract`` ) is the name of the function. The module can be

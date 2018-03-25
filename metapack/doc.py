@@ -63,6 +63,8 @@ class MetapackDoc(MetatabDoc):
 
         super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
 
+        self.default_resource = None # Set externally in open_package when the URL has a resource.
+
     @property
     def path(self):
         """Return the path to the file, if the ref is a file"""
@@ -191,7 +193,7 @@ class MetapackDoc(MetatabDoc):
     def resource(self, name=None, term='Root.Resource', section='Resources'):
         return self.find_first(term=term, name=name, section=section)
 
-    def references(self, term='Root.Resource', section='References'):
+    def references(self, term='Root.*', section='References'):
         return self.find(term=term, section=section)
 
     def reference(self, name=None, term='Root.Reference', section='References'):
@@ -211,7 +213,7 @@ class MetapackDoc(MetatabDoc):
             return "<p><strong>{name}</strong> - <a target=\"_blank\" href=\"{url}\">{url}</a> {description}</p>" \
                 .format(name='<a href="#resource-{name}">{name}</a>'.format(name=r.name) if anchor else r.name,
                         description=r.get_value('description', ''),
-                        url=r.resolved_url)
+                        url=r.resolved_url if hasattr(r, 'resolved_url') else r.value)
 
         def documentation():
 

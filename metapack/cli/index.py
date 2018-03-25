@@ -41,9 +41,6 @@ def index_args(subparsers):
     parser.add_argument('-l', '--list', default=False, action='store_true',
                              help="List the packages that would be indexed")
 
-    parser.add_argument('-b', '--dbm', default=False, action='store_true',
-                        help="Output a DBM index")
-
     parser.add_argument('-d', '--directory', default=downloader.cache.getsyspath('/'),
                         help="Directory where index will be stored")
 
@@ -82,19 +79,13 @@ def yield_unique_packages(u):
 
 def index(args):
 
-    if args.dbm:
-        index_file = join(args.directory, 'index.db')
-        db = dbm.open(index_file, 'c')
-        f = None
-    else:
-        index_file = join(args.directory, 'index.json')
+    index_file = join(args.directory, 'index.json')
 
-        try:
-            with open(index_file,'r') as f:
-                db = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            db = {}
-
+    try:
+        with open(index_file,'r') as f:
+            db = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        db = {}
 
     prt('Index file:', index_file)
 
@@ -110,15 +101,8 @@ def index(args):
         for key in keys:
             key_vals.append((key, p.package_url))
 
-    if args.dbm:
-        db.close()
-    else:
-        # DBM expects bytes, json expects strings.
-        db = {k:(v.decode('utf8') if not isinstance(v, str) else v) for k, v in db.items()}
-
-        with open(index_file,'w') as f:
-            json.dump(db, f, indent=4)
-
+    with open(index_file,'w') as f:
+        json.dump(db, f, indent=4)
 
     from tabulate import tabulate
     print(tabulate(key_vals))

@@ -7,7 +7,7 @@ Root program for metapack programs
 """
 
 from pkg_resources import iter_entry_points, get_distribution, DistributionNotFound
-from .core import prt
+from .core import prt, err
 import argparse
 
 try:
@@ -23,7 +23,7 @@ def mp():
     cli_init()
 
     parser = argparse.ArgumentParser(
-        prog='metapack',
+        prog='mp',
         description='Create and manipulate metatab data packages. ')
 
     parser.add_argument('-v', '--version', default=False, action='store_true',
@@ -31,6 +31,9 @@ def mp():
 
     parser.add_argument('-V', '--versions', default=False, action='store_true',
                         help='Print version of several important packages')
+
+    parser.add_argument('--exceptions', default=False, action='store_true',
+                        help='Show full stack tract for some unhandled exceptions')
 
     parser.add_argument('-C', '--cache', default=False, action='store_true',
                         help='Print the location of the cache')
@@ -77,5 +80,13 @@ def mp():
             prt(ep.name,  ep.dist)
 
     else:
-
-        args.run_command(args)
+        try:
+            args.run_command(args)
+        except Exception as e:
+            if args.exceptions:
+                raise e
+            else:
+                if e.__cause__:
+                    err(f"{e.__class__.__name__} {str(e)}\nCaused by: {type(e.__cause__)} {str(e.__cause__)}")
+                else:
+                    err(f"{e.__class__.__name__}  {str(e)}")

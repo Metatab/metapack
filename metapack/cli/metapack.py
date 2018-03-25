@@ -28,8 +28,7 @@ def metapack(subparsers):
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
-    parser.add_argument('--exceptions', default=False, action='store_true',
-                        help='Show full stack tract for some unhandled exceptions')
+
 
     parser.set_defaults(handler=None)
 
@@ -86,14 +85,8 @@ def run_metapack(args):
         metatab_info(m.cache)
         exit(0)
 
-    try:
-        for handler in (metatab_build_handler,  metatab_admin_handler):
-            handler(m)
-    except Exception as e:
-        if m.args.exceptions:
-            raise e
-        else:
-            err(e)
+    for handler in (metatab_build_handler,  metatab_admin_handler):
+        handler(m)
 
     clean_cache(m.cache)
 

@@ -74,6 +74,9 @@ class Resource(Term):
 
         u = parse_app_url(self.url)
 
+        if u.scheme == 'index':
+            u = u.resolve()
+
         if u.scheme != 'file':
             # Hopefully means the URL is http, https, ftp, etc.
             return u
@@ -87,7 +90,12 @@ class Resource(Term):
             return t
 
         elif u.proto == 'metapack':
+
+            if not u.resource:
+                raise ResourceError(f"Metapack url '{u}' doesn't have a resource")
+
             return u.resource.resolved_url.get_resource().get_target()
+
 
         else:
 
