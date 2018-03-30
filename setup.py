@@ -22,6 +22,7 @@ classifiers = [
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
+# noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
     version='0.7.5',
@@ -34,7 +35,6 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
-
         'unicodecsv',
         'pyyaml',
         'datapackage',
@@ -111,7 +111,7 @@ setup_d = dict(
     },
 
     test_suite='metapack.test.test_suite.suite',
-    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj'],
+    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj', 'jupyter'],
 
 )
 

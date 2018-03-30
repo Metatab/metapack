@@ -77,7 +77,7 @@ class TestIPython(unittest.TestCase):
 
         print (df.describe())
 
-
+    @unittest.skip("Requires Publicdata module")
     def test_line_doc(self):
         from metapack.cli.core import process_schemas
         from os.path import splitext, basename, join

@@ -13,9 +13,7 @@ import json
 
 from metatab import DEFAULT_METATAB_FILE
 
-
 class _MetapackUrl(object):
-
 
     def exists(self):
 
