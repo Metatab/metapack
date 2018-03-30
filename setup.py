@@ -35,11 +35,11 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
+        'boto3',
         'unicodecsv',
         'pyyaml',
         'datapackage',
         'markdown',
-        'boto3',
         'nbconvert',
         'IPython',
         'nameparser',
