@@ -25,7 +25,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.7.5',
+    version='0.7.6',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -37,6 +37,7 @@ setup_d = dict(
     install_requires=[
         'python-dateutil<2.7.0', # To keep botocore happy. 
         'boto3',
+        'openpyxl<2.5', # Required by tabulator
         'unicodecsv',
         'pyyaml',
         'datapackage',
