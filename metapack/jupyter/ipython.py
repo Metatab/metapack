@@ -9,7 +9,7 @@ from os import getcwd
 from metapack.util import walk_up
 from os.path import getmtime, join, exists
 from metapack.exc import PackageError
-from rowgenerators import RowGeneratorError
+from rowgenerators.exceptions import RowGeneratorError
 
 def caller_locals():
     """Get the local variables in the caller's frame."""
@@ -203,7 +203,7 @@ def rebuild_schema(doc, r, df):
 def rewrite_schema(r, df, doc = None):
     """Rebuild the schema for a resource based on a dataframe and re-write the doc"""
 
-    from metatab.cli.core import write_doc
+    from metapack.cli.core import write_doc
 
     if doc is None:
         doc = open_source_package()
@@ -216,7 +216,6 @@ def interactive_rewrite_schema(r, df, doc = None):
     """Rebuild the schema for a resource based on a dataframe and re-write the doc,
     but only if running the notebook interactively, not while building"""
 
-    from metatab.cli.core import write_doc
 
     if  'metatab_doc' in caller_locals():
         return False

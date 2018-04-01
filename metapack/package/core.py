@@ -17,7 +17,8 @@ from metapack.terms import Resource
 from metapack.util import Bunch
 from rowgenerators.util import slugify
 from metatab import DEFAULT_METATAB_FILE
-from rowgenerators import get_generator, Url, parse_app_url, Downloader as _Downloader
+from rowgenerators import get_generator, Url, parse_app_url
+from rowgenerators.appurl.web import Downloader as _Downloader
 from tableintuit import RowIntuiter
 import unicodecsv as csv # legacy; shoudl convert to csv package.
 from time import time

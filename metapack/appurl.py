@@ -7,8 +7,11 @@
 
 from os.path import basename, join, dirname, exists
 from metapack.exc import MetapackError, ResourceError
-from rowgenerators import Url, parse_app_url, DownloadError, WebUrl, FileUrl, file_ext
-from rowgenerators.exceptions import AppUrlError
+from rowgenerators import Url, parse_app_url
+from rowgenerators.appurl.web.web import WebUrl
+from rowgenerators.appurl.file.file import FileUrl
+from rowgenerators.appurl.util import file_ext
+from rowgenerators.exceptions import AppUrlError, DownloadError
 import json
 
 from metatab import DEFAULT_METATAB_FILE

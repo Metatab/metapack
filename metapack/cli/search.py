@@ -2,9 +2,9 @@
 # MIT License, included in this distribution as LICENSE
 
 from metapack import Downloader
-from metapack.cli.core import prt, err, MetapackCliMemo
-from metapack.appurl import SearchUrl
-from rowgenerators import AppUrlError, parse_app_url
+from metapack.cli.core import prt, err
+from rowgenerators import parse_app_url
+from rowgenerators.exceptions import AppUrlError
 
 downloader = Downloader()
 

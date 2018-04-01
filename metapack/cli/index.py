@@ -12,7 +12,9 @@ from os import listdir
 from os.path import join, exists
 
 from metapack.package import *
-from rowgenerators import FileUrl, RowGeneratorError, parse_app_url
+from rowgenerators import parse_app_url
+from rowgenerators.appurl.file import FileUrl
+from rowgenerators.exceptions import RowGeneratorError
 from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import err, PACKAGE_PREFIX, add_package_to_index, prt
 import dbm

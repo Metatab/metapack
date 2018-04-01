@@ -11,7 +11,8 @@ from metapack import MetapackDoc, Downloader
 from metapack.cli.core import prt, err, warn, metatab_info, write_doc, \
     update_name, process_schemas, extract_path_name, MetapackCliMemo
 from metapack.util import make_metatab_file, datetime_now
-from rowgenerators import SourceError, parse_app_url
+from rowgenerators import parse_app_url
+from rowgenerators.exceptions import SourceError
 from rowgenerators.util import clean_cache
 from tableintuit import RowIntuitError
 

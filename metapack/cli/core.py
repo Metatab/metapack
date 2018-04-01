@@ -1,27 +1,15 @@
+
+
 import logging
-import shutil
-import sys
-from itertools import islice
-from os import getenv, listdir
-from os.path import join, exists, isdir, splitext, abspath
-from uuid import uuid4
-
-import six
-from metapack import MetapackDoc, MetapackUrl
-from metapack.appurl import SearchUrl
-from metapack.package import *
-from metapack.util import ensure_dir
-from metatab import DEFAULT_METATAB_FILE
-from metatab.util import make_metatab_file
-from rowgenerators import SelectiveRowGenerator, parse_app_url, AppUrlError
-from tableintuit import TypeIntuiter
-
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
 
 def cli_init(log_level=logging.INFO):
+    import sys
+
+    from metapack.appurl import SearchUrl
 
     out_hdlr = logging.StreamHandler(sys.stdout)
     out_hdlr.setFormatter(logging.Formatter('%(message)s'))
@@ -46,6 +34,7 @@ def warn(*args, **kwargs):
     logger_err.warn(' '.join(str(e) for e in args),**kwargs)
 
 def err(*args, **kwargs):
+    import sys
     logger_err.critical(' '.join(str(e) for e in args),**kwargs)
     sys.exit(1)
 
@@ -55,6 +44,11 @@ def metatab_info(cache):
 
 
 def new_metatab_file(mt_file, template):
+    from os.path import exists
+    from uuid import uuid4
+
+    from metatab.util import make_metatab_file
+
     template = template if template else 'metatab'
 
     if not exists(mt_file):
@@ -126,7 +120,7 @@ def dump_resource(doc, name, lines=None):
 
         else:
 
-            w = csv.writer(sys.stdout if six.PY2 else sys.stdout.buffer)
+            w = csv.writer(sys.stdout.buffer)
 
             if r.headers:
                 w.writerow(r.headers)
@@ -179,6 +173,8 @@ def get_table(doc, name):
 PACKAGE_PREFIX = '_packages'
 
 def make_excel_package(file, package_root, cache, env, skip_if_exists):
+    from metapack import MetapackUrl
+    from metapack.package import ExcelPackageBuilder
 
     assert package_root
 
@@ -198,6 +194,8 @@ def make_excel_package(file, package_root, cache, env, skip_if_exists):
 
 
 def make_zip_package(file, package_root, cache, env, skip_if_exists):
+    from metapack import MetapackUrl
+    from metapack.package import ZipPackageBuilder
 
     assert package_root
 
@@ -217,6 +215,11 @@ def make_zip_package(file, package_root, cache, env, skip_if_exists):
 
 
 def make_filesystem_package(file, package_root, cache, env, skip_if_exists):
+    from os.path import join
+
+    from metapack import MetapackUrl
+    from metapack.package import FileSystemPackageBuilder
+    from metatab import DEFAULT_METATAB_FILE
 
     assert package_root
 
@@ -241,6 +244,8 @@ def make_filesystem_package(file, package_root, cache, env, skip_if_exists):
 
 
 def make_csv_package(file, package_root, cache, env, skip_if_exists):
+    from metapack import MetapackUrl
+    from metapack.package import CsvPackageBuilder
     assert package_root
 
     p = CsvPackageBuilder(file, package_root, callback=prt,  env=env)
@@ -259,6 +264,8 @@ def make_csv_package(file, package_root, cache, env, skip_if_exists):
     return p, MetapackUrl(url, downloader=package_root.downloader), created
 
 def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='public-read'):
+    from metapack import MetapackUrl
+    from metapack.package import S3PackageBuilder
 
     assert package_root
 
@@ -276,8 +283,8 @@ def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='publ
     return p, MetapackUrl(url, downloader=file.downloader), created
 
 
-
 def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False):
+    from metapack import MetapackDoc
 
     if isinstance(mt_file, MetapackDoc):
         doc = mt_file
@@ -305,6 +312,7 @@ def write_doc(doc, mt_file):
     :return:
     """
 
+    from rowgenerators import parse_app_url
 
     import subprocess
 
@@ -332,8 +340,13 @@ def write_doc(doc, mt_file):
 
 
 def process_schemas(mt_file, cache=None, clean=False):
-    from rowgenerators import SourceError, SchemaError
+    from rowgenerators.exceptions import SourceError, SchemaError
     from requests.exceptions import ConnectionError
+    from itertools import islice
+
+    from metapack import MetapackDoc
+    from rowgenerators.source import SelectiveRowGenerator
+    from tableintuit import TypeIntuiter
 
     if isinstance(mt_file, MetapackDoc):
         doc = mt_file
@@ -416,7 +429,10 @@ def process_schemas(mt_file, cache=None, clean=False):
 
 
 def extract_path_name(ref):
-    from os.path import splitext, basename, abspath
+    from os.path import basename
+    from os.path import splitext, abspath
+
+    from rowgenerators import parse_app_url
 
     uparts = parse_app_url(ref)
 
@@ -447,15 +463,16 @@ def alt_col_name(name, i):
 type_map = {
     float.__name__: 'number',
     int.__name__: 'integer',
-    six.text_type.__name__: 'string',
-    six.binary_type.__name__: 'text',
-
+    bytes.__name__: 'string',
+    str.__name__: 'text',
 }
-
 
 class MetapackCliMemo(object):
     def __init__(self, args, downloader):
         from os import getcwd
+        from os.path import join
+
+        from metatab import DEFAULT_METATAB_FILE
 
         self.cwd = getcwd()
         self.args = args
@@ -488,6 +505,8 @@ class MetapackCliMemo(object):
 
 
     def init_stage2(self, mtf, frag):
+        from metapack import MetapackUrl
+        from rowgenerators import parse_app_url
 
         self.frag = frag
         self.mtfile_arg = mtf + frag
@@ -509,6 +528,7 @@ class MetapackCliMemo(object):
 
     @property
     def doc(self):
+        from metapack import MetapackDoc
         return MetapackDoc(self.mt_file)
 
 
@@ -550,8 +570,9 @@ def make_package_entry(url, type):
 
 
 def add_package_to_index(pkg, package_db):
-    from operator import itemgetter
+    from os.path import abspath
 
+    from metapack.package import open_package
     ref_url = pkg.package_url.clone()
     ref_url.path = abspath(ref_url.path)
 
@@ -578,6 +599,8 @@ def add_package_to_index(pkg, package_db):
     return [pkg.get_value('Root.Identifier'), pkg._generate_identity_name(), nv_name]
 
 def update_index(packages, package_path, suffix=''):
+    from os import listdir
+    from os.path import join, exists, isdir, splitext
 
     if packages:
         # Just update one packages
@@ -598,7 +621,7 @@ def update_index(packages, package_path, suffix=''):
                 elif ext in ('.xls', '.xlsx', '.zip'):
                     yield path
 
-        for p in yield_packages(d):
+        for p in yield_packages(package_path):
             add_package_to_index(p, packages, suffix=None)
 
     return packages
@@ -607,8 +630,6 @@ def get_search_index():
 
     from metapack import Downloader
     import json
-
-    downloader = Downloader()
 
     index_file = Downloader().cache.getsyspath('index.json')
 
