@@ -4,24 +4,22 @@
 """ """
 
 from collections import namedtuple
-from genericpath import exists, isfile
+from genericpath import exists
 from hashlib import sha1
 from itertools import islice
 from os import walk
 from os.path import dirname, abspath, basename, splitext, join, isdir
+from time import time
 
-
+import unicodecsv as csv  # legacy; shoudl convert to csv package.
 from metapack.appurl import MetapackUrl, MetapackPackageUrl
 from metapack.exc import PackageError
 from metapack.terms import Resource
 from metapack.util import Bunch
-from rowgenerators.util import slugify
 from metatab import DEFAULT_METATAB_FILE
-from rowgenerators import get_generator, Url, parse_app_url
-from rowgenerators.appurl.web import Downloader as _Downloader
+from rowgenerators import Downloader as _Downloader, get_generator, parse_app_url
+from rowgenerators.util import slugify
 from tableintuit import RowIntuiter
-import unicodecsv as csv # legacy; shoudl convert to csv package.
-from time import time
 
 DEFAULT_CACHE_NAME = 'metapack'
 

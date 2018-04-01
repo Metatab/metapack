@@ -8,7 +8,8 @@ from metapack.cli.core import (make_filesystem_package, make_s3_package, make_ex
                                PACKAGE_PREFIX, cli_init)
 from metapack.test.support import test_data
 from metatab.generate import TextRowGenerator
-from rowgenerators import get_generator, RowGeneratorError, parse_app_url
+from rowgenerators import get_generator,  parse_app_url
+from rowgenerators.exceptions import RowGeneratorError
 
 downloader = Downloader()
 
