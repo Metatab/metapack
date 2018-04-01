@@ -24,7 +24,7 @@ classifiers = [
 
 setup_d = dict(
     name='metapack',
-    version='0.7.5',
+    version='0.7.6',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -34,7 +34,7 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
-
+        'openpyxl<2.5', # Required by tabulator
         'unicodecsv',
         'pyyaml',
         'datapackage',
@@ -111,7 +111,7 @@ setup_d = dict(
     },
 
     test_suite='metapack.test.test_suite.suite',
-    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj'],
+    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj', 'jupyter'],
 
 )
 

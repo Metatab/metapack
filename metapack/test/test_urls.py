@@ -250,6 +250,7 @@ class TestUrls(unittest.TestCase):
         self.assertIsInstance(u, MetapackDocumentUrl)
 
 
+    @unittest.skip('Requires special setup')
     def test_search_url(self):
         from metapack.appurl import SearchUrl
         from os import getenv
