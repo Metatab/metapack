@@ -50,7 +50,7 @@ def mp():
     if args.version:
         prt(get_distribution('metapack'))
 
-    if args.cache:
+    elif args.cache:
         from shlex import quote
         from metapack import MetapackDoc, Downloader
         downloader = Downloader()
@@ -80,6 +80,9 @@ def mp():
             prt(ep.name,  ep.dist)
 
     else:
+
+
+
         try:
             args.run_command(args)
         except Exception as e:

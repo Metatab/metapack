@@ -65,6 +65,17 @@ class MetapackDoc(MetatabDoc):
 
         self.default_resource = None # Set externally in open_package when the URL has a resource.
 
+    def __enter__(self):
+        """Context Management entry. Does nothing"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context management exit. Writes the document as a CSV file"""
+
+        if not exc_type:
+            self.write_csv()
+
+
     @property
     def path(self):
         """Return the path to the file, if the ref is a file"""

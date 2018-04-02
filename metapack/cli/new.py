@@ -2,10 +2,7 @@
 # Revised BSD License, included in this distribution as LICENSE
 
 """
-CLI program for storing pacakges in CKAN
-
-The program uses the Root.Distributions in the source package to locate packages to link into a CKAN record.
-
+Metapack CLI program for creating new metapack package directories
 """
 
 from metapack.package import *
@@ -96,3 +93,8 @@ def new_cmd(args):
     prt(f"Writing to '{nv_name}'")
 
     write_doc(doc, join(nv_name, DEFAULT_METATAB_FILE))
+
+    with open(join(nv_name,'.gitignore'), 'w') as f:
+        f.write("_packages\n")
+
+
