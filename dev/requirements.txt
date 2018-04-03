@@ -1,0 +1,13 @@
+# Uninstall: pip uninstall -y metapack metatab metatabdecl rowpipe rowgenerators appurl
+six==1.10.0
+git+https://github.com/CivicKnowledge/appurl.git#egg=appurl
+git+https://github.com/CivicKnowledge/rowgenerators.git#egg=rowgenerators
+git+https://github.com/CivicKnowledge/rowpipe.git#egg=rowpipe
+git+https://github.com/CivicKnowledge/metatab-declarations.git#egg=metatabdecl
+git+https://github.com/CivicKnowledge/metatab.git#egg=metatab
+git+https://github.com/CivicKnowledge/metapack.git#egg=metapack
+fiona
+shapely
+pyproj
+terminaltables
+geopandas

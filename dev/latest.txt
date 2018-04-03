@@ -1,0 +1,5 @@
+appurl>=0.2.1
+rowgenerators>=0.7.6
+rowpipe>=0.2.0
+metatab>=0.6.11
+metapack>=0.6.17

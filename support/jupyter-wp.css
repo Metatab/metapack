@@ -1,0 +1,115 @@
+.input_prompt {
+    color: #0066cc;
+}
+.output_prompt{
+    color:#cc0000;
+}
+.prompt{
+    font-family: monospace;
+    font-size: 14px;
+}
+.c, c1 {
+    color: #408080;
+    font-style: italic;
+}
+.k {
+    color: #338822;
+    font-weight: bold;
+}
+.kn {
+    color: #338822;
+    font-weight: bold;
+}
+.mi {
+    color: #008800;
+}
+.mf {
+    color: #008800;
+}
+.o {
+    color: #9966ff;
+}
+.ow {
+    color: #BA22FF;
+    font-weight: bold;
+}
+.nb {
+    color: #338822;
+}
+.n {
+    color: #000000;
+}
+.s, .s1 {
+    color: #cc2222;
+}
+.se {
+    color: #cc2222;
+    font-weight: bold;
+}
+.si {
+    color: #C06688;
+    font-weight: bold;
+}
+.nn {
+    color: #4D00FF;
+    font-weight: bold;
+}
+.output_area pre {
+    background-color: #FFFFFF;
+    padding-left: 5%;
+}
+.code_cell {
+    padding-left: 1%;
+}
+.cell {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+br {
+    line-height: 2;
+}
+.cell h1, h2, h3, h4 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+
+
+table {
+    background-color: transparent;
+}
+
+.rendered_html table {
+    margin-left: auto;
+    margin-right: auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+    color: black;
+    font-size: 12px;
+    table-layout: fixed;
+}
+
+.rendered_html th {
+    font-weight: bold;
+	border-bottom: 1px;
+}
+
+.rendered_html tr, .rendered_html th, .rendered_html td {
+    text-align: right;
+    vertical-align: middle;
+    padding: 0.5em 0.5em;
+    line-height: normal;
+    white-space: normal;
+    max-width: none;
+    border: none;
+}
+
+.rendered_html thead {
+    border-bottom: 1px solid black;
+    vertical-align: bottom;
+}
+
+.rendered_html tbody tr:nth-child(odd) {
+    background: #f5f5f5;
+}
+

@@ -1,3 +1,4 @@
 include requirements.txt
 include README.rst
 include LICENSE
+recursive-include metapack/test/test_data *.csv *.json *.txt *.ipynb *.py lib/*.py
