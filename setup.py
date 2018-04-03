@@ -40,7 +40,8 @@ setup_d = dict(
         'openpyxl<2.5', # Required by tabulator
         'unicodecsv',
         'pyyaml',
-        'datapackage',
+        'datapackage<1.0',
+        'bs4',
         'markdown',
         'nbconvert',
         'IPython',
