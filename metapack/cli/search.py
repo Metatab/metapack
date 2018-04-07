@@ -1,6 +1,7 @@
 # Copyright (c) 2017 Civic Knowledge. This file is licensed under the terms of the
 # MIT License, included in this distribution as LICENSE
 
+import sys
 from metapack import Downloader
 from metapack.cli.core import prt, err
 from rowgenerators import parse_app_url
@@ -18,15 +19,22 @@ def search(subparsers):
     parser.add_argument('-l', '--list', default=False, action='store_true',
                         help="List the packages that would be indexed ( Only from the JSON index")
 
+    parser.add_argument('-c', '--config', default=False, action='store_true',
+                        help="Show the path to the index file")
+
     parser.set_defaults(run_command=run_search)
 
     parser.add_argument('search', nargs='?', help="Path or URL to a metatab file")
 
 def run_search(args):
+    from .core import get_search_index, search_index_file
+    from tabulate import tabulate
+
+    if args.config:
+        prt(search_index_file())
+        sys.exit(0)
 
     if not args.search or args.list:
-        from .core import get_search_index
-        from tabulate import tabulate
 
         print(tabulate(sorted([(k,v['type'],v['url']) for k,v in get_search_index().items()]),
                                 headers='Key Type Url'.split()))

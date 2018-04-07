@@ -3,7 +3,7 @@
 
 """ """
 
-from os.path import join, dirname, exists, abspath
+from os.path import join, dirname, exists, abspath, islink
 from os import unlink, symlink
 from metapack import PackageError
 from metapack.util import datetime_now
@@ -15,6 +15,7 @@ class CsvPackageBuilder(PackageBuilder):
     """"""
 
     type_code = 'csv'
+    type_suffix = '.csv'
 
     def __init__(self, source_ref=None, package_root=None,  resource_root=None, callback=None, env=None):
         super().__init__(source_ref, package_root,  callback, env)
@@ -39,14 +40,14 @@ class CsvPackageBuilder(PackageBuilder):
 
         # self.package_path, self.cache_path = self.make_package_path(self.package_name, self.package_root)
 
-        cache_path = package_name + ".csv"
+        cache_path = package_name + cls.type_suffix
 
         package_path = package_root.join(cache_path)
 
         return package_path, cache_path
 
 
-    def _load_resource(self, source_r):
+    def _load_resource(self, source_r, abs_path=False):
         """The CSV package has no reseources, so we just need to resolve the URLs to them. Usually, the
             CSV package is built from a file system ackage on a publically acessible server. """
 
@@ -93,16 +94,4 @@ class CsvPackageBuilder(PackageBuilder):
 
         return parse_app_url(abspath(path)).as_type(MetapackPackageUrl)
 
-    def create_nv_link(self):
-        """After a save(), write a link to the saved file using a non-versioned name"""
-
-        nv_name = self.doc.as_version(None)
-
-        from_path =  abspath(self._last_write_path or self.package_path.path)
-        to_path = join(dirname(from_path), nv_name+'.csv')
-
-        if exists(to_path):
-            unlink(to_path)
-
-        symlink(from_path, to_path)
 

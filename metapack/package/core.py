@@ -41,6 +41,7 @@ class Downloader(_Downloader):
 class PackageBuilder(object):
 
     type_code = 'unk'
+    type_suffix = ''
 
     def __init__(self, source_ref=None, package_root = None,  callback=None, env=None):
         from metapack.doc import MetapackDoc
@@ -61,6 +62,8 @@ class PackageBuilder(object):
         self.source_dir = dirname(parse_app_url(self._source_ref).path)
 
         self._doc = MetapackDoc(self._source_ref, cache=self._cache) # This one gets edited
+
+        self._last_write_path = None
 
         if not self.doc.find_first_value('Root.Name'):
             raise PackageError("Package must have Root.Name term defined")
@@ -366,7 +369,7 @@ class PackageBuilder(object):
 
         return doc
 
-    def _load_resources(self):
+    def _load_resources(self, abs_path=False):
         """Copy all of the Datafile entries into the package"""
         from metapack.doc import MetapackDoc
 
@@ -381,7 +384,7 @@ class PackageBuilder(object):
                     continue
 
                 try:
-                    self._load_resource(r)
+                    self._load_resource(r, abs_path)
                 except Exception as e:
                     if r.props.get('ignoreerrors'):
                         self.warn(f"Ignoring errors for {r.name}: {str(e)}")
@@ -413,7 +416,7 @@ class PackageBuilder(object):
                                        .format(r.url, type(r)))
 
                 try:
-                    self._load_resource(r)
+                    self._load_resource(r, abs_path)
                 except Exception as e:
                     if r.props.get('ignoreerrors'):
                         self.warn(f"Ignoring errors for {r.name}: {str(e)}")
@@ -421,7 +424,7 @@ class PackageBuilder(object):
                     else:
                         raise e
 
-    def _load_resource(self, source_r):
+    def _load_resource(self, source_r, abs_path):
         raise NotImplementedError()
 
     def write_csv(self, path_or_flo, headers, gen):
@@ -552,6 +555,46 @@ class PackageBuilder(object):
 
     def check_is_ready(self):
         pass
+
+    def create_nv_link(self):
+        """After a save(), write a link to the saved file using a non-versioned name"""
+        from os.path import abspath, islink
+        from os import unlink, symlink
+
+        nv_name = self.doc.as_version(None)
+
+        from_path =  abspath(self._last_write_path or self.package_path.path)
+
+        to_path = join(dirname(from_path), nv_name + self.type_suffix)
+
+        if islink(to_path):
+            unlink(to_path)
+
+        symlink(from_path, to_path)
+
+    def is_older_than_metadata(self):
+        """
+        Return True if the package save file is older than the metadata. Returns False if the time of either can't be determined
+
+        :param path: Optional extra save path, used in save_path()
+
+        """
+        from genericpath import getmtime
+
+        try:
+            path = self.path.path
+        except AttributeError:
+            path = self.path
+
+        source_ref = self._doc.ref.path
+
+        try:
+            age_diff = getmtime(source_ref) - getmtime(path)
+
+            return age_diff > 0
+
+        except (FileNotFoundError, OSError):
+            return False
 
 
 TableColumn = namedtuple('TableColumn', 'path name start_line header_lines columns')

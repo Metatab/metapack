@@ -35,6 +35,9 @@ def mp():
     parser.add_argument('--exceptions', default=False, action='store_true',
                         help='Show full stack tract for some unhandled exceptions')
 
+    parser.add_argument('--logging', default=False, action='store_true',
+                        help='Turn on logging ( Basic Config ')
+
     parser.add_argument('-C', '--cache', default=False, action='store_true',
                         help='Print the location of the cache')
 
@@ -47,12 +50,16 @@ def mp():
 
     args = parser.parse_args()
 
+    if args.logging:
+        import logging
+        logging.basicConfig()
+
     if args.version:
         prt(get_distribution('metapack'))
 
     elif args.cache:
         from shlex import quote
-        from metapack import MetapackDoc, Downloader
+        from metapack import Downloader
         downloader = Downloader()
 
         prt(quote(downloader.cache.getsyspath('/')))
@@ -80,9 +87,6 @@ def mp():
             prt(ep.name,  ep.dist)
 
     else:
-
-
-
         try:
             args.run_command(args)
         except Exception as e:

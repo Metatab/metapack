@@ -11,13 +11,14 @@ class ExcelPackageBuilder(PackageBuilder):
     """An Excel File Package"""
 
     type_code = 'xlsx'
+    type_suffix = '.xlsx'
 
     def __init__(self, source_ref=None, package_root=None,  callback=None, env=None):
         super().__init__(source_ref, package_root, callback, env)
 
         self.package_path, self.cache_path = self.make_package_path(self.package_root, self.package_name)
 
-        self.cache_path = self.package_name+".xlsx"
+        self.cache_path = self.package_name + self.type_suffix
 
         self.package_path = self.package_root.join(self.cache_path)
 
@@ -26,7 +27,7 @@ class ExcelPackageBuilder(PackageBuilder):
     @classmethod
     def make_package_path(cls, package_root, package_name):
 
-        cache_path = package_name + ".xlsx"
+        cache_path = package_name + cls.type_suffix
 
         package_path = package_root.join(cache_path)
 
@@ -98,7 +99,7 @@ class ExcelPackageBuilder(PackageBuilder):
 
         return super()._load_resources()
 
-    def _load_resource(self, source_r):
+    def _load_resource(self, source_r, abs_path=False):
 
         r = self._doc.resource(source_r.name)
 

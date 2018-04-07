@@ -48,3 +48,5 @@ def info(args):
         prt(m.doc.name)
     elif m.args.root_name:
         prt(m.doc.as_version(None))
+    else:
+        prt(m.doc.name)
