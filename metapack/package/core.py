@@ -52,14 +52,13 @@ class PackageBuilder(object):
         self._cache = self._downloader.cache
 
         self._source_ref = source_ref
+        self.source_dir = dirname(parse_app_url(self._source_ref).path)
 
         self.package_root = package_root
         self._callback = callback
         self._env = env if env is not None else {}
 
         self._source_doc = MetapackDoc(self._source_ref, cache=self._cache) # this one stays constant
-
-        self.source_dir = dirname(parse_app_url(self._source_ref).path)
 
         self._doc = MetapackDoc(self._source_ref, cache=self._cache) # This one gets edited
 

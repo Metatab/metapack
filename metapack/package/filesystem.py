@@ -47,7 +47,12 @@ class FileSystemPackageBuilder(PackageBuilder):
 
     def exists(self):
 
-        return self.package_path.isdir()
+        try:
+            path = self.doc_file.path
+        except AttributeError:
+            path = self.doc_file
+
+        return self.package_path.isdir() and exists(path)
 
     def remove(self):
 
@@ -70,6 +75,7 @@ class FileSystemPackageBuilder(PackageBuilder):
         source_ref = self._doc.ref.path
 
         try:
+            print("MTOME ", source_ref, path)
             age_diff = getmtime(source_ref) - getmtime(path)
 
             return age_diff > 0

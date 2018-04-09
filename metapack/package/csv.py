@@ -18,6 +18,7 @@ class CsvPackageBuilder(PackageBuilder):
     type_suffix = '.csv'
 
     def __init__(self, source_ref=None, package_root=None,  resource_root=None, callback=None, env=None):
+
         super().__init__(source_ref, package_root,  callback, env)
         from metapack import MetapackPackageUrl
 

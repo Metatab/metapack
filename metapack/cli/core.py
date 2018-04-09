@@ -174,8 +174,6 @@ PACKAGE_PREFIX = '_packages'
 
 def _exec_build(p, package_root, force, extant_url_f, post_f):
     from metapack import MetapackUrl
-    from metapack.package import FileSystemPackageBuilder
-    from metatab import DEFAULT_METATAB_FILE
 
     if force:
         reason = 'Forcing build'
@@ -208,7 +206,6 @@ def _exec_build(p, package_root, force, extant_url_f, post_f):
 
 
 def make_excel_package(file, package_root, cache, env, force):
-    from metapack import MetapackUrl
     from metapack.package import ExcelPackageBuilder
 
     assert package_root
@@ -222,7 +219,6 @@ def make_excel_package(file, package_root, cache, env, force):
 
 
 def make_zip_package(file, package_root, cache, env, force):
-    from metapack import MetapackUrl
     from metapack.package import ZipPackageBuilder
 
     assert package_root
@@ -238,7 +234,6 @@ def make_zip_package(file, package_root, cache, env, force):
 def make_filesystem_package(file, package_root, cache, env, force):
     from os.path import join
 
-    from metapack import MetapackUrl
     from metapack.package import FileSystemPackageBuilder
     from metatab import DEFAULT_METATAB_FILE
 
@@ -253,8 +248,8 @@ def make_filesystem_package(file, package_root, cache, env, force):
 
 
 def make_csv_package(file, package_root, cache, env, force):
-    from metapack import MetapackUrl
     from metapack.package import CsvPackageBuilder
+
     assert package_root
 
     p = CsvPackageBuilder(file, package_root, callback=prt, env=env)
