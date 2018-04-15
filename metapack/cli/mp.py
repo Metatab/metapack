@@ -9,7 +9,7 @@ Root program for metapack programs
 from pkg_resources import iter_entry_points, get_distribution, DistributionNotFound
 from .core import prt, err
 import argparse
-
+import logging
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
@@ -20,7 +20,7 @@ from metapack.cli.core import  cli_init
 
 
 def mp():
-    cli_init()
+
 
     parser = argparse.ArgumentParser(
         prog='mp',
@@ -35,8 +35,8 @@ def mp():
     parser.add_argument('--exceptions', default=False, action='store_true',
                         help='Show full stack tract for some unhandled exceptions')
 
-    parser.add_argument('--logging', default=False, action='store_true',
-                        help='Turn on logging ( Basic Config ')
+    parser.add_argument('--debug', default=False, action='store_true',
+                        help='Turn on debug logging ( Basic Config ')
 
     parser.add_argument('-C', '--cache', default=False, action='store_true',
                         help='Print the location of the cache')
@@ -50,9 +50,7 @@ def mp():
 
     args = parser.parse_args()
 
-    if args.logging:
-        import logging
-        logging.basicConfig()
+    cli_init(log_level=logging.DEBUG if args.debug else logging.INFO)
 
     if args.version:
         prt(get_distribution('metapack'))

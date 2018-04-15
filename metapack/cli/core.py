@@ -22,6 +22,12 @@ def cli_init(log_level=logging.INFO):
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
 
+    out_hdlr = logging.StreamHandler(sys.stdout)
+    out_hdlr.setFormatter(logging.Formatter('DEBUG: %(message)s'))
+    out_hdlr.setLevel(log_level)
+    debug_logger.addHandler(out_hdlr)
+    debug_logger.setLevel(log_level)
+
     SearchUrl.initialize()  # Setup the JSON index search.
 
 
@@ -587,8 +593,10 @@ def add_package_to_index(pkg, package_db):
     except (KeyError, ValueError):
         max_package_ref = ref
 
-    package_db[pkg._generate_identity_name()] = make_package_entry(max_package_ref, 'vname')
     package_db[nv_name] = make_package_entry(max_package_ref, 'nvname')
+
+    package_db[pkg._generate_identity_name()] = make_package_entry(ref, 'vname')
+
 
     return [pkg.get_value('Root.Identifier'), pkg._generate_identity_name(), nv_name]
 

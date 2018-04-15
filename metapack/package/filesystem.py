@@ -75,7 +75,6 @@ class FileSystemPackageBuilder(PackageBuilder):
         source_ref = self._doc.ref.path
 
         try:
-            print("MTOME ", source_ref, path)
             age_diff = getmtime(source_ref) - getmtime(path)
 
             return age_diff > 0
