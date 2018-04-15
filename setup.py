@@ -35,7 +35,7 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
-        'python-dateutil<2.7.0', # To keep botocore happy. 
+        'python-dateutil<2.7.0', # To keep botocore happy.
         'boto3',
         'unicodecsv',
         'pyyaml',
