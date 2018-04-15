@@ -2,24 +2,14 @@
 # Revised BSD License, included in this distribution as LICENSE
 
 """
-CLI program for storing pacakges in CKAN
-
-The program uses the Root.Distributions in the source package to locate packages to link into a CKAN record.
-
+Metapack CLI program for creating new metapack package directories
 """
 
-from os import listdir
-from os.path import join, exists
-
 from metapack.package import *
-from rowgenerators import FileUrl, RowGeneratorError, parse_app_url
+
 from .core import MetapackCliMemo as _MetapackCliMemo
-from .core import err, PACKAGE_PREFIX, add_package_to_index, prt
-import dbm
-import json
 
 downloader = Downloader()
-
 
 
 class MetapackCliMemo(_MetapackCliMemo):
@@ -51,7 +41,7 @@ def new_cmd(args):
 
     from metapack import MetapackDoc
     from metapack.util import make_metatab_file, datetime_now, ensure_dir
-    from metapack.cli.core import write_doc, prt, err, warn
+    from metapack.cli.core import write_doc, prt, err
     from os.path import exists, join, expanduser
     from metatab import DEFAULT_METATAB_FILE
     from os import getenv
@@ -103,3 +93,8 @@ def new_cmd(args):
     prt(f"Writing to '{nv_name}'")
 
     write_doc(doc, join(nv_name, DEFAULT_METATAB_FILE))
+
+    with open(join(nv_name,'.gitignore'), 'w') as f:
+        f.write("_packages\n")
+
+

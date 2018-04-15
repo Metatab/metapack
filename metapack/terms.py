@@ -4,7 +4,8 @@ from metapack.appurl import MetapackPackageUrl
 from metapack.doc import EMPTY_SOURCE_HEADER
 from metapack.exc import MetapackError, ResourceError
 from metatab import Term
-from rowgenerators import DownloadError, parse_app_url
+from rowgenerators import parse_app_url
+from rowgenerators.exceptions import  DownloadError
 from rowgenerators.rowpipe import RowProcessor
 
 

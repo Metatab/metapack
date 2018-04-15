@@ -66,6 +66,8 @@ def run(subparsers):
     group.add_argument('-T', '--table', default=False, action='store_true',
                        help='Output 20 rows in a table format. Truncates columns to width of terminal')
 
+
+
     #
     # Table format options
 
@@ -77,8 +79,11 @@ def run(subparsers):
     table_group.add_argument('-m', '--markdown', default=False, action='store_true',
                        help='When outputting a table, use Markdown format')
 
+    table_group.add_argument('-R', '--truncate', type=int, help='Truncate the width of column values ')
+
     table_group.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+
 
     #
     # Other options
@@ -106,7 +111,6 @@ def list_rr(doc):
 
 
 def get_resource(m):
-
 
     if m.resource:
         r = m.doc.resource(m.resource)
@@ -140,7 +144,7 @@ def run_run(args):
 
         from collections import Counter
 
-        limit = args.limit if args.limit else 5000
+        limit = m.args.limit if m.args.limit else 5000
 
         c = Counter( r[m.args.sample] for r in islice(r.iterrows, None, limit))
 
@@ -148,15 +152,30 @@ def run_run(args):
 
     elif m.args.table:
 
-        limit = args.limit if args.limit else 20
+        limit = m.args.limit if m.args.limit else 20
 
         t_width = shutil.get_terminal_size()[0]
 
-        rows = list(islice(r, None, limit))
+        if m.args.truncate and not m.args.pivot:
+            rows = []
+            for row in islice(r, None, limit):
+                rows.append( str(c)[:m.args.truncate] for c in row)
+
+        elif m.args.truncate and m.args.pivot:
+            # Don't truncate the column names when pivoting
+            rows = []
+            for i, row in enumerate(islice(r, None, limit)):
+                if i == 0:
+                    rows.append(row)
+                else:
+                    rows.append(str(c)[:m.args.truncate] for c in row)
+
+        else:
+            rows = list(islice(r, None, limit))
 
         if m.args.pivot:
             rows = list(zip(*rows))
-            header = ['Column Name'] + ['Column{}'.format(i) for i in range(1,len(rows[1])) ]
+            header = ['Column Name'] + ['Row {}'.format(i) for i in range(1,len(rows[1])) ]
             rows = [header] + rows
 
         # Only display the colums that will fit in the terminal window

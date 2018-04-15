@@ -1,27 +1,14 @@
 import logging
-import shutil
-import sys
-from itertools import islice
-from os import getenv, listdir
-from os.path import join, exists, isdir, splitext, abspath
-from uuid import uuid4
-
-import six
-from metapack import MetapackDoc, MetapackUrl
-from metapack.appurl import SearchUrl
-from metapack.package import *
-from metapack.util import ensure_dir
-from metatab import DEFAULT_METATAB_FILE
-from metatab.util import make_metatab_file
-from rowgenerators import SelectiveRowGenerator, parse_app_url, AppUrlError
-from tableintuit import TypeIntuiter
-
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
 
+
 def cli_init(log_level=logging.INFO):
+    import sys
+
+    from metapack.appurl import SearchUrl
 
     out_hdlr = logging.StreamHandler(sys.stdout)
     out_hdlr.setFormatter(logging.Formatter('%(message)s'))
@@ -35,26 +22,39 @@ def cli_init(log_level=logging.INFO):
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
 
-    SearchUrl.initialize() # Setup the JSON index search.
+    out_hdlr = logging.StreamHandler(sys.stdout)
+    out_hdlr.setFormatter(logging.Formatter('DEBUG: %(message)s'))
+    out_hdlr.setLevel(log_level)
+    debug_logger.addHandler(out_hdlr)
+    debug_logger.setLevel(log_level)
+
+    SearchUrl.initialize()  # Setup the JSON index search.
 
 
 def prt(*args, **kwargs):
+    logger.info(' '.join(str(e) for e in args), **kwargs)
 
-    logger.info(' '.join(str(e) for e in args),**kwargs)
 
 def warn(*args, **kwargs):
-    logger_err.warn(' '.join(str(e) for e in args),**kwargs)
+    logger_err.warn(' '.join(str(e) for e in args), **kwargs)
+
 
 def err(*args, **kwargs):
-    logger_err.critical(' '.join(str(e) for e in args),**kwargs)
+    import sys
+    logger_err.critical(' '.join(str(e) for e in args), **kwargs)
     sys.exit(1)
 
 
 def metatab_info(cache):
-   pass
+    pass
 
 
 def new_metatab_file(mt_file, template):
+    from os.path import exists
+    from uuid import uuid4
+
+    from metatab.util import make_metatab_file
+
     template = template if template else 'metatab'
 
     if not exists(mt_file):
@@ -115,7 +115,6 @@ def dump_resource(doc, name, lines=None):
             for error in errors:
                 warn("    ", error)
 
-
     try:
         if lines and lines <= 20:
             try:
@@ -126,7 +125,7 @@ def dump_resource(doc, name, lines=None):
 
         else:
 
-            w = csv.writer(sys.stdout if six.PY2 else sys.stdout.buffer)
+            w = csv.writer(sys.stdout.buffer)
 
             if r.headers:
                 w.writerow(r.headers)
@@ -144,7 +143,6 @@ def dump_resource(doc, name, lines=None):
         err(e)
 
     dump_errors(r.errors)
-
 
 
 def dump_schema(doc, name):
@@ -176,93 +174,105 @@ def get_table(doc, name):
 
     return t
 
+
 PACKAGE_PREFIX = '_packages'
 
-def make_excel_package(file, package_root, cache, env, skip_if_exists):
 
-    assert package_root
+def _exec_build(p, package_root, force, extant_url_f, post_f):
+    from metapack import MetapackUrl
 
-    p = ExcelPackageBuilder(file, package_root, callback=prt,  env=env)
-    prt('Making Excel Package')
+    if force:
+        reason = 'Forcing build'
+        should_build = True
+    elif p.is_older_than_metadata():
+        reason = 'Package is older than metadata'
+        should_build = True
+    elif not p.exists():
+        reason = "Package doesn't exist"
+        should_build = True
+    else:
+        reason = 'Package is younger than metadata'
+        should_build = False
 
-    if not p.exists() or not skip_if_exists:
+    if should_build:
+        prt("Building {} package ({})".format(p.type_code, reason))
         url = p.save()
-        prt("Packaged saved to: {}".format(url))
+        prt("Package ( type: {} ) saved to: {}".format(p.type_code, url))
         created = True
-    elif p.exists():
-        prt("Excel Package already exists")
+    else:
+        prt("Not building {} package ({})".format(p.type_code, reason))
+
+    if not should_build and p.exists():
         created = False
-        url = p.package_path.path
+        url = extant_url_f(p)
+
+    post_f()
 
     return p, MetapackUrl(url, downloader=package_root.downloader), created
 
 
-def make_zip_package(file, package_root, cache, env, skip_if_exists):
+def make_excel_package(file, package_root, cache, env, force):
+    from metapack.package import ExcelPackageBuilder
 
     assert package_root
 
+    p = ExcelPackageBuilder(file, package_root, callback=prt, env=env)
 
-    p = ZipPackageBuilder(file, package_root, callback=prt,  env=env)
-    prt('Making ZIP Package')
-    if not p.exists() or not skip_if_exists:
-        url = p.save()
-        prt("Packaged saved to: {}".format(url))
-        created = True
-    elif p.exists():
-        prt("ZIP Package already exists")
-        created = False
-        url = p.package_path.path
-
-    return p, MetapackUrl(url, downloader=package_root.downloader), created
+    return _exec_build(p,
+                       package_root, force,
+                       lambda p: p.package_path.path,
+                       lambda: p.create_nv_link())
 
 
-def make_filesystem_package(file, package_root, cache, env, skip_if_exists):
+def make_zip_package(file, package_root, cache, env, force):
+    from metapack.package import ZipPackageBuilder
+
+    assert package_root
+
+    p = ZipPackageBuilder(file, package_root, callback=prt, env=env)
+
+    return _exec_build(p,
+                       package_root, force,
+                       lambda p: p.package_path.path,
+                       lambda: p.create_nv_link())
+
+
+def make_filesystem_package(file, package_root, cache, env, force):
+    from os.path import join
+
+    from metapack.package import FileSystemPackageBuilder
+    from metatab import DEFAULT_METATAB_FILE
 
     assert package_root
 
     p = FileSystemPackageBuilder(file, package_root, callback=prt, env=env)
 
-    if skip_if_exists is None:
-        skip_if_exists = p.is_older_than_metatada()
-
-    if not p.exists() or not skip_if_exists:
-        prt('Making Filesystem Package ',
-            '; existing package is older than metadata {}'.format(file) if (p.exists() and not skip_if_exists) else '')
-        url = p.save()
-        prt("Packaged saved to: {}".format(url))
-        created = True
-    elif p.exists():
-
-        prt("Filesystem Package already exists")
-        created = False
-        url = join(p.package_path.path.rstrip('/'), DEFAULT_METATAB_FILE)
-
-    return p, MetapackUrl(url, downloader=package_root.downloader), created
+    return _exec_build(p,
+                       package_root, force,
+                       lambda p: join(p.package_path.path.rstrip('/'), DEFAULT_METATAB_FILE),
+                       lambda: p.create_nv_link())
 
 
-def make_csv_package(file, package_root, cache, env, skip_if_exists):
-    assert package_root
-
-    p = CsvPackageBuilder(file, package_root, callback=prt,  env=env)
-    prt('Making CSV Package')
-    if not p.exists() or not skip_if_exists:
-        url = p.save()
-        prt("Packaged saved to: {}".format(url))
-        created = True
-    elif p.exists():
-        prt("CSV Package already exists")
-        created = False
-        url = p.package_path.path
-
-    p.create_nv_link()
-
-    return p, MetapackUrl(url, downloader=package_root.downloader), created
-
-def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='public-read'):
+def make_csv_package(file, package_root, cache, env, force):
+    from metapack.package import CsvPackageBuilder
 
     assert package_root
 
-    p = S3PackageBuilder(file, package_root, callback=prt,  env=env, acl=acl)
+    p = CsvPackageBuilder(file, package_root, callback=prt, env=env)
+
+    return _exec_build(p,
+                       package_root, force,
+                       lambda p: p.package_path.path,
+                       lambda: p.create_nv_link())
+
+
+def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-read'):
+    from metapack import MetapackUrl
+    from metapack.package import S3PackageBuilder
+
+    assert package_root
+
+    p = S3PackageBuilder(file, package_root, callback=prt, env=env, acl=acl)
 
     if not p.exists() or not skip_if_exists:
         url = p.save()
@@ -276,8 +286,8 @@ def make_s3_package(file, package_root,  cache,  env,  skip_if_exists, acl='publ
     return p, MetapackUrl(url, downloader=file.downloader), created
 
 
-
 def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False):
+    from metapack import MetapackDoc
 
     if isinstance(mt_file, MetapackDoc):
         doc = mt_file
@@ -305,15 +315,16 @@ def write_doc(doc, mt_file):
     :return:
     """
 
+    from rowgenerators import parse_app_url
 
     import subprocess
 
     try:
-        out = subprocess.run(['git', 'remote', 'show','origin'], stdout=subprocess.PIPE,
-                             stderr= subprocess.DEVNULL, timeout=6)\
+        out = subprocess.run(['git', 'remote', 'show', 'origin'], stdout=subprocess.PIPE,
+                             stderr=subprocess.DEVNULL, timeout=6) \
             .stdout.decode('utf-8')
 
-        fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l )
+        fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l)
     except (TimeoutError, StopIteration, subprocess.TimeoutExpired):
         fetchline = None
 
@@ -328,12 +339,17 @@ def write_doc(doc, mt_file):
         return True
     else:
         return False
-        #warn("Not writing back to url ", mt_file)
+        # warn("Not writing back to url ", mt_file)
 
 
 def process_schemas(mt_file, cache=None, clean=False):
-    from rowgenerators import SourceError, SchemaError
+    from rowgenerators.exceptions import SourceError, SchemaError
     from requests.exceptions import ConnectionError
+    from itertools import islice
+
+    from metapack import MetapackDoc
+    from rowgenerators.source import SelectiveRowGenerator
+    from tableintuit import TypeIntuiter
 
     if isinstance(mt_file, MetapackDoc):
         doc = mt_file
@@ -390,7 +406,7 @@ def process_schemas(mt_file, cache=None, clean=False):
             table = schema_term
             prt("Updating table '{}' ".format(r.schema_name))
 
-            col_map = { c.name.lower():c for c in table.children if c.term_is('Table.Column')}
+            col_map = {c.name.lower(): c for c in table.children if c.term_is('Table.Column')}
 
             for i, c in enumerate(ti.to_rows()):
                 extant = col_map.get(c['header'])
@@ -403,20 +419,22 @@ def process_schemas(mt_file, cache=None, clean=False):
             prt("Adding table '{}' ".format(r.schema_name))
 
             for i, c in enumerate(ti.to_rows()):
-
                 raw_alt_name = alt_col_name(c['header'], i)
                 alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
 
                 t = table.new_child('Column', c['header'],
-                                datatype=type_map.get(c['resolved_type'], c['resolved_type']),
-                                altname=alt_name)
+                                    datatype=type_map.get(c['resolved_type'], c['resolved_type']),
+                                    altname=alt_name)
 
     if write_doc_to_file:
         write_doc(doc, mt_file)
 
 
 def extract_path_name(ref):
-    from os.path import splitext, basename, abspath
+    from os.path import basename
+    from os.path import splitext, abspath
+
+    from rowgenerators import parse_app_url
 
     uparts = parse_app_url(ref)
 
@@ -447,15 +465,17 @@ def alt_col_name(name, i):
 type_map = {
     float.__name__: 'number',
     int.__name__: 'integer',
-    six.text_type.__name__: 'string',
-    six.binary_type.__name__: 'text',
-
+    bytes.__name__: 'string',
+    str.__name__: 'text',
 }
 
 
 class MetapackCliMemo(object):
     def __init__(self, args, downloader):
         from os import getcwd
+        from os.path import join
+
+        from metatab import DEFAULT_METATAB_FILE
 
         self.cwd = getcwd()
         self.args = args
@@ -483,11 +503,11 @@ class MetapackCliMemo(object):
         if not mtf:
             mtf = join(self.cwd, DEFAULT_METATAB_FILE)
 
-
         self.init_stage2(mtf, frag)
 
-
     def init_stage2(self, mtf, frag):
+        from metapack import MetapackUrl
+        from rowgenerators import parse_app_url
 
         self.frag = frag
         self.mtfile_arg = mtf + frag
@@ -495,7 +515,7 @@ class MetapackCliMemo(object):
         self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
 
         # Find the target for a search URL
-        if self.mtfile_url.scheme =='index':
+        if self.mtfile_url.scheme == 'index':
             self.mtfile_url = parse_app_url(self.mtfile_arg, downloader=self.downloader).get_resource()
 
         self.resource = self.mtfile_url.resource_name
@@ -509,6 +529,7 @@ class MetapackCliMemo(object):
 
     @property
     def doc(self):
+        from metapack import MetapackDoc
         return MetapackDoc(self.mt_file)
 
 
@@ -526,23 +547,22 @@ def get_config():
             # python 3.4
             return Path(expanduser(p))
 
-    paths = [ environ.get("METAPACK_CONFIG"),'~/.metapack.yaml','/etc/metapack.yaml']
+    paths = [environ.get("METAPACK_CONFIG"), '~/.metapack.yaml', '/etc/metapack.yaml']
 
     for p in paths:
         try:
             if pexp(p).exists():
                 with  pexp(p).open() as f:
                     config = yaml.safe_load(f)
-                    config['_loaded_from'] = str(pexp(p) )
+                    config['_loaded_from'] = str(pexp(p))
                     return config
         except TypeError:
             pass
 
-
     return {}
 
-def make_package_entry(url, type):
 
+def make_package_entry(url, type):
     return {
         'url': url,
         'type': type
@@ -550,16 +570,17 @@ def make_package_entry(url, type):
 
 
 def add_package_to_index(pkg, package_db):
-    from operator import itemgetter
+    from os.path import abspath
 
+    from metapack.package import open_package
     ref_url = pkg.package_url.clone()
     ref_url.path = abspath(ref_url.path)
 
     ref = str(ref_url)
 
-    package_db[pkg.get_value('Root.Identifier')] = make_package_entry(ref, 'ident') # identifier
+    package_db[pkg.get_value('Root.Identifier')] = make_package_entry(ref, 'ident')  # identifier
 
-    nv_name =(pkg._generate_identity_name(mod_version=None)) # Non versioned-name, for the latest package
+    nv_name = (pkg._generate_identity_name(mod_version=None))  # Non versioned-name, for the latest package
 
     try:
         max_package = open_package(package_db[nv_name]['url'])
@@ -572,12 +593,17 @@ def add_package_to_index(pkg, package_db):
     except (KeyError, ValueError):
         max_package_ref = ref
 
-    package_db[pkg._generate_identity_name()] = make_package_entry(max_package_ref,'vname')
-    package_db[nv_name] = make_package_entry(max_package_ref,'nvname')
+    package_db[nv_name] = make_package_entry(max_package_ref, 'nvname')
+
+    package_db[pkg._generate_identity_name()] = make_package_entry(ref, 'vname')
+
 
     return [pkg.get_value('Root.Identifier'), pkg._generate_identity_name(), nv_name]
 
+
 def update_index(packages, package_path, suffix=''):
+    from os import listdir
+    from os.path import join, exists, isdir, splitext
 
     if packages:
         # Just update one packages
@@ -598,19 +624,21 @@ def update_index(packages, package_path, suffix=''):
                 elif ext in ('.xls', '.xlsx', '.zip'):
                     yield path
 
-        for p in yield_packages(d):
+        for p in yield_packages(package_path):
             add_package_to_index(p, packages, suffix=None)
 
     return packages
 
-def get_search_index():
 
+def search_index_file():
     from metapack import Downloader
+    return Downloader().cache.getsyspath('index.json')
+
+
+def get_search_index():
     import json
 
-    downloader = Downloader()
-
-    index_file = Downloader().cache.getsyspath('index.json')
+    index_file = search_index_file()
 
     with open(index_file) as f:
         return json.load(f)

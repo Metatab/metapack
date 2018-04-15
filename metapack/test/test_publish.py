@@ -1,14 +1,6 @@
 import unittest
-from csv import DictReader
-from metapack import MetapackDoc
 
-
-from metapack import MetapackPackageUrl,  MetapackUrl, ResourceError, Downloader
-from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package, make_csv_package,
-                                PACKAGE_PREFIX, cli_init )
-from rowgenerators import get_generator, RowGeneratorError, parse_app_url
-from metatab.generate import TextRowGenerator
-from metapack.test.support import test_data
+from metapack import Downloader
 
 downloader = Downloader()
 
@@ -53,9 +45,8 @@ class TestPublish(unittest.TestCase):
     @unittest.skip("Need Sensible Credentials")
     def test_list_wp(self):
 
-        from wordpress_xmlrpc import Client, WordPressPost
+        from wordpress_xmlrpc import Client
         from wordpress_xmlrpc.methods.posts import GetPosts
-        from wordpress_xmlrpc.methods.taxonomies import GetTaxonomies
         from wordpress_xmlrpc.methods.media import GetMediaLibrary
 
         wp = Client('url', 'user', 'password')

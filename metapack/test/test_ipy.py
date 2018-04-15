@@ -79,14 +79,10 @@ class TestIPython(unittest.TestCase):
 
     @unittest.skip("Requires Publicdata module")
     def test_line_doc(self):
-        from metapack.cli.core import process_schemas
+
         from os.path import splitext, basename, join
         import sys
-        from publicdata.censusreporter.dataframe import CensusDataFrame
 
-
-        from geopandas import GeoDataFrame, GeoSeries
-        from shapely.geometry.point import Point
 
         with open(test_data('line','line-oriented-doc.txt')) as f:
             text = f.read()

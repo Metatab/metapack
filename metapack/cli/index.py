@@ -8,15 +8,19 @@ The program uses the Root.Distributions in the source package to locate packages
 
 """
 
-from os import listdir
+from shutil import copy
+from os import listdir, remove, rename
 from os.path import join, exists
 
 from metapack.package import *
-from rowgenerators import FileUrl, RowGeneratorError, parse_app_url
+from rowgenerators import parse_app_url
+from rowgenerators.appurl.file import FileUrl
+from rowgenerators.exceptions import RowGeneratorError
 from .core import MetapackCliMemo as _MetapackCliMemo
-from .core import err, PACKAGE_PREFIX, add_package_to_index, prt
+from .core import err, PACKAGE_PREFIX, add_package_to_index, prt, debug_logger
 import dbm
 import json
+from tabulate import tabulate
 
 downloader = Downloader()
 
@@ -77,6 +81,20 @@ def yield_unique_packages(u):
             yield p
             seen.add(str(p.ref))
 
+def dump_data(db, index_file):
+
+    new_index_file = index_file + '.new'
+    bak_index_file = index_file + '.bak'
+
+    with open(new_index_file, 'w') as f:
+        json.dump(db, f, indent=4)
+
+    if exists(index_file):
+        copy(index_file, bak_index_file)
+
+    rename(new_index_file, index_file)
+
+
 def index(args):
 
     index_file = join(args.directory, 'index.json')
@@ -94,15 +112,17 @@ def index(args):
     if not isinstance(u, FileUrl):
         err(f"Can only index File urls, not {type(u)}")
 
-    key_vals = []
-
     for p in yield_unique_packages(u):
-        keys = add_package_to_index(p, db)
-        for key in keys:
-            key_vals.append((key, p.package_url))
+        add_package_to_index(p, db)
 
-    with open(index_file,'w') as f:
-        json.dump(db, f, indent=4)
+    dump_data(db, index_file)
 
-    from tabulate import tabulate
-    print(tabulate(key_vals))
+    ident_vals = []
+    key_vals = []
+    for k, v in db.items():
+        if v['type'] == 'ident':
+            ident_vals.append((k, v['type'], v['url']))
+        else:
+            key_vals.append((k, v['type'], v['url']))
+
+    print(tabulate(ident_vals+(sorted(key_vals)), headers='key type url'.split()))

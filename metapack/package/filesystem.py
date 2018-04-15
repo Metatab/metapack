@@ -23,6 +23,7 @@ class FileSystemPackageBuilder(PackageBuilder):
     """Build a filesystem package"""
 
     type_code = 'fs'
+    type_suffix = ''
 
     def __init__(self, source_ref, package_root, callback=None, env=None):
 
@@ -46,14 +47,19 @@ class FileSystemPackageBuilder(PackageBuilder):
 
     def exists(self):
 
-        return self.package_path.isdir()
+        try:
+            path = self.doc_file.path
+        except AttributeError:
+            path = self.doc_file
+
+        return self.package_path.isdir() and exists(path)
 
     def remove(self):
 
         if self.package_path.is_dir():
             shutil.rmtree(self.package_path.path)
 
-    def is_older_than_metatada(self):
+    def is_older_than_metadata(self):
         """
         Return True if the package save file is older than the metadata. Returns False if the time of either can't be determined
 
@@ -66,8 +72,12 @@ class FileSystemPackageBuilder(PackageBuilder):
         except AttributeError:
             path = self.doc_file
 
+        source_ref = self._doc.ref.path
+
         try:
-            return getmtime(path) > self._doc.mtime
+            age_diff = getmtime(source_ref) - getmtime(path)
+
+            return age_diff > 0
 
         except (FileNotFoundError, OSError):
             return False
@@ -117,7 +127,7 @@ class FileSystemPackageBuilder(PackageBuilder):
             f.write(self._doc.html)
 
 
-    def _load_resource(self, source_r):
+    def _load_resource(self, source_r, abs_path=False):
         """The CSV package has no reseources, so we just need to resolve the URLs to them. Usually, the
             CSV package is built from a file system ackage on a publically acessible server. """
 

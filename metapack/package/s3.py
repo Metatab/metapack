@@ -128,7 +128,7 @@ class S3PackageBuilder(PackageBuilder):
         self.write_to_s3('index.html', self._doc.html)
         self._doc._ref = old_ref
 
-    def _load_resource(self, r):
+    def _load_resource(self, r, abs_path=False):
         from itertools import islice
         gen = islice(r, 1, None)
         headers = r.headers

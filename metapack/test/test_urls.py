@@ -1,12 +1,13 @@
 import unittest
-from rowgenerators import match_url_classes, WebUrl, FileUrl, ZipUrl, CsvFileUrl
-
-from metapack import MetapackDoc
-from metapack.appurl import MetapackUrl, MetapackResourceUrl, MetapackDocumentUrl
-from rowgenerators import get_generator, parse_app_url
 from csv import DictReader
-from metapack.test.support import test_data
 from os.path import exists
+
+from metapack.appurl import MetapackResourceUrl, MetapackDocumentUrl
+from metapack.test.support import test_data
+from rowgenerators import get_generator, parse_app_url
+from rowgenerators.appurl.archive import ZipUrl
+from rowgenerators.appurl.file import CsvFileUrl
+from rowgenerators.appurl.web import WebUrl
 
 
 class TestUrls(unittest.TestCase):
@@ -63,8 +64,6 @@ class TestUrls(unittest.TestCase):
         self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.zip#metadata.csv',
                          str(ud))
         self.assertIsInstance(ud, MetapackDocumentUrl)
-
-        import sys
 
         self.assertIsInstance(ud.inner, WebUrl)
 
@@ -250,6 +249,7 @@ class TestUrls(unittest.TestCase):
         self.assertIsInstance(u, MetapackDocumentUrl)
 
 
+    @unittest.skip('Requires special setup')
     def test_search_url(self):
         from metapack.appurl import SearchUrl
         from os import getenv

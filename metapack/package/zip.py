@@ -10,6 +10,7 @@ class ZipPackageBuilder(PackageBuilder):
     """A Zip File package"""
 
     type_code = 'zip'
+    type_suffix = '.zip'
 
     def __init__(self, source_ref=None, package_root=None,  callback=None, env=None):
 
@@ -20,7 +21,7 @@ class ZipPackageBuilder(PackageBuilder):
     @classmethod
     def make_package_path(cls, package_root, package_name):
 
-        cache_path = package_name + ".zip"
+        cache_path = package_name + cls.type_suffix
 
         package_path = package_root.join(cache_path)
 
@@ -36,7 +37,6 @@ class ZipPackageBuilder(PackageBuilder):
                  .format(self.package_path, self.source_dir))
 
         self.zf = zipfile.ZipFile(self.package_path.path, 'w', zipfile.ZIP_DEFLATED)
-
 
         for root, dirs, files in walk(self.source_dir):
             for f in files:
