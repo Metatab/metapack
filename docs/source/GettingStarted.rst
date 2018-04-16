@@ -1,116 +1,72 @@
-Metatab
-=======
-
-Parse and manipulate structured data and metadata in a tabular format.
-
-`Metatab <http://metatab.org>`_ is a data format that allows structured
-metadata -- the sort you'd normally store in JSON, YAML or XML -- to be stored
-and edited in tabular forms like CSV or Excel. Metatab files look exactly like
-you'd expect, so they are very easy for non-technical users to read and edit,
-using tools they already have. Metatab is an excellent format for creating,
-storing and transmitting metadata. For more information about metatab, visit
-http://metatab.org.
-
-This repository has a Python module and executable. For a Javascript version,
-see the `metatab-js <https://github.com/CivicKnowledge/metatab-js>`_ repository.
-
-What is Metatab For?
---------------------
-
-Metatab is a tabular format that allows storing metadata for demographics,
-health and research datasets in a tabular format. The tabular format is much
-easier for data creators to write and for data consumers to read, and it allows
-a complete data packages to be stored in a single Excel file.
-
+Getting Started
+===============
 
 Install
 -------
 
-Install the package from PiPy with:
+Install the Metapack package from PiPy with:
 
 .. code-block:: bash
 
-    $ pip install metatab
+    $ pip install metapack
 
-Or, install the master branch from github with:
-
-.. code-block:: bash
-
-    $ pip install https://github.com/CivicKnowledge/metatab-py.git
-
-Then test parsing using a remote file with:
+For development, you'll probably want the development package, with sub-mdules for related repos: 
 
 .. code-block:: bash
 
-    $ metatab -j https://raw.githubusercontent.com/CivicKnowledge/metatab-py/master/test-data/example1.csv
+    $ git clone --recursive https://github.com/Metatab/metapack-dev.git
+	$ cd metapack-dev
+	$ bin/init-develop.sh
 
-Run ``metatab -h`` to get other program options. 
+Creating Packages with Metapack
+-------------------------------
 
-The ``test-data`` directory has test files that also serve as examples to
-parse. You can either clone the repo and parse them from the files, or from the
-Github page for the file, click on the ``raw`` button to get raw view of the
-flie, then copy the URL.
-
-
-Metatab and Metapack
---------------------
-
-The metatab Python distribution includes two programs, ``metatab`` for
-manipulating single Metatab files and ``metapack`` for creating data packages.
-The two programs share some options, so when building packages, you can use the
-``metapack`` program exclusively, and ``metatab`` is most useful for converting
-Metatab files to JSON. This tutorial will primarily use ``metapack``
+Metapack data packages consists of metadata and data, linked to gether in an
+Exceil file, Zip File, or as files in a directory. These pacakge files are
+created buy the :command:`mp build` program, taking a source package as input.
+A Metapack source package is very similar to a output package: the primary
+difference is that a source package references datasets with URLs to remote
+resources. Building a package loads those resources into the load file. More
+generally, a source package decribes how to run a data processing pipeline, and
+the output package has just the outputs of these data processing steps.
 
 
 Creating a new package
 ----------------------
 
-[ For an overview of the Metatab format, see the `Metatab specifications
-<http://www.metatab.org/>`_. ]
-
-Create a directory, usually with the name you'll give the package and create a
-new metatab file within it.
+To create a new package, use the :ref:`mp new program <mp_new>` . 
 
 .. code-block:: bash
 
-    $ mkdir example-data-package
-    $ cd example-data-package
-    $ metapack -c
+	$ mp new -o metatab.org -d tutorial 
+	
 
-The ``metapack -c`` command will create a new Metatab file in the current
-directory, ``metadata.csv``. You can open this file with a spreadsheet program
-to edit it.
+The :option:`origin` and :option:`dataset` options are required. These options,
+along with :option:`time`, :option:`space`, :option:`grain` :option:`variant`,
+and :option:`revision` are used to build the name of the data package, which is
+also used in the name of the directory for the package. THe origin should
+usually be a second level internet domain, such as 'metatab.org'.
 
-Tne only required term to set is ``Name``, but you should have values for
-``Title`` and ``Description.`` Initially, the ``Name`` is set to the same
-values as ``Identity``, which is set to a randuom UUID4.
+This command will create a directory names :file:`metatab.org-tutorial`,
+which will contain a :file:`metadata.csv` file, the Metatab-formated metadata
+file for the package. 
 
-For this example, the ``Name`` term could be changed to the name of the
-directory, 'example-package.' However, it is more rigorous to set the name
-component terms, ``DatasetName`` and zero or more of ``Origin``, ``Version``,
-``Time`` or ``Space``. These terms will be combined to make the name, and the
-name will include important components to distinguish different package
-versions and similar datasets from different sources. The ``Name`` term is used
-to generate files names when making ZIP, Excel and S3 packages. For this
-tutorial use these values:
-
-- Dataset: 'example-data-package'
-- Origin ( in the 'Contacts' Section): 'example.com'
-- Version ( Automatically set ) : '1'
-- Space: 'US'
-- Time: '2017'
-
- These values will generate the name
-'example.com-example_data_package-2017-us-1'. If you update the package, change
-the ``Version`` value and run ``metapack -u`` to regenerate the ``Name``.
-
-After setting the ``DatasetName``, ``Origin``, ``Version``, ``Time`` or
-``Space`` and saving the file, , run ``metapack -u`` to update ``Name``:
+If you need to change the name of the package later, you can edityt the
+identifiying terms int the metadata file. After setting the ``Dataset``,
+``Origin``, ``Version``, ``Time`` or ``Space`` and saving the file, , run
+``metapack -u`` to update ``Name``:
 
 .. code-block:: bash
 
-    $ metapack -u
-    Updated Root.Name to: 'example.com-example_data_package-2017-us-1' 
+    $ mp pack -u
+	Changed Name
+	Name is:  metatab.org-tutorial-2018-1
+
+Otherwize, you will usually still want to edit the file to set the `Title` and
+`Description` terms.
+
+Adding Data References
+----------------------
 
 Since this is a data package, it is important to have references to data. The
 package we are creating here is a filesystem package, and will usually
@@ -342,134 +298,3 @@ If the ``Datafile`` term has a ``StartLine`` property, the values will be used
 in generating the data in derived packages to select the first line for
 yielding data rows. ( The ``HeaderLines`` property is used to build the schema,
 from which the header line is generated. )
-    
-Publishing Packages
--------------------
-
-The ``metasync`` program can build multiple package types and upload them to an
-S3 bucket. Typical usage is:
-
-.. code-block:: bash
-
-    $ metasync -c -e -f -z -s s3://library.metatab.org
-    
-With these options, the ``metasync`` program will create an Excel, Zip and
-Filesystem package and store them in the s3 bucket ``library.metadata.org``. In
-this case, the "filesystem" package is not created in the local filesystem, but
-only in S3. ( "Filesystem" packages are basically what you get after unziping a
-ZIP package. )
-
-Because generating all of the packages and uploading to S3 is common, the
-`metasync -S` option is a synonym for generating all package types and
-uploading:
-
-.. code-block:: bash
-
-    $ metasync -S s3://library.metatab.org
-
-Currently, ``metasync`` will only write packages to S3. For S3 ``metasync``
-uses boto3, so refer to the `boto3 credentials documentation
-<http://boto3.readthedocs.io/en/latest/guide/configuration.html>`_ for
-instructions on how to set your S3 access key and secret.
-
-One important side effect of the ``metasync`` program is that it will add
-``Distribution`` terms to the main ``metadata.csv`` file before creating the
-packages, so all the packages that the program syncs will include references to
-the S3 location of all packages. For instance, the example invocation above
-will add these ``Distribution`` terms:
-
-.. code-block:: 
-
-    Distribution	http://s3.amazonaws.com/library.metatab.org/simple_example-2017-us-1.xlsx
-    Distribution	http://s3.amazonaws.com/library.metatab.org/simple_example-2017-us-1.zip
-    Distribution	http://s3.amazonaws.com/library.metatab.org/simple_example-2017-us-1/metadata.csv
-    
-These ``Distribution`` terms are valuable documentation, but they are also required for the ``metakan`` program to create entries for the package in CKAN. 
-
-
-
-Adding Packages to CKAN
-+++++++++++++++++++++++
-
-The ``metakan`` program reads a Metatab file, creates a dataset in CKAN, and
-adds resources to the CKAN entry based on the ``Distribution`` terms in the
-Metatab data. For instance, with a localhost CKAN server, and the metadata file
-from the "Publishing Packages" section example:
-
-.. code-block:: bash
-
-    $ metakan  --ckan http://localhost:32768/ --api f1f45...e9a9
-
-This command would create a CKAN dataset with the metadata in the
-``metadata.csv`` file in the current directory, reading the ``Distribution``
-terms. It would add resources for ``simple_example-2017-us-1.xlsx`` and
-``simple_example-2017-us-1.zip.`` For the
-``simple_example-2017-us-1/metadata.csv`` entry, it would read the remote
-``metadata.csv`` file, resolve the resource URLs, and create a resource entry
-in CKAN for the ``metadata.csv`` file and all of the resources referenced in
-the remote ``metadata.csv`` file.
-
-Note that because part of the information in the CKAN dataset comes from the
-file ``metadata.csv`` file and part of the resources are discovered from the
-remote file, there is a substantial possibility for these files to become
-unsynchronized. For this reason, it is important to run the ``metasync``
-program to create ``Distribution`` terms before running the ``metakan`` program.
-
-For an example of a CKAN entry generated by ``metakan``, see
-http://data.sandiegodata.org/dataset/fns-usda-gov-f2s_census-2015-2
-
-Publish to CKAN from S3
-.......................
-
-The ``metakan`` program can publish all of the CSV packages available in an S3
-bucket by giving it an S3 url instead of a Metatab file. For instance, to
-publish all of the CSV packages in the ``library.metatab.org `` bucket, run:
-
-.. code-block:: bash
-
-    $ metakan  --ckan http://localhost:32768/ --api f1f45...e9a9 s3://library.metatab.org
-
-As with publishing a local Metatab file, the CSV packages in the S3 buck may
-have ``Distribution`` terms to identify other packages that should also be
-published into the CKan dataset.
-
-
-
-Adding Packages to Data.World
-+++++++++++++++++++++++++++++
-
-The ``metaworld`` program will publish the package to `Data.World
-<http://data.world>`_. Only Excel and CSV packages will be published, because
-ZIP packages will be disaggregated, conflicting with CSV packages. The program
-is a bit buggy, and when creating a new package, the server may return a 500
-error. If it does, just re-run the program.
-
-The ``metaworld`` program takes no options. To use it, you must install the
-`datadotworld python package <https://github.com/datadotworld/data.world-py>`_
-and configure it, which will store your username and password.
-
-
-.. code-block:: bash
-
-    $ metaworld
-
-
-Publishing With Docker
-++++++++++++++++++++++
-
-The time require to run ``metasync`` to build and publish packages is often
-limited by network bandwidth, and can be much faster if run from a hosting
-service with a high bandwith connection, like AWS EC2. The ``metasync``
-supports remote operation with the ``--docker`` option, which will re-run the
-program in docker.
-
-To build the docker container, run ``make build`` in the ``docker`` directory
-in this github repository. Then add the ``-D`` or ``--docker`` option to the
-``metasync`` command. The metatab document must be explicit, and must be
-acessible from the network.
-
-.. code-block:: bash
-
-    $ metasync -D -S s3://library.metatab.org http://devel.metatab.org/example.com-simple_example-2017-us-1.csv
-
-

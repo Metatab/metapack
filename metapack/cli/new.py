@@ -26,16 +26,22 @@ def new_args(subparsers):
 
     parser.set_defaults(run_command=new_cmd)
 
-    parser.add_argument('-o', '--origin', help="Dataset origin, usually a second-level domain name")
-    parser.add_argument('-d', '--dataset', help="Main dataset name", required = True)
-    parser.add_argument('-t', '--time', help="Temporal extents")
-    parser.add_argument('-s', '--space', help="Space, geographic extent")
+    parser.add_argument('-o', '--origin', help="Dataset origin, usually a second-level domain name. Required")
+    parser.add_argument('-d', '--dataset', help="Main dataset name. Required", required = True)
+    parser.add_argument('-t', '--time', help="Temporal extents, usually a year, ISO8601 time, or interval. ")
+    parser.add_argument('-s', '--space', help="Space, geographic extent, such as a name of a state or a Census geoid")
     parser.add_argument('-g', '--grain', help="Grain, the type of entity a row represents")
     parser.add_argument('-v', '--variant', help="Variant, any distinguishing string")
     parser.add_argument('-r', '--revision', help="Version, defaults to 1", default=1)
 
-    parser.add_argument('-T', '--template', help="Metatab file template, defaults to 'metatab' ", default='metatab')
-    parser.add_argument('-C', '--config', help="Path to config file. Defaults to ~/.metapack-defaults.csv or value of METAPACK_DEFAULTS env var")
+    parser.add_argument('-T', '--title', help="Set the title")
+
+    parser.add_argument('--template', help="Metatab file template, defaults to 'metatab' ", default='metatab')
+    parser.add_argument('-C', '--config', help="Path to config file. "
+                                               "Defaults to ~/.metapack-defaults.csv or value of METAPACK_DEFAULTS env var."
+                                                "Sets defaults for specia root terms and the Contacts section.")
+
+
 
 def new_cmd(args):
 
@@ -82,6 +88,11 @@ def new_cmd(args):
     if 'Contacts' in config:
         for c in config['Contacts']:
             doc['Contacts'].add_term(c)
+
+
+    if args.title:
+        doc['Root'].find_first('Root.Title').value = args.title.strip()
+
 
     nv_name = doc.as_version(None)
 

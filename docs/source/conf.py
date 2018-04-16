@@ -24,7 +24,7 @@ copyright = '2018, Eric Busboom'
 author = 'Eric Busboom'
 
 # The short X.Y version
-version = ''
+version = '0.7'
 # The full version, including alpha/beta/rc tags
 release = '0.7.11'
 
@@ -42,6 +42,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinxarg.ext'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,7 +84,16 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+
+
+html_theme_options = {
+    'logo': 'http://metatab.org/wp-content/uploads/sites/4/2016/09/Metatab-64.png',
+    'github_user': 'Metatab',
+    'github_repo': 'metatab',
+    'github_button': True,
+    'description': 'A system for managing data packages and metadata'
+}
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -97,8 +107,11 @@ html_static_path = ['_static']
 # defined by theme itself.  Builtin themes are using these templates by
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
-#
-# html_sidebars = {}
+
+html_sidebars = {
+   '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html'],
+   'using/windows': ['windowssidebar.html', 'searchbox.html'],
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

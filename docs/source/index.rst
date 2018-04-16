@@ -1,90 +1,64 @@
 
-Metapack!
-*********
-
-This module provides services for creating references to data files, downloading those files,
-and iterating through them as a sequence of rows. For instance, you can define a URL to a CSV file
-within a ZIP archive on the web as:
-
-    http://example.com/archive.zip#file.csv
-
-After constructing this URL, the module provides an interface to access the CSV file as rows, downloading
-the archive,  caching it, and extracting the inner CSV file.
-
-Additionally, the module provides services for transforming data during iteration, to set default value
-cast to specific types, extract components of dates, and many other transformations.
-
-The components of this module include:
-
-* Application Urls: exensible URLs for referencing row data
-* Row Generators: Objects that yield rows that are referenced by an Application Url
-* Row Transforms: Construct pipelines that transform the value of columns while rows are being iterated
-* Value Types: Rich types for column values, allowing sophisticated interactions and transformations with Row Transforms.
-* Row Pipes: Composable functions that alter and filter entire rows.
+Metatab and Metapack
+====================
 
 
-Example
-=======
+`Metatab <http://metatab.org>`_ is a metadata format that allows structured
+metadata -- the sort of information about a dataset like title, origin, or date
+of publication that you'd normally store in JSON, YAML or XML -- to be stored
+and edited in tabular forms like CSV or Excel. Metatab files look exactly like
+you'd expect, so they are very easy for non-technical users to read and edit,
+using tools they already have. Metatab is an excellent format for creating,
+storing and transmitting metadata. 
 
-.. code-block:: python
+The tabular format is much easier for data creators to write and for
+data consumers to read, and it allows a complete data packages to be stored in
+a single Excel file.
 
-    from rowgenerators import  parse_app_url
-    from os.path import exists
+Metapack is a data package format and packging system that uses Metatab
+formatted files for both metadata and for the instructions for building data
+packages. You can create a Metatab formatted file that describes the data you'd
+like to package and create an Excel or Zip file data package that holds that
+data. Metapack also includes programs to load data sets to AWS S3, Data.World
+and CKAN, and to use these packages in Jupyter notebooks.
 
-    url_str = 'http://public.source.civicknowledge.com/'\
-              'example.com/sources/test_data.zip#simple-example.csv'
+Because Metatab is just a file format, and Metapack is the set of programs for
+building data packages, this guide primarily deals with Metapack. For more
+information about metatab, visit http://metatab.org.
 
-    url = parse_app_url(url_str) # Parse a string to an Application url
-
-    resource_url = url.get_resource() # Download the .zip file
-
-    target_url = resource_url.get_target() # Extract `file.csv` from the .zip
-
-    assert(target_url.path) # The path to file.csv
-
-    generator = target_url.generator
-
-    rows = list(generator) # Fetch all of the rows. First row is header
-
-    # Iterate rows as dicts
-    float_sum = sum(float(row['float']) for row in generator.iter_dict)
-
-    # Iterate with RowProxy objects
-    int_sum = sum(int(row.int) for row in generator.iter_rp)
-
-    print(len(rows), float_sum, int_sum)
 
 
 Install
 =======
 
-Use pip:
+Install the Metapack package from PiPy with:
 
 .. code-block:: bash
 
-    $ pip install rowgenerators
+    $ pip install metapack
 
-
-Or, from github:
+For development, you'll probably want the development package, with sub-mdules for related repos: 
 
 .. code-block:: bash
 
-    $ pip install git+https://github.com/CivicKnowledge/rowgenerators.git
-
+    $ git clone --recursive https://github.com/Metatab/metapack-dev.git
+	$ cd metapack-dev
+	$ bin/init-develop.sh
 
 Contents
 ========
 
 .. toctree::
     :maxdepth: 2
-
-    Census.rst
-    GeneratingRowsWithPrograms.rst
-    GeneratingWithFunctions.rst
+    
+    Home <self>
+    JustEnough.rst
     GettingStarted.rst
     WranglingPackages.rst
-
-
+    GeneratingRows.rst
+    commands.rst
+    Publishing.rst
+    
 
 
 Indices and tables

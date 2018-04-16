@@ -19,9 +19,7 @@ except DistributionNotFound:
 from metapack.cli.core import  cli_init
 
 
-def mp():
-
-
+def base_parser():
     parser = argparse.ArgumentParser(
         prog='mp',
         description='Create and manipulate metatab data packages. ')
@@ -42,6 +40,20 @@ def mp():
                         help='Print the location of the cache')
 
     subparsers = parser.add_subparsers(help='Commands')
+
+    return parser, subparsers
+
+def _build_parser_for_docs():
+    parser, subparsers = base_parser()
+
+    for ep in iter_entry_points(group='mt.subcommands'):
+        f = ep.load()
+        f(subparsers)
+
+    return parser
+
+def mp():
+    parser, subparsers = base_parser()
 
     for ep in iter_entry_points(group='mt.subcommands'):
 
