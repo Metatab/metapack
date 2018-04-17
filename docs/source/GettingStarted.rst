@@ -21,15 +21,18 @@ For development, you'll probably want the development package, with sub-mdules f
 Creating Packages with Metapack
 -------------------------------
 
-Metapack data packages consists of metadata and data, linked to gether in an
-Exceil file, Zip File, or as files in a directory. These pacakge files are
-created buy the :command:`mp build` program, taking a source package as input.
+Metapack data packages consists of metadata and data, linked together in an
+Excel file, Zip File, or as files in a directory. These package files are
+created by the :command:`mp build` program, taking a source package as input.
 A Metapack source package is very similar to a output package: the primary
 difference is that a source package references datasets with URLs to remote
 resources. Building a package loads those resources into the load file. More
 generally, a source package decribes how to run a data processing pipeline, and
 the output package has just the outputs of these data processing steps.
 
+So, what we're going to do is create a directory-based source package, then
+build the soruce package to create an Excel File, a Zip File and another
+directory package.
 
 Creating a new package
 ----------------------
@@ -40,12 +43,12 @@ To create a new package, use the :ref:`mp new program <mp_new>` .
 
 	$ mp new -o metatab.org -d tutorial 
 	
-
-The :option:`origin` and :option:`dataset` options are required. These options,
-along with :option:`time`, :option:`space`, :option:`grain` :option:`variant`,
-and :option:`revision` are used to build the name of the data package, which is
-also used in the name of the directory for the package. THe origin should
-usually be a second level internet domain, such as 'metatab.org'.
+The :strong:`origin` and :strong:`dataset` options are required. These
+options, along with :strong:`time`, :strong:`space`, :strong:`grain`,
+:strong:`variant`, and :strong:`revision` are used to build the name of the
+data package, which is also used in the name of the directory for the package.
+The origin should usually be a second level internet domain, such as
+'metatab.org'.
 
 This command will create a directory names :file:`metatab.org-tutorial`,
 which will contain a :file:`metadata.csv` file, the Metatab-formated metadata

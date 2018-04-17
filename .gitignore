@@ -99,3 +99,4 @@ _packages
 **-executed.ipynb
 
 .DS_Store
+.~lock.*
