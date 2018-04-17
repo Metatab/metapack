@@ -10,6 +10,9 @@ from metatab.exc import MetatabError
 class MetapackError(MetatabError):
     pass
 
+class MetatabFileNotFound(MetatabError):
+    pass
+
 class PackageError(MetapackError):
     pass
 
