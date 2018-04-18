@@ -14,7 +14,9 @@ from .html import linkify
 from .util import slugify
 from metapack.package.core import Downloader
 from rowgenerators import Source, parse_app_url
+from rowgenerators.exceptions import RowGeneratorError
 from metapack.util import datetime_now
+from metapack.exc import MetatabFileNotFound
 
 class Resolver(WebResolver):
     def get_row_generator(self, ref, cache=None):
@@ -61,7 +63,11 @@ class MetapackDoc(MetatabDoc):
                 # For iterators, generators
                 package_url = None
 
-        super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
+        try:
+            super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
+        except RowGeneratorError as e:
+            raise MetatabFileNotFound("Failed to get Metatabfile for reference: '{}' ".format(ref))
+
 
         self.default_resource = None # Set externally in open_package when the URL has a resource.
 
