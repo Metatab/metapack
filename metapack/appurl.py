@@ -16,6 +16,7 @@ import json
 
 from metatab import DEFAULT_METATAB_FILE
 
+
 class _MetapackUrl(object):
 
     def exists(self):
@@ -57,19 +58,18 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
         elif self.resource_format == 'zip':
             frag = DEFAULT_METATAB_FILE
 
-        self.fragment = [frag,None]
+        self.fragment = [frag, None]
 
     @classmethod
     def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be contructed through matching")
-
 
     @property
     def resource_format(self):
 
         resource_format = file_ext(basename(self.path))
 
-        assert resource_format, self.path # Should have either a definite file, or have added one in __init__
+        assert resource_format, self.path  # Should have either a definite file, or have added one in __init__
 
         return resource_format
 
@@ -135,12 +135,11 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
             t = rs.get_target()
         return t
 
-
     @property
     def metadata_url(self):
 
         if not basename(self.resource_url):
-            return self.clone(path=join(self.path,DEFAULT_METATAB_FILE))
+            return self.clone(path=join(self.path, DEFAULT_METATAB_FILE))
         else:
             return self.clone()
 
@@ -178,9 +177,8 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def resource(self):
         """Return the Metapack resource, different from the URL resource returned by get_resource"""
 
-        r =  self.doc.resource(self.fragment[0])
+        r = self.doc.resource(self.fragment[0])
         return r
-
 
 
 class MetapackPackageUrl(FileUrl, _MetapackUrl):
@@ -206,21 +204,19 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
         return MetapackDocumentUrl(str(self.clone().clear_fragment()), downloader=self._downloader).metadata_url
 
-
     def rebuild_fragment(self):
         self.fragment = ''
 
-    def join_resource_name(self,v):
+    def join_resource_name(self, v):
         """Return a MetapackResourceUrl that includes a reference to the resource. Returns a
         MetapackResourceUrl, which will have a a fragment """
         d = self.dict
-        d['fragment'] = [v,None]
-        return MetapackResourceUrl(downloader=self._downloader, **d )
+        d['fragment'] = [v, None]
+        return MetapackResourceUrl(downloader=self._downloader, **d)
 
     def join_resource_path(self, v):
         """Return a regular AppUrl that combines the package with a URL path """
         return self.inner.join(v)
-
 
     def join_target(self, tf):
         """Like join(), but returns the inner URL, not a package url class"""
@@ -287,7 +283,7 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
 
 class MetapackResourceUrl(FileUrl, _MetapackUrl):
-    def __init__(self, url=None, downloader=None, base_url = None, **kwargs):
+    def __init__(self, url=None, downloader=None, base_url=None, **kwargs):
 
         kwargs['proto'] = 'metapack'
 
@@ -300,7 +296,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
         d = self.dict
         d['fragment'] = None
 
-        md = MetapackDocumentUrl(None,downloader = downloader, **d)
+        md = MetapackDocumentUrl(None, downloader=downloader, **d)
         self.path = md.path
 
         self.base_url = base_url
@@ -339,12 +335,11 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
         else:
             u = WebUrl(str(self), downloader=self._downloader)
             r = u.get_resource()
-            mru = MetapackResourceUrl(str(r), base_url = self, downloader=self._downloader)
+            mru = MetapackResourceUrl(str(r), base_url=self, downloader=self._downloader)
             return mru
 
     def get_target(self):
         return self.resource.resolved_url.get_resource().get_target()
-
 
     @property
     def generator(self):
@@ -354,7 +349,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     @property
     def resource(self):
 
-        r =  self.doc.resource(self.fragment[0])
+        r = self.doc.resource(self.fragment[0])
         return r
 
 
@@ -379,6 +374,7 @@ class MetapackUrl(Url):
     def _match(cls, url, **kwargs):
         """Return True if this handler can handle the input URL"""
         return url.proto in ('metapack', 'metatab')
+
 
 class JupyterNotebookUrl(FileUrl):
     """IPYthon Notebook URL"""
@@ -444,35 +440,32 @@ class SearchUrl(Url):
     @staticmethod
     def search_json_indexed_directory(directory):
         """Return a search function for searching a directory of packages, which has an index.json file
-        created by the `mp install file` command. """
+        created by the `mp install file` command.
 
-        from metapack.appurl import MetapackPackageUrl
-        from metapack import Downloader
+        This will only search the issued index; it will not return results for the source index
+        """
 
-        index_file = join(directory, 'index.json')
+        from metapack.index import SearchIndex, search_index_file
 
-        if not exists(index_file):
-            raise AppUrlError(f"Failed to find directory index file, {index_file}")
-
-        try:
-            with open(index_file) as f:
-                index = json.load(f)
-        except json.JSONDecodeError as e:
-            from warnings import warn
-            warn(f"Failed to load JSON index file from '{index_file}'; ignorning; {str(e)} ")
-            index = {}
+        idx = SearchIndex(search_index_file())
 
         def _search_function(url):
-            try:
-                resource_str = '#'+url.target_file if url.fragment[0] else ''
 
-                return parse_app_url(index[url.path]['url']+resource_str, downloader=url.downloader)
+            packages = idx.search(url, format='issued')
+
+            if not packages:
+                return None
+
+            package = packages.pop(0)
+
+            try:
+                resource_str = '#' + url.target_file if url.fragment[0] else ''
+
+                return parse_app_url(package['url'] + resource_str, downloader=url.downloader)
             except KeyError as e:
                 return None
 
         return _search_function
-
-
 
     def search(self):
         """Search for a url by returning the value from the first callback that
@@ -500,7 +493,6 @@ class SearchUrl(Url):
 
         return self.resolve().get_resource()
 
-
     def get_target(self):
         return self
 
@@ -512,4 +504,3 @@ class SearchUrl(Url):
             return self.fragment[0]
 
         return None
-

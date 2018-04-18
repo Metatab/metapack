@@ -524,7 +524,12 @@ class MetapackCliMemo(object):
         self.mt_file = self.mtfile_url.metadata_url
 
         assert self.package_url.scheme == 'file'
-        self.package_root = self.package_url.join(PACKAGE_PREFIX)
+
+        if hasattr(self.args, 'build_directory') and self.args.build_directory:
+            self.package_root = parse_app_url(self.args.build_directory)
+        else:
+            self.package_root = self.package_url.join(PACKAGE_PREFIX)
+
         assert self.package_root._downloader
 
     @property
@@ -562,44 +567,6 @@ def get_config():
     return {}
 
 
-def make_package_entry(url, type):
-    return {
-        'url': url,
-        'type': type
-    }
-
-
-def add_package_to_index(pkg, package_db):
-    from os.path import abspath
-
-    from metapack.package import open_package
-    ref_url = pkg.package_url.clone()
-    ref_url.path = abspath(ref_url.path)
-
-    ref = str(ref_url)
-
-    package_db[pkg.get_value('Root.Identifier')] = make_package_entry(ref, 'ident')  # identifier
-
-    nv_name = (pkg._generate_identity_name(mod_version=None))  # Non versioned-name, for the latest package
-
-    try:
-        max_package = open_package(package_db[nv_name]['url'])
-
-        if max_package and max_package.get_value('Root.Version') < pkg.get_value('Root.Version'):
-            max_package_ref = ref
-        else:
-            max_package_ref = package_db[nv_name]['url']
-
-    except (KeyError, ValueError):
-        max_package_ref = ref
-
-    package_db[nv_name] = make_package_entry(max_package_ref, 'nvname')
-
-    package_db[pkg._generate_identity_name()] = make_package_entry(ref, 'vname')
-
-
-    return [pkg.get_value('Root.Identifier'), pkg._generate_identity_name(), nv_name]
-
 
 def update_index(packages, package_path, suffix=''):
     from os import listdir
@@ -611,7 +578,7 @@ def update_index(packages, package_path, suffix=''):
 
     else:
         # Build the whole package index
-        packages = {}
+        packages = []
 
         def yield_packages(d):
 
@@ -630,15 +597,8 @@ def update_index(packages, package_path, suffix=''):
     return packages
 
 
-def search_index_file():
-    from metapack import Downloader
-    return Downloader().cache.getsyspath('index.json')
+
+def new_search_index():
+    return []
 
 
-def get_search_index():
-    import json
-
-    index_file = search_index_file()
-
-    with open(index_file) as f:
-        return json.load(f)

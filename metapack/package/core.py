@@ -46,7 +46,7 @@ class PackageBuilder(object):
     def __init__(self, source_ref=None, package_root = None,  callback=None, env=None):
         from metapack.doc import MetapackDoc
 
-        assert isinstance(package_root, (type(None), MetapackPackageUrl)), (type(package_root), package_root)
+        #assert isinstance(package_root, (type(None), MetapackPackageUrl)), (type(package_root), package_root)
 
         self._downloader = source_ref._downloader
         self._cache = self._downloader.cache

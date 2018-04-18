@@ -31,6 +31,12 @@ def build(subparsers):
 
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
 
+    parser.add_argument('-d', '--build-directory', help="Set an alternate build directory, instead of '_packages'",
+                            required=False)
+
+    parser.add_argument('-D', '--package-directory', help="Write Zip, Excel and CSV packages to an alternate directory",
+                            required=False)
+
     parser.add_argument('-F', '--force', action='store_true', default=False,
                              help='Force some operations, like updating the name and building packages')
 
@@ -56,8 +62,7 @@ def build(subparsers):
                                help='Create a CSV archive from a metatab file')
 
 
-    derived_group.add_argument('-I', '--install', default=False, action='store_true',
-                             help="Install the packages to the data directory after building")
+
 
     ##
     ## Administration Group
@@ -70,23 +75,12 @@ def build(subparsers):
     admin_group.add_argument('-C', '--clean', default=False, action='store_true',
                              help="For some operations, like updating schemas, clear the section of existing terms first")
 
-    admin_group.add_argument('-i', '--info', default=False, action='store_true',
-                             help="Show configuration information")
-
-    admin_group.add_argument('--html', default=False, action='store_true',
-                             help='Generate HTML documentation')
-
-    admin_group.add_argument('--markdown', default=False, action='store_true',
-                             help='Generate Markdown documentation')
 
 
 def run_metapack(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    if m.args.info:
-        metatab_info(m.cache)
-        exit(0)
 
     if m.args.profile:
         from metatab.s3 import set_s3_profile
@@ -121,6 +115,13 @@ def metatab_derived_handler(m):
 
     env = get_lib_module_dict(doc)
 
+    package_dir = m.package_root
+
+    if m.args.package_directory:
+        # If this is set, the FS package will be built to m.package_root, but the
+        # file packages will be built to package_dir
+        package_dir = parse_app_url(m.args.package_directory)
+
     if (m.args.excel is not False or m.args.zip is not False or
             (hasattr(m.args, 'filesystem') and m.args.filesystem is not False)):
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
@@ -139,15 +140,15 @@ def metatab_derived_handler(m):
             env = {}  # Don't need it anymore, since no more programs will be run.
 
         if m.args.excel is not False:
-            _, url, created = make_excel_package(m.mt_file, m.package_root, m.cache, env, m.args.force)
+            _, url, created = make_excel_package(m.mt_file, package_dir, m.cache, env, m.args.force)
             create_list.append(('xlsx', url, created))
 
         if m.args.zip is not False:
-            _, url, created = make_zip_package(m.mt_file, m.package_root, m.cache, env, m.args.force)
+            _, url, created = make_zip_package(m.mt_file, package_dir, m.cache, env, m.args.force)
             create_list.append(('zip', url, created))
 
         if m.args.csv is not False:
-            _, url, created = make_csv_package(m.mt_file, m.package_root, m.cache, env, m.args.force)
+            _, url, created = make_csv_package(m.mt_file, package_dir, m.cache, env, m.args.force)
             create_list.append(('csv', url, created))
 
     except PackageError as e:
@@ -158,22 +159,8 @@ def metatab_derived_handler(m):
 
 def metatab_admin_handler(m):
 
-    if m.args.html:
-        from metatab.html import html
-        doc = MetapackDoc(m.mt_file)
-
-        # print(doc.html)
-        prt(html(doc))
-
-    if m.args.markdown:
-        from metatab.html import markdown
-
-        doc = MetapackDoc(m.mt_file)
-        prt(markdown(doc))
-
     if m.args.clean_cache:
         clean_cache('metapack')
-
 
 
 def classify_url(url):

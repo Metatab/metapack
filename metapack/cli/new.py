@@ -37,6 +37,13 @@ def new_args(subparsers):
     parser.add_argument('-T', '--template', help="Metatab file template, defaults to 'metatab' ", default='metatab')
     parser.add_argument('-C', '--config', help="Path to config file. Defaults to ~/.metapack-defaults.csv or value of METAPACK_DEFAULTS env var")
 
+    return parser
+
+def doc_parser():
+    from .mp import base_parser
+
+    return new_args(base_parser())
+
 def new_cmd(args):
 
     from metapack import MetapackDoc

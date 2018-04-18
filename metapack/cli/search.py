@@ -4,8 +4,10 @@
 import sys
 from metapack import Downloader
 from metapack.cli.core import prt, err
+
 from rowgenerators import parse_app_url
 from rowgenerators.exceptions import AppUrlError
+from metapack.index import SearchIndex, search_index_file
 
 downloader = Downloader()
 
@@ -19,6 +21,11 @@ def search(subparsers):
     parser.add_argument('-l', '--list', default=False, action='store_true',
                         help="List the packages that would be indexed ( Only from the JSON index")
 
+    parser.add_argument('-f', '--format', help='Select a specific package format')
+
+    parser.add_argument('-1', '--one', action='store_true',
+                        help='Find only one result, using the same resolution process used when building packages')
+
     parser.add_argument('-c', '--config', default=False, action='store_true',
                         help="Show the path to the index file")
 
@@ -27,7 +34,7 @@ def search(subparsers):
     parser.add_argument('search', nargs='?', help="Path or URL to a metatab file")
 
 def run_search(args):
-    from .core import get_search_index, search_index_file
+
     from tabulate import tabulate
 
     if args.config:
@@ -36,15 +43,19 @@ def run_search(args):
 
     if not args.search or args.list:
 
-        print(tabulate(sorted([(k,v['type'],v['url']) for k,v in get_search_index().items()]),
-                                headers='Key Type Url'.split()))
+        idx = SearchIndex(search_index_file())
 
-    else:
+        packages = [ (e['name'], e['format'], e['url']) for e in idx.list()
+                     if args.format is None or args.format == e['format']]
+
+        print(tabulate(packages, headers='Name Format Url'.split()))
+
+    elif args.one:
 
         if args.search.startswith('index'):
             url_s = args.search
         else:
-            url_s = 'index:'+args.search
+            url_s = 'index:' + args.search
 
         try:
             u = parse_app_url(url_s)
@@ -53,6 +64,21 @@ def run_search(args):
 
         except AppUrlError as e:
             err(f"Failed to resolve: {str(u)}; {str(e)}")
+
+    else:
+
+        idx = SearchIndex(search_index_file())
+
+        prt('Index file:', idx.path)
+
+        p = idx.search(args.search, args.format)
+
+        packages = []
+        for e in p:
+            packages.append((e['name'], e['format'], e['url']))
+
+        print(tabulate(packages, headers='Name Format Url'.split()))
+
 
 
 
