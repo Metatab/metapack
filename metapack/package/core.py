@@ -36,8 +36,6 @@ class Downloader(_Downloader):
     def download(self, url):
         return super().download(url)
 
-
-
 class PackageBuilder(object):
 
     type_code = 'unk'
@@ -45,8 +43,6 @@ class PackageBuilder(object):
 
     def __init__(self, source_ref=None, package_root = None,  callback=None, env=None):
         from metapack.doc import MetapackDoc
-
-        #assert isinstance(package_root, (type(None), MetapackPackageUrl)), (type(package_root), package_root)
 
         self._downloader = source_ref._downloader
         self._cache = self._downloader.cache
@@ -124,6 +120,11 @@ class PackageBuilder(object):
     @property
     def package_name(self):
         return slugify(self.doc.get_value('Root.Name'))
+
+    @property
+    def nv_package_name(self):
+        """Non versioned package name"""
+        return slugify(self.doc.as_version(None))
 
     @property
     def sections(self):
@@ -570,6 +571,21 @@ class PackageBuilder(object):
             unlink(to_path)
 
         symlink(from_path, to_path)
+
+    def move_to_nv_name(self):
+        """After a save, move a file package to a non-versioned name"""
+
+        from os.path import abspath, islink
+        from os import unlink, rename
+
+        nv_name = self.doc.as_version(None)
+
+        from_path =  abspath(self._last_write_path or self.package_path.path)
+
+        to_path = join(dirname(from_path), nv_name + self.type_suffix)
+
+        rename(from_path, to_path)
+
 
     def is_older_than_metadata(self):
         """

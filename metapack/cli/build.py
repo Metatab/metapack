@@ -40,6 +40,14 @@ def build(subparsers):
     parser.add_argument('-F', '--force', action='store_true', default=False,
                              help='Force some operations, like updating the name and building packages')
 
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument('-n', '--nonversion-name', action='store_true', default=False,
+                        help='Write file packages with non-versioned names')
+
+    group.add_argument('-N', '--nonversion-link', action='store_true', default=False,
+                        help='Create links with nonversioned names to file packages')
+
     parser.set_defaults(handler=None)
 
 
@@ -126,13 +134,19 @@ def metatab_derived_handler(m):
             (hasattr(m.args, 'filesystem') and m.args.filesystem is not False)):
         update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
 
+    nv_name = m.args.nonversion_name
+    nv_link = m.args.nonversion_link
+
     try:
 
         # Always create a filesystem package before ZIP or Excel, so we can use it as a source for
         # data for the other packages. This means that Transform processes and programs only need
         # to be run once.
-        if any([m.args.filesystem, m.args.excel, m.args.zip]):
-            _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force)
+
+        # all_build_opts = [m.args.filesystem, m.args.excel, m.args.zip, m.args.csv]
+
+        if True :
+            _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force, False, nv_link)
             create_list.append(('fs', url, created))
 
             m.mt_file = url
@@ -140,15 +154,15 @@ def metatab_derived_handler(m):
             env = {}  # Don't need it anymore, since no more programs will be run.
 
         if m.args.excel is not False:
-            _, url, created = make_excel_package(m.mt_file, package_dir, m.cache, env, m.args.force)
+            _, url, created = make_excel_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
             create_list.append(('xlsx', url, created))
 
         if m.args.zip is not False:
-            _, url, created = make_zip_package(m.mt_file, package_dir, m.cache, env, m.args.force)
+            _, url, created = make_zip_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
             create_list.append(('zip', url, created))
 
         if m.args.csv is not False:
-            _, url, created = make_csv_package(m.mt_file, package_dir, m.cache, env, m.args.force)
+            _, url, created = make_csv_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
             create_list.append(('csv', url, created))
 
     except PackageError as e:

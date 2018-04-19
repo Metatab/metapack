@@ -14,7 +14,7 @@ from .html import linkify
 from .util import slugify
 from metapack.package.core import Downloader
 from rowgenerators import Source, parse_app_url
-from rowgenerators.exceptions import RowGeneratorError
+from rowgenerators.exceptions import RowGeneratorError, AppUrlError
 from metapack.util import datetime_now
 from metapack.exc import MetatabFileNotFound
 
@@ -227,10 +227,16 @@ class MetapackDoc(MetatabDoc):
         ]
 
         def resource_repr(r, anchor=kwargs.get('anchors', False)):
+
+            try:
+                resolved_url = r.resolved_url if hasattr(r, 'resolved_url') else r.value
+            except AppUrlError:
+                resolved_url = r.value
+
             return "<p><strong>{name}</strong> - <a target=\"_blank\" href=\"{url}\">{url}</a> {description}</p>" \
                 .format(name='<a href="#resource-{name}">{name}</a>'.format(name=r.name) if anchor else r.name,
                         description=r.get_value('description', ''),
-                        url=r.resolved_url if hasattr(r, 'resolved_url') else r.value)
+                        url=resolved_url)
 
         def documentation():
 
