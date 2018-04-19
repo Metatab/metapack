@@ -178,7 +178,7 @@ def get_table(doc, name):
 PACKAGE_PREFIX = '_packages'
 
 
-def _exec_build(p, package_root, force, extant_url_f, post_f):
+def _exec_build(p, package_root, force,  nv_name, extant_url_f, post_f):
     from metapack import MetapackUrl
 
     if force:
@@ -208,10 +208,13 @@ def _exec_build(p, package_root, force, extant_url_f, post_f):
 
     post_f()
 
+    if nv_name:
+        p.move_to_nv_name()
+
     return p, MetapackUrl(url, downloader=package_root.downloader), created
 
 
-def make_excel_package(file, package_root, cache, env, force):
+def make_excel_package(file, package_root, cache, env, force, nv_name=None, nv_link=False):
     from metapack.package import ExcelPackageBuilder
 
     assert package_root
@@ -219,12 +222,12 @@ def make_excel_package(file, package_root, cache, env, force):
     p = ExcelPackageBuilder(file, package_root, callback=prt, env=env)
 
     return _exec_build(p,
-                       package_root, force,
+                       package_root, force,  nv_name,
                        lambda p: p.package_path.path,
-                       lambda: p.create_nv_link())
+                       lambda: p.create_nv_link() if nv_link else None)
 
 
-def make_zip_package(file, package_root, cache, env, force):
+def make_zip_package(file, package_root, cache, env, force, nv_name=None, nv_link=False):
     from metapack.package import ZipPackageBuilder
 
     assert package_root
@@ -232,12 +235,12 @@ def make_zip_package(file, package_root, cache, env, force):
     p = ZipPackageBuilder(file, package_root, callback=prt, env=env)
 
     return _exec_build(p,
-                       package_root, force,
+                       package_root, force, nv_name,
                        lambda p: p.package_path.path,
-                       lambda: p.create_nv_link())
+                       lambda: p.create_nv_link() if nv_link else None)
 
 
-def make_filesystem_package(file, package_root, cache, env, force):
+def make_filesystem_package(file, package_root, cache, env, force, nv_name=None, nv_link=False):
     from os.path import join
 
     from metapack.package import FileSystemPackageBuilder
@@ -248,12 +251,12 @@ def make_filesystem_package(file, package_root, cache, env, force):
     p = FileSystemPackageBuilder(file, package_root, callback=prt, env=env)
 
     return _exec_build(p,
-                       package_root, force,
+                       package_root, force, nv_name,
                        lambda p: join(p.package_path.path.rstrip('/'), DEFAULT_METATAB_FILE),
-                       lambda: p.create_nv_link())
+                       lambda: p.create_nv_link() if nv_link else None )
 
 
-def make_csv_package(file, package_root, cache, env, force):
+def make_csv_package(file, package_root, cache, env, force, nv_name=None, nv_link=False):
     from metapack.package import CsvPackageBuilder
 
     assert package_root
@@ -261,9 +264,9 @@ def make_csv_package(file, package_root, cache, env, force):
     p = CsvPackageBuilder(file, package_root, callback=prt, env=env)
 
     return _exec_build(p,
-                       package_root, force,
+                       package_root, force,  nv_name,
                        lambda p: p.package_path.path,
-                       lambda: p.create_nv_link())
+                       lambda: p.create_nv_link() if nv_link else None)
 
 
 def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-read'):

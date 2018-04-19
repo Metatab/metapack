@@ -18,13 +18,13 @@ from tableintuit import RowIntuitError
 
 downloader = Downloader()
 
-def add(subparsers):
+def url(subparsers):
     parser = subparsers.add_parser(
         'add',
         help='Add resource urls to a package',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
-    parser.set_defaults(run_command=run_add)
+    parser.set_defaults(run_command=run_url)
 
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
@@ -46,7 +46,7 @@ def add(subparsers):
 
 
 
-def run_add(args):
+def run_url(args):
 
     m = MetapackCliMemo(args, downloader)
 

@@ -175,7 +175,7 @@ class TestIPython(unittest.TestCase):
 
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
 
-        _, fs_url, created = make_filesystem_package(m, package_dir, get_cache(), {}, False)
+        _, fs_url, created = make_filesystem_package(m, package_dir, get_cache(), {}, False, False, False)
 
         print(fs_url)
 

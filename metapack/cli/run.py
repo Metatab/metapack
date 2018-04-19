@@ -178,9 +178,9 @@ def run_run(args):
             header = ['Column Name'] + ['Row {}'.format(i) for i in range(1,len(rows[1])) ]
             rows = [header] + rows
 
-        # Only display the colums that will fit in the terminal window
+        # Only display the columns that will fit in the terminal window
         # If I were good, this would be a comprehension
-        max_lengths = [0] * len(rows[0])
+        max_lengths = [0] * len(list(rows[0]))
         for row in rows:
             for i, col in enumerate(row):
                 v = str(col)

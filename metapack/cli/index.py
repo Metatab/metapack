@@ -10,12 +10,14 @@ The program uses the Root.Distributions in the source package to locate packages
 
 
 from metapack.package import *
+from metapack.index import SearchIndex, search_index_file
+from metapack.exc import MetatabFileNotFound
 from rowgenerators import parse_app_url
 from rowgenerators.appurl.file import FileUrl
 from rowgenerators.exceptions import RowGeneratorError
 from .core import MetapackCliMemo as _MetapackCliMemo, new_search_index
 from .core import err, prt, debug_logger
-from metapack.index import SearchIndex, search_index_file
+
 from tabulate import tabulate
 
 downloader = Downloader()
@@ -57,7 +59,7 @@ def walk_packages(args, u):
     if not isdir(u.path):
         try:
             yield open_package(u.path)
-        except RowGeneratorError as e:
+        except (RowGeneratorError, MetatabFileNotFound) as e:
             pass
 
         return
@@ -79,7 +81,7 @@ def walk_packages(args, u):
             seen.add(str(p.ref))
             continue
 
-        except RowGeneratorError as e:
+        except (RowGeneratorError, MetatabFileNotFound) as e:
             # directory is not a package, carry on
             pass
 
@@ -90,7 +92,7 @@ def walk_packages(args, u):
                     if str(p.ref) not in seen:
                         yield p
                     seen.add(str(p.ref))
-                except RowGeneratorError as e:
+                except (RowGeneratorError, MetatabFileNotFound) as e:
                     # directory is not a package, carry on
                     pass
 
@@ -121,8 +123,4 @@ def index(args):
         for p in walk_packages(args, u):
             idx.add(p)
 
-
         idx.write()
-
-
-
