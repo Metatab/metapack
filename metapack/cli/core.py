@@ -296,7 +296,7 @@ def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=Fal
 
     o_name = doc.find_first_value("Root.Name", section=['Identity', 'Root'])
 
-    updates = doc.update_name(force=force)
+    updates = doc.update_name(force=force, report_unchanged=report_unchanged)
 
     for u in updates:
         prt(u)
@@ -342,7 +342,7 @@ def write_doc(doc, mt_file):
         # warn("Not writing back to url ", mt_file)
 
 
-def process_schemas(mt_file, cache=None, clean=False):
+def process_schemas(mt_file, cache=None, clean=False, report_found=True):
     from rowgenerators.exceptions import SourceError, SchemaError
     from requests.exceptions import ConnectionError
     from itertools import islice
@@ -375,11 +375,14 @@ def process_schemas(mt_file, cache=None, clean=False):
         datatype_count = sum(1 for c in r.columns() if c['datatype'])
 
         if schema_term and col_count == datatype_count:
-            prt("Found table for '{}'; skipping".format(r.schema_name))
+            if report_found:
+                prt("Found table for '{}'; skipping".format(r.schema_name))
             continue
 
         if col_count != datatype_count:
-            prt(f"Found table for '{r.schema_name}'; but {col_count-datatype_count} columns don't have datatypes")
+
+            prt("Found table for '{}'; but {} columns don't have datatypes"
+                .format(r.schema_name, col_count-datatype_count))
 
         prt("Processing {}".format(r.name))
 

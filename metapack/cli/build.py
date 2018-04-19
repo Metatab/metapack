@@ -10,7 +10,7 @@ import re
 from metapack import MetapackDoc, Downloader
 from metapack.cli.core import prt, err, warn, metatab_info, get_lib_module_dict, write_doc, \
     make_excel_package, make_filesystem_package, make_csv_package, make_zip_package, update_name, \
-    extract_path_name, MetapackCliMemo
+    extract_path_name, MetapackCliMemo, process_schemas
 from rowgenerators import parse_app_url
 from rowgenerators.exceptions import SourceError
 from rowgenerators.util import clean_cache
@@ -122,22 +122,22 @@ def metatab_derived_handler(m):
         # file packages will be built to package_dir
         package_dir = parse_app_url(m.args.package_directory)
 
-    if (m.args.excel is not False or m.args.zip is not False or
-            (hasattr(m.args, 'filesystem') and m.args.filesystem is not False)):
-        update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
+    update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
+
+    process_schemas(m.mt_file, cache=m.cache, clean=m.args.clean, report_found=False)
 
     try:
 
         # Always create a filesystem package before ZIP or Excel, so we can use it as a source for
         # data for the other packages. This means that Transform processes and programs only need
         # to be run once.
-        if any([m.args.filesystem, m.args.excel, m.args.zip]):
-            _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force)
-            create_list.append(('fs', url, created))
 
-            m.mt_file = url
+        _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force)
+        create_list.append(('fs', url, created))
 
-            env = {}  # Don't need it anymore, since no more programs will be run.
+        m.mt_file = url
+
+        env = {}  # Don't need it anymore, since no more programs will be run.
 
         if m.args.excel is not False:
             _, url, created = make_excel_package(m.mt_file, package_dir, m.cache, env, m.args.force)

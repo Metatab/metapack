@@ -86,7 +86,8 @@ setup_d = dict(
 
         ],
         'mt.subcommands': [
-            'pack=metapack.cli.metapack:metapack',
+            'add=metapack.cli.add:add',
+            'update=metapack.cli.update:update',
             'build=metapack.cli.build:build',
             's3=metapack.cli.metas3:metas3',
             'index=metapack.cli.index:index_args',

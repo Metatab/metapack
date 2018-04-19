@@ -18,13 +18,13 @@ from tableintuit import RowIntuitError
 
 downloader = Downloader()
 
-def metapack(subparsers):
+def add(subparsers):
     parser = subparsers.add_parser(
-        'pack',
-        help='Manipulate data packages',
+        'add',
+        help='Add resource urls to a package',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
-    parser.set_defaults(run_command=run_metapack)
+    parser.set_defaults(run_command=run_add)
 
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
@@ -33,52 +33,20 @@ def metapack(subparsers):
 
     parser.set_defaults(handler=None)
 
-    ##
-    ## Build Group
+    group = parser.add_mutually_exclusive_group()
 
-    build_group = parser.add_argument_group('Manipulate Metatab Files', 'Create and alter metatab files')
 
-    build_group.add_argument('-c', '--create', action='store', nargs='?', default=False,
-                             help="Create a new metatab file, from named template. With no argument, uses the "
-                                  "'metatab' template ")
-
-    build_group.add_argument('-a', '--add', default=False,
+    group.add_argument('-a', '--add', default=False,
                              help='Add a file or url to the resources. With a directory add a data files in the directory. '
-                                  'If given a URL to a web page, will add all links that point to CSV, Excel Files and'
+                                  'If given a URL to a web page, will add all links that point to CSV, Excel Files and '
                                   'data files in ZIP files. (Caution: it will download and cache all of these files. )')
 
-    build_group.add_argument('-s', '--schemas', default=False, action='store_true',
-                             help='Rebuild the schemas for files referenced in the resource section')
-
-    build_group.add_argument('-u', '--update', action='store_true', default=False,
-                             help="Update the Name from the Datasetname, Origin and Version terms")
-
-    build_group.add_argument('-F', '--force', action='store_true', default=False,
-                             help='Force some operations, like updating the name and building packages')
-
-    ##
-    ## Administration Group
-
-    admin_group = parser.add_argument_group('Administration', 'Information and administration')
-
-    admin_group.add_argument('--clean-cache', default=False, action='store_true',
-                             help="Clean the download cache")
-
-    admin_group.add_argument('-C', '--clean', default=False, action='store_true',
-                             help="For some operations, like updating schemas, clear the section of existing terms first")
-
-    admin_group.add_argument('-i', '--info', default=False, action='store_true',
-                             help="Show configuration information")
-
-    admin_group.add_argument('-n', '--name', default=False, action='store_true',
-                             help="Print the name of the package")
-
-    admin_group.add_argument('-E', '--enumerate',
+    group.add_argument('-E', '--enumerate',
                              help='Enumerate the resources referenced from a URL. Does not alter the Metatab file')
 
 
 
-def run_metapack(args):
+def run_add(args):
 
     m = MetapackCliMemo(args, downloader)
 

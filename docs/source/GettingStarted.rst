@@ -14,7 +14,7 @@ For development, you'll probably want the development package, with sub-mdules f
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/Metatab/metapack-dev.git
+	$ git clone --recursive https://github.com/Metatab/metapack-dev.git
 	$ cd metapack-dev
 	$ bin/init-develop.sh
 
@@ -41,7 +41,11 @@ To create a new package, use the :ref:`mp new program <mp_new>` .
 
 .. code-block:: bash
 
-	$ mp new -o metatab.org -d tutorial 
+	$ mp new -o metatab.org -d tutorial -L -E -T "Quickstart Example Package" 
+	
+This command will create a directory named :file:`metatab.org-tutorial`,
+which will contain a :file:`metadata.csv` file, the Metatab-formated metadata
+file for the package. 
 	
 The :strong:`origin` and :strong:`dataset` options are required. These
 options, along with :strong:`time`, :strong:`space`, :strong:`grain`,
@@ -50,22 +54,21 @@ data package, which is also used in the name of the directory for the package.
 The origin should usually be a second level internet domain, such as
 'metatab.org'.
 
-This command will create a directory names :file:`metatab.org-tutorial`,
-which will contain a :file:`metadata.csv` file, the Metatab-formated metadata
-file for the package. 
+The :strong:`-E` option will generate example data, and the :strong:`-L` option will create a :file:`pylib` directory that hold some python code for generating rows. 
 
-If you need to change the name of the package later, you can edityt the
-identifiying terms int the metadata file. After setting the ``Dataset``,
+If you need to change the name of the package later, you can edit the
+identifiying terms in the metadata file. After setting the ``Dataset``,
 ``Origin``, ``Version``, ``Time`` or ``Space`` and saving the file, , run
 ``metapack -u`` to update ``Name``:
 
 .. code-block:: bash
 
-    $ mp pack -u
+	$ cd metatab.org-tutorial
+	$ mp update -n
 	Changed Name
 	Name is:  metatab.org-tutorial-2018-1
 
-Otherwize, you will usually still want to edit the file to set the `Title` and
+Otherwise, you will usually still want to edit the file to set the `Title` and
 `Description` terms.
 
 Adding Data References
@@ -79,7 +82,7 @@ directly in the package. We define the paths or URLs to data files with the
 ``DataFile`` term.
 
 For the ``Datafile`` term, you can add entries directly, but it is easier to
-use the ``metapack`` program to add them. The ``metapack -a`` program will
+use the :command:`mp url` program to add them. The ``metapack -a`` program will
 inspect the file for you, finding internal files in ZIP files and creating the
 correct URLs for Excel files.
 
