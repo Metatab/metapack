@@ -82,6 +82,9 @@ def dump_schemas(m):
         prt('\nSelect a resource to display the schema for:\n')
         list_rr(m.doc)
         prt('')
+        prt("Specify the resource as a fragment, escaping it if the '#' is the first character. For instance: ")
+        prt("  mp info -s \#resource_name")
+        prt('')
         sys.exit(0)
 
     dump_schema(m, r)

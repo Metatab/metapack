@@ -79,10 +79,10 @@ package we are creating here is a filesystem package, and will usually
 reference the URLs to data on the web. Later, we will generate other packages,
 such as ZIP or Excel files, and the data will be downloaded and included
 directly in the package. We define the paths or URLs to data files with the
-``DataFile`` term.
+``Datafile`` term in the ``Resources`` section. 
 
 For the ``Datafile`` term, you can add entries directly, but it is easier to
-use the :command:`mp url` program to add them. The ``metapack -a`` program will
+use the :command:`mp url` program to add them. :command:`mp url` program will
 inspect the file for you, finding internal files in ZIP files and creating the
 correct URLs for Excel files.
 
@@ -90,35 +90,28 @@ If you have made changes to the ``metadata.csv`` file, save it, then run:
 
 .. code-block:: bash
 
-    $ metapack -a http://public.source.civicknowledge.com/example.com/sources/test_data.zip
+    $ mp url -a  http://public.source.civicknowledge.com/example.com/sources/test_data.zip
 
 The ``test_data.zip`` file is a test file with many types of tabular datafiles
-within it. The ``metapack -a`` command will download it, open it, find all of
-the data files int it, and add URLs to the metatab. If any of the files in the
-zip file are Excel format, it will also create URLs for each of the tabs.
+within it. The :command:`mp url` command will download it, open it, find all of
+the metadata files int it, and add URLs to the metatab. If any of the files in
+the zip file are Excel format, it will also create URLs for each of the tabs.
 
-( This file is large and may take awhile. If you need a smaller file, try:
-http://public.source.civicknowledge.com/example.com/sources/renter_cost.csv )
+This file is large and may take awhile. If you need a smaller file, try:
+http://public.source.civicknowledge.com/example.com/sources/renter_cost.csv
 
-The ``metapack -a`` command also works on directories and webpages. For
-instance, if you wanted to scrape all of the 60 data files for the California
-English Language Development Test, you could run:
-
-.. code-block:: bash
-
-    metapack -a http://celdt.cde.ca.gov/research/admin1516/indexcsv.asp
 
 Now reload the file. The Resource section should have 9 ``Datafile`` entries,
 all of them with fragments. The fragments will be URL encoded, so are a bit
-hard to read. %2F is a '/' and %3B is a ';'. The ``metatab -a`` program will
-also add a name, and try to get where the data starts and which lines are for
-headers.
+hard to read. %2F is a '/' and %3B is a ';'. The :command:`mp url` program will
+also add a name, and try to figure out on which row the data starts and which
+lines are for headers.
 
-Note that the ``unicode-latin1`` and ``unicode-utf8`` do not have values for
-StartLine and HeaderLines. This is because the row intuiting process failed to
-categorize the lines, because all of them are mostly strings. In these cases,
-download the file and examine it. For these two files, you can enter '0' for
-``HeaderLines`` and '1' for ``StartLine.``
+Note that the ``unicode-latin1`` and ``unicode-utf8`` files do not have values
+for HeaderLines and Startline. This is because the row intuiting process failed
+to categorize the lines, because all of them are mostly strings. In these
+cases, download the file and examine it. For these two files, you can enter '0'
+for ``HeaderLines`` and '1' for ``StartLine``, or leave those values empty and Metatab will use 0 and 1 
 
 If you enter the ``Datafile`` terms manually, you should enter the URL for the
 datafile, ( in the cell below "Resources" ) and the ``Name`` value. If the URL
@@ -155,37 +148,31 @@ and cache the URL resource, then try to interpret it as a CSV or Excel file.
     3.0                       0O0P05  525.0       17.6481586482953  45.2196382428941  13.2887199930555
     4.0                       0O0P07  352.0       28.0619645779719  47.4393530997305  17.3833286873892
 
-
-( As of metatab 1.8, rowgenerator 0.0.7, some files with encodings that are not
-ascii or utf-8 will fail for Python2, but will work for Python3. )
-
 Or just download the file and look at it. In this case, for both
 `unicode-latin1` and `unicode-utf8` you can see that the headers are on line 0
 and the data starts on line 1 so enter those values into the `metadata.csv`
 file. Setting the ``StartLine`` and ``HeaderLines`` values is critical for
 properly generating schemas.
 
-Generating Schemas
-++++++++++++++++++
+The URLs used in the resources, and the generators that produce row data from
+the data specified by the URLs are implemented in the `rowgenerators module
+<https://github.com/Metatab/rowgenerators>`_ . Refer to the `rowgenerators
+documentation <http://row-generators.readthedocs.io/en/latest/>`_ for more
+details about the URL structure.
 
-Before generating schemas, be sure that the ``StartLine`` and ``HeaderLines``
-properties are set for every ``DataFile`` term.
+Building Packages
++++++++++++++++++
 
-Now that the ``metadata.csv`` has resources specified, you can generate schemas
-for the resources with the `metapack -s` program. First, save the file, then
-run:
+To build data packages from a source package, use the :ref:`mp build program
+<mp_build>`.
 
 .. code-block:: bash
 
-    $ metapack -s
-
-Re-open ``metadata.csv`` and you should see entries for tables and columns for
-each of the Datafiles. After creating the schema, you should edit the
-description ane possible change the alternate names (``AltName`` terms. ) The
-alternate names are versions of the column headers that follow typical naming
-rules for columns. If an AltName is specified, iterating over the resource out
-of the package will use the AltName, rather than that column name.
-
+	$ mp build
+	
+Before the build starts, Metapack will ensure that all of the ``Datafile``
+terms have associated schemas, and try to autogenerate any that do not. You can
+also trigger this process manually with :command:`mp update -s`.
 
 Using a Package
 +++++++++++++++

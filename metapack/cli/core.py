@@ -36,7 +36,7 @@ def prt(*args, **kwargs):
 
 
 def warn(*args, **kwargs):
-    logger_err.warn(' '.join(str(e) for e in args), **kwargs)
+    logger_err.warning(' '.join(str(e) for e in args), **kwargs)
 
 
 def err(*args, **kwargs):

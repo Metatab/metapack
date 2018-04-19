@@ -22,7 +22,8 @@ mp info: Show information about packages
     :path: info
     
     
-    
+.. _mp_build: 
+
 mp build: Building Packages
 ---------------------------
 

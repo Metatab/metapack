@@ -15,14 +15,46 @@ from rowgenerators import parse_app_url
 from rowgenerators.exceptions import SourceError
 from rowgenerators.util import clean_cache
 from tableintuit import RowIntuitError
+import argparse
 
 downloader = Downloader()
 
 def build(subparsers):
+    """
+    Build source packages.
+
+    The mp build program runs all of the resources listed in a Metatab file and
+    produces one or more Metapack packages with those resources localized. It
+    will always try to produce a Filesystem package, and may optionally produce
+    Excel, Zip and CSV packages.
+
+    Typical usage is to be run inside a source package directory with
+
+    .. code-block:: bash
+
+        $ mp build
+
+    To build all of the package types: 
+    
+    .. code-block:: bash
+
+        $ mp build -fezc
+
+    By default, packages are built with versioned names. The
+    :option:`--nonversion-name` option will create file packages with
+    non-versioned name, and the :option:`--nonversioned-link` option will
+    produce a non-versioned soft link pointing to the versioned file.
+
+
+    """
+
     parser = subparsers.add_parser(
         'build',
         help='Build derived packages',
+        description=build.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
+
 
     parser.set_defaults(run_command=run_metapack)
 
