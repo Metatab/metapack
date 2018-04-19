@@ -20,7 +20,16 @@ mp info: Show information about packages
     :ref: metapack.cli.mp.base_parser
     :prog: mp
     :path: info
+  
+.. _mp_run:
     
+mp run: Run resoruces and generate tabular data
+-----------------------------------------------
+
+.. argparse::
+    :ref: metapack.cli.mp.base_parser
+    :prog: mp
+    :path: run 
     
 .. _mp_build: 
 
