@@ -6,10 +6,10 @@ Root program for metapack programs
 
 """
 
-from pkg_resources import iter_entry_points, get_distribution, DistributionNotFound
-from .core import prt, err
+from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
 import argparse
 import logging
+
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
@@ -20,6 +20,8 @@ from metapack.cli.core import  cli_init
 
 
 def base_parser():
+
+
     parser = argparse.ArgumentParser(
         prog='mp',
         description='Create and manipulate metatab data packages. ')
@@ -49,6 +51,7 @@ def base_parser():
     return parser
 
 def mp():
+    from .core import prt, err
 
     parser = base_parser()
 

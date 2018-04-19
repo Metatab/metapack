@@ -1,2 +1,3 @@
+metapack
 Sphinx
 sphinx-argparse
