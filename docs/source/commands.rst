@@ -7,7 +7,7 @@ mp new: Creating New Packages
 -----------------------------
 
 .. argparse::
-    :ref: metapack.cli.mp._build_parser_for_docs
+    :ref: metapack.cli.mp.base_parser
     :prog: mp
     :path: new
     
@@ -17,7 +17,7 @@ mp info: Show information about packages
 ----------------------------------------
 
 .. argparse::
-    :ref: metapack.cli.mp._build_parser_for_docs
+    :ref: metapack.cli.mp.base_parser
     :prog: mp
     :path: info
     
@@ -27,7 +27,7 @@ mp build: Building Packages
 ---------------------------
 
 .. argparse::
-    :ref: metapack.cli.mp._build_parser_for_docs
+    :ref: metapack.cli.mp.base_parser
     :prog: mp
     :path: build
     

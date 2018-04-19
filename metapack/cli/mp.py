@@ -41,16 +41,16 @@ def base_parser():
 
     subparsers = parser.add_subparsers(help='Commands')
 
-    return parser, subparsers
-
-def mp():
-
-    parser, subparsers = base_parser()
-
     for ep in iter_entry_points(group='mt.subcommands'):
 
         f = ep.load()
         f(subparsers)
+
+    return parser
+
+def mp():
+
+    parser = base_parser()
 
     args = parser.parse_args()
 
