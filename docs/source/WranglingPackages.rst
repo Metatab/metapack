@@ -3,7 +3,6 @@ Guide to Wrangling Metatab Packages
 
 .. warning::
    This section hasn't been updated recently, and is probably only of historically suggestive value. 
-   
 
 Setting the Name
 ----------------
