@@ -160,8 +160,25 @@ the data specified by the URLs are implemented in the `rowgenerators module
 documentation <http://row-generators.readthedocs.io/en/latest/>`_ for more
 details about the URL structure.
 
+Adding Row Generators
+---------------------
+
+If you've examined the :file:`metadata.csv` file in the example package, you'll have noticed that one of the ``Datafile`` terms is not a normal url: 
+
+::
+
+	Section: Resoruces
+	Datafile: python:pylib#row_generator
+
+This reference is for a function, written in Python, that will be called to
+yield row data. The :code:`pylib` part of the URL is the module name, in this
+case it is the module in the packages :file:`pylib` subdirectory, and
+:code:`row_generator` is the function name.
+
+See :doc:`GeneratingRows` for more details about row generating functions and programs. 
+
 Building Packages
-+++++++++++++++++
+-----------------
 
 To build data packages from a source package, use the :ref:`mp build program
 <mp_build>`.
@@ -189,12 +206,24 @@ built package at :file:`_packages/metatab.org-tutorial-1`. This package
 contains:
 
 ::
-	README.md
-	data
-	datapackage.json
-	docs
-	index.html
-	metadata.csv
+
+	├── README.md
+	├── data
+	│   ├── random-names.csv
+	│   ├── random_names.csv
+	│   ├── renter_cost-2.csv
+	│   ├── renter_cost.csv
+	│   ├── renter_cost_excel07.csv
+	│   ├── renter_cost_excel97.csv
+	│   ├── row_generator.csv
+	│   ├── simple-example-altnames.csv
+	│   ├── simple-example.csv
+	│   ├── unicode-latin1.csv
+	│   └── unicode-utf8.csv
+	├── datapackage.json
+	├── docs
+	├── index.html
+	└── metadata.csv
 
 The generated files include: 
 
@@ -203,7 +232,12 @@ The generated files include:
 - :file:`data`. A directory holding CSV versions of all of the resources.
 - :file:`metadata.csv`. An updates Metatab file with references to the local data sets and the date and time the package was created. 
 
-You can also generate other package formats, including CSV, Excel and Zip. The Zip file format is the same as the Filesystem directory, but is zipped. The Excel format has only the metadata and data files ( no :file:`index.html` or other documentation ) but is a convenient single file. The CSV file just references the file locations of the Filesystem package, and is primarily used when the filesystem package is stored on the web. 
+You can also generate other package formats, including CSV, Excel and Zip. The
+Zip file format is the same as the Filesystem directory, but is zipped. The
+Excel format has only the metadata and data files ( no :file:`index.html` or
+other documentation ) but is a convenient single file. The CSV file just
+references the file locations of the Filesystem package, and is primarily used
+when the filesystem package is stored on the web.
 
 To build all of the other file packages: 
 
@@ -218,15 +252,19 @@ data, rather than made an error, you should increment the version number in the
 `Root.Version` term and build again.
 
 Referencing Metatab Files
-+++++++++++++++++++++++++
+-------------------------
 
-Now that some packages are built, it is a good time to mention how Metapack programs refer to packages. Nearly all of the programs take an optional :strong:`metatabfile` argument. This argument can be: 
+Now that some packages are built, it is a good time to mention how Metapack
+programs refer to packages. Nearly all of the programs take an optional
+:strong:`metatabfile` argument. This argument can be:
 
 - Empty. It will default to :file:`metadata.csv` in the current directory
 - A path to a directory, which will be assumed to be a filesystem package with a :file:`metadata.csv` file inside it.
 - A path to a file, which will be guessed, by the extension, to be a ZIP, Excel or CSV package. 
 
-For instance, from the directory containing the example source package, all of the following commands will return the fully-versioned package name, "metatab.org-tutorial-1"
+For instance, from the directory containing the example source package, all of
+the following commands will return the fully-versioned package name,
+"metatab.org-tutorial-1"
 
 .. code-block:: bash
 
@@ -237,10 +275,13 @@ For instance, from the directory containing the example source package, all of t
   $ mp info metatab.org-tutorial/_packages/metatab.org-tutorial-1.xlsx 
   $ mp info metatab.org-tutorial/_packages/metatab.org-tutorial-1.zip
 
-As we will see in the next section ( and as you saw when adding URLs to the packag  ) a package URL can also have a fragment, which is a string that starts with '#', appended to the URL. These are used to identify a resource within the package. 
+As we will see in the next section ( and as you saw when adding URLs to the
+package ) a package URL can also have a fragment, which is a string that starts
+with '#', appended to the URL. These are used to identify a resource within the
+package.
 
 Examining Packages
-++++++++++++++++++
+------------------
 
 There are a few programs you can use to examine packages and view their
 resources. The most important is :ref:`mp run program <mp_run>`. The
@@ -269,6 +310,79 @@ you see the tabuar data to test configurations. With no arguments, the program w
 	Resource  renter_cost_excel07      ...renter_cost_excel07.xlsx;Sheet1&encoding=ascii
 	Resource  renter_cost_excel97      ...renter_cost_excel97.xls;Sheet1&encoding=ascii
 	Resource  renter_cost-2            ...renter_cost.tsv&encoding=ascii
+
+To run one of thes resources, you add it to the URL of the package as a fragment, appending a '#' and then the resorurce name. If the package is the local directory, the URL is empty, but the shell will interpret the '3' as a comment, so you'll need to escape it. So, to show the random names in the current source package: 
+
+.. code-block:: bash
+
+	$ mp run \#random_names
+	
+To show the same resource in one of the buld packages: 
+
+.. code-block:: bash
+
+	$ mp run _packages/metatab.org-tutorial-1.zip#random_names
+
+Having the CSV dumped to the terminal isn't very informative for large files, so there are some options that are better suited for development. The :option:`-T` will produce a pretty table of the first 20 rows:
+
+.. code-block:: bash
+
+	$ mp run -T \#random_names 
+	┌──────────────────┬───────────────┐
+	│ name             │ size          │
+	├──────────────────┼───────────────┤
+	│ Gabriel Rowland  │ 54.9378140631 │
+	├──────────────────┼───────────────┤
+	│ Jerry Gay        │ 50.3511258436 │
+	├──────────────────┼───────────────┤
+	│ Tucker Good      │ 48.6469162116 │
+	├──────────────────┼───────────────┤
+	│ Noah Fowlers     │ 49.0099728493 │
+	...
+
+This view is useful for viewing the rows, but it will truncate columns to the width of the terminal, so if you want to review all of the columns, you can "pivot" the table, transposing rows into columns. 
+
+.. code-block:: bash
+
+	$ mp run -T -p \#renter_cost_excel07
+	┌─────────────────────────┬──────────────────┬──────────────────┐
+	│ Column Name             │ Row 1            │ Row 2            │
+	├─────────────────────────┼──────────────────┼──────────────────┤
+	│ id                      │ 1                │ 2                │
+	├─────────────────────────┼──────────────────┼──────────────────┤
+	│ gvid                    │ 0O0P01           │ 0O0P03           │
+	├─────────────────────────┼──────────────────┼──────────────────┤
+	│ renter_cost_gt_30       │ 1447             │ 5581             │
+	├─────────────────────────┼──────────────────┼──────────────────┤
+	│ renter_cost_gt_30_cv    │ 13.6176070904818 │ 6.23593207100335 │
+	├─────────────────────────┼──────────────────┼──────────────────┤
+	│ owner_cost_gt_30_pct    │ 42.2481751824818 │ 49.280353200883  │
+	├─────────────────────────┼──────────────────┼──────────────────┤
+	│ owner_cost_gt_30_pct_cv │ 8.27214070699712 │ 4.9333693053569  │
+	└─────────────────────────┴──────────────────┴──────────────────┘
+
+This view will show as many rows ( which are now columns ) as the terminal
+width can handle, so you may want to restrict the width of the columns with the
+:option:`-R` option.
+
+Another useful option for analysis is the sample option :option:`-S`, which
+will run the resource and collect the most common values for a single column:
+
+.. code-block:: bash
+
+	$ mp run \#random_names  -S name 
+	Value              Count
+	---------------  -------
+	Gabriel Rowland        1
+	Jerry Gay              1
+	Tucker Good            1
+	Noah Fowlers           1
+	Chase Mcmillan         1
+	Brody Grimes           1
+	Dylan Ferguson         1
+	Hashim Franco          1
+	Hakeem Bond            1
+	Fulton Jordan          1
 
 
 Using a Package
