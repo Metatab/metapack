@@ -39,6 +39,9 @@ def info_args(subparsers):
     group.add_argument('-N', '--root-name', default=False, action='store_true',
                        help="Print the name, without the version")
 
+    group.add_argument('-r', '--resources', default=False, action='store_true',
+                       help="List the resources in the package")
+
     group.add_argument('-s', '--schema', default=False, action='store_true',
                        help="Print a table of the common schema for all resources, or if the metatab file ref has a resource, only that one")
 
@@ -51,6 +54,8 @@ def info(args):
 
     if m.args.name:
         prt(m.doc.name)
+    elif m.args.resources:
+        list_rr(m.doc)
     elif m.args.root_name:
         prt(m.doc.as_version(None))
     elif m.args.schema:

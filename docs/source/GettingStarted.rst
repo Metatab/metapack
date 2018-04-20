@@ -399,117 +399,61 @@ The :command:`mp info` command has some use ful options for examining packages. 
 Using a Package
 +++++++++++++++
 
-At this point, the package is functionally complete, and you can check that the
-package is usable. First, list the resources with :
+At this point, the built packages are functionally complete, and you can check
+that the packages are usable. Well work with the :file:`metatab.org-tutorial-1.zip` package in the :file:`_package` subdirectory of the source package. First, list the resources with :
 
 .. code-block:: bash
 
-    $ metapack -R metadata.csv
-    random-names ...random-names.csv
-    renter_cost ...renter_cost.csv
-    simple-example-altnames ...simple-example-altnames.csv
-    simple-example ...simple-example.csv
-    unicode-latin1 ...unicode-latin1.csv
-    unicode-utf8 ...unicode-utf8.csv
-    renter_cost_excel07 ...renter_cost_excel07.xlsx%3BSheet1
-    renter_cost_excel97 ...renter_cost_excel97.xls%3BSheet1
-    renter_cost-2 ...renter_cost.tsv
+	$ mp info -r metatab.org-tutorial-1.zip
+	Type      Name                     Url
+	--------  -----------------------  --------------------------------
+	Resource  random_names             data/random_names.csv
+	Resource  row_generator            data/row_generator.csv
+	Resource  random-names             data/random-names.csv
+	Resource  renter_cost              data/renter_cost.csv
+	Resource  simple-example-altnames  data/simple-example-altnames.csv
+	Resource  simple-example           data/simple-example.csv
+	Resource  unicode-latin1           data/unicode-latin1.csv
+	Resource  unicode-utf8             data/unicode-utf8.csv
+	Resource  renter_cost_excel07      data/renter_cost_excel07.csv
+	Resource  renter_cost_excel97      data/renter_cost_excel97.csv
+	Resource  renter_cost-2            data/renter_cost-2.csv
+
 
 You can dump one of the resources as a CSV by running the same command with the
 resource name as a fragment to the name of the metatab file:
 
 .. code-block:: bash
 
-    $ metapack -R metadata.csv#simple-example
-
-or:
-
-.. code-block:: bash
-
-    $ metapack -R "#simple-example"
+    $ mp run metatab.org-tutorial-1.zip#simple-example > /tmp/simple-example.csv
 
 You can also read the resources from a Python program, with an easy way to
 convert a resource to a Pandas DataFrame.
 
 .. code-block:: python 
 
-    import metatab
+	import metapack
 
-    doc = metatab.open_package('.')  # Will look for 'metadata.csv'
+	doc = metapack.open_package('metatab.org-tutorial-1.zip')  
 
-    print(type(doc))
+	print(type(doc))
 
-    for r in doc.resources():
-        print(r.name, r.url)
-    
-    r = doc.first_resource('renter_cost')
+	for r in doc.resources():
+	    print(r.name, r.url)
 
-    # Dump the row
-    for row in r:
-        print row
+	r = doc.resource('renter_cost')
 
-
-    # Or, turn it into a pandas dataframe
-    # ( After installing pandas ) 
-    
-    df = doc.first_resource('renter_cost').dataframe()
-
-For a more complete example, see `this Jupyter notebook example
-<https://github.com/CivicKnowledge/metatab/blob/master/examples/Access%20Example
-s.ipynb>`_
-
-Making Other Package Formats
-++++++++++++++++++++++++++++
-
-The tutorial above is actually creating a data package in a directory. There are several other forms of packages that Metapack can create including Excel, ZIP and S3.
+	# Dump the row
+	for row in r:
+	    print(row)
 
 
-.. code-block:: bash
+	# Or, turn it into a pandas dataframe
+	# ( After installing pandas ) 
 
-    $ metapack -e # Make an Excel package, example.com-example_data_package-2017-us-1.xlsx
-    $ metapack -z # Make a ZIP package, example.com-example_data_package-2017-us-1.zip
+	df = doc.resource('renter_cost').dataframe()
 
-The Excel package, ``example-package.xlsx`` will have the Metatab metadata from
-metata.csv in the ``Meta`` tab, and will have one tab per resource from the
-Resources section. The ZIP package ``example-package.zip`` will have all of the
-resources in the ``data`` directory and will also include the metadata in
-`Tabular Data Package
-<http://specs.frictionlessdata.io/tabular-data-package/>`_ format in the
-``datapackage.json`` file. You can interate over the resources in these
-packages too:
-
-.. code-block:: bash
-
-    $ metapack -R example.com-example_data_package-2017-us-1.zip#simple-example
-    $ metapack -R example.com-example_data_package-2017-us-1.xlsx#simple-example
-
-The ``metapack -R`` also works with URLs:
-
-.. code-block:: bash
-
-    $ metapack -R http://devel.metatab.org/excel/example.com-example_data_package-2017-us-1.xlsx#simple-example
-    $ metapack -R http://devel.metatab.org/excel/example.com-example_data_package-2017-us-1.zip#simple-example
-
-And, you can access the packages in Python:
+	print(df.head())
 
 
-.. code-block:: python 
 
-    import metatab
-
-    doc = metatab.open_package('example-package.zip') 
-    # Or
-    doc = metatab.open_package('example-package.xlsx') 
-    
-Note that the data files in a derived package may be different that the ones in
-the source directory package. The derived data files will always have a header
-on the first line and data starting on the second line. The header will be
-taken from the data file's schema, using the ``Table.Column`` term value as the
-header name, or the ``AltName`` property, if it is defined. The names are
-always "slugified" to remove characters other than '-', '_' and '.' and will
-always be lowercase, with initial numbers removed.
-
-If the ``Datafile`` term has a ``StartLine`` property, the values will be used
-in generating the data in derived packages to select the first line for
-yielding data rows. ( The ``HeaderLines`` property is used to build the schema,
-from which the header line is generated. )
