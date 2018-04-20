@@ -28,7 +28,7 @@ these rows:
 +--------------+------------+
 	
 Will create a :code:`Root.Table` term, with a value of 'TableName' and a
-:code:`Table.Column` child. 
+:code:`Table.Column` child, with a column name of 'ColumnName'.
 
 Rows can also have properties, values in the third column of the file or
 later, which are converted to child properties. The term name for the properties is specified in a header, which is part of the section the terms are in. A Metatab document starts with a root section, but the section can be explicitly set with a :code:`Section` term. Here is an example, from the Schema section of a typical Metatab document: 
