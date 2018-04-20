@@ -394,8 +394,6 @@ The :command:`mp info` command has some use ful options for examining packages. 
 	Name    name       string
 	Size    size       number
 
-
-
 Using a Package
 +++++++++++++++
 

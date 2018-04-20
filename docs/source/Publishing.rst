@@ -2,6 +2,9 @@
 Publishing Packages
 ===================
 
+.. warning::
+   This section hasn't been updated recently, and is probably only of historically suggestive value. 
+
 The ``metasync`` program can build multiple package types and upload them to an
 S3 bucket. Typical usage is:
 
