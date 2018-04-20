@@ -167,7 +167,7 @@ If you've examined the :file:`metadata.csv` file in the example package, you'll 
 
 ::
 
-	Section: Resoruces
+	Section: Resources
 	Datafile: python:pylib#row_generator
 
 This reference is for a function, written in Python, that will be called to
@@ -383,6 +383,17 @@ will run the resource and collect the most common values for a single column:
 	Hashim Franco          1
 	Hakeem Bond            1
 	Fulton Jordan          1
+
+The :command:`mp info` command has some use ful options for examining packages. In particular, :command:`mp info -n` displays the name of the package, and :command:`mp info -s` displays the schema of a resource: 
+
+.. code-block:: bash
+
+	$ mp info -s \#random_names
+	Name    AltName    DataType    Description
+	------  ---------  ----------  -------------
+	Name    name       string
+	Size    size       number
+
 
 
 Using a Package
