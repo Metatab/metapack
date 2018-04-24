@@ -9,6 +9,7 @@ Root program for metapack programs
 from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
 import argparse
 import logging
+import sys
 
 try:
     __version__ = get_distribution(__name__).version
@@ -58,6 +59,13 @@ def mp():
     args = parser.parse_args()
 
     cli_init(log_level=logging.DEBUG if args.debug else logging.INFO)
+
+    try:
+        # Happens when no commands are specified
+        args.run_command
+    except AttributeError:
+        parser.print_help()
+        sys.exit(2)
 
     if args.version:
         prt(get_distribution('metapack'))
