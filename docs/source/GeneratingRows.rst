@@ -2,17 +2,20 @@
 Generating Rows
 ================
 
-Metatab Datafile terms can reference programs and IPython notebooks to generate rows. 
+Metatab Datafile terms can reference python functions, programs and IPython
+notebooks to generate rows.
 
-To reference a program, the ``Root.Datafile`` must be a URL with a ``program`` scheme and a relative path. Usually, the file is
-placed in a subdirectory named 'scripts' at the same level as the ``metadata.csv`` file. It must be an executable program, and
-may be any executable program.
+To reference a program, the ``Root.Datafile`` must be a URL with a ``program``
+scheme and a relative path. Usually, the file is placed in a subdirectory named
+'scripts' at the same level as the ``metadata.csv`` file. It must be an
+executable program, and may be any executable program.
 
-When a data package is created, regardless of the type, a filesystem package is created first, then other types of packages are
-created from the filesystem package. This means that the row-generating program is only run once per resource when multiple
-packages are created, and also that the program can open the Metatab package being used to run the program to access previously
-created resource files.
-
+When a data package is created, regardless of the type, a filesystem package is
+created first, then other types of packages are created from the filesystem
+package. This means that the row-generating program is only run once per
+resource when multiple packages are created, and also that the program can open
+the Metatab package being used to run the program to access previously created
+resource files.
 
 Generating Rows With Functions
 ******************************
@@ -43,27 +46,30 @@ The signature for the function is:
 	:param dict env: a dictionary of environmental variables. 
 	:return: Yields tuple or list rows. 
 
-where ``resource`` is the Metatab resource term for the ``Datafile`` term, and ``doc`` is the Metapack document.
+where ``resource`` is the Metatab resource term for the ``Datafile`` term, and
+``doc`` is the Metapack document.
 
 Common Patterns
 ---------------
 
-One of the most common reasons to create a row generating function is to link multiple datasets together. Frequently this
-involves iterating over another Metapack package, constructing maps from other datasets, and linking them together. 
-
-
-
-
+One of the most common reasons to create a row generating function is to link
+multiple datasets together. Frequently this involves iterating over another
+Metapack package, constructing maps from other datasets, and linking them
+together.
 
 
 Generating Rows With Programs
 *****************************
 
-Generally, it is much easier to implement a python function as a row generator than a program, but programs can also be useful. The program can receive information from Metatab through program options and environmental variables, and must print CSV
-formatted lines to std out.
+Generally, it is much easier to implement a python function as a row generator
+than a program, but programs can also be useful. The program can receive
+information from Metatab through program options and environmental variables,
+and must print CSV formatted lines to std out.
 
-There are two broad sources for inputs to the program. The first is are several values that are passed into the program
-regardless of the configuration of the ``Root.DataFile`` term. The second are the properties of the ``Root.DataFile`` terms.
+There are two broad sources for inputs to the program. The first is are several
+values that are passed into the program regardless of the configuration of the
+``Root.DataFile`` term. The second are the properties of the ``Root.DataFile``
+terms.
 
 The inputs for all programs are: 
 
@@ -89,7 +95,8 @@ Since the program must output CSV formatted lines, a CSV writer can be construct
      w.writerow(...)
      
      
-If the program generates logging or warnings, they must be printed to ``sys.stderr``
+If the program generates logging or warnings, they must be printed to
+``sys.stderr``
 
 .. code-block:: python 
 
@@ -97,7 +104,9 @@ If the program generates logging or warnings, they must be printed to ``sys.stde
      
      print("ERROR!", file=sys.stderr)
 
-It is very common for a program to open the Metatab document that is being used to run the row generator. You can use the :envvar:`METATAB_DOC` environmental variable to get a reference to the current package. 
+It is very common for a program to open the Metatab document that is being used
+to run the row generator. You can use the :envvar:`METATAB_DOC` environmental
+variable to get a reference to the current package.
 
 .. code-block:: python 
 

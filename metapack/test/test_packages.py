@@ -28,16 +28,6 @@ class TestPackages(unittest.TestCase):
 
                 u = MetapackPackageUrl(l['url'], downloader=Downloader())
 
-                if False:
-                    jt = u.join_target(l['target_file'])
-                    self.assertTrue(str(jt).endswith(l['joined_target']), str(jt))
-
-                    rs = jt.get_resource()
-                    self.assertTrue(str(rs).endswith(l['resource']), str(rs))
-
-                    t = rs.get_target()
-                    self.assertTrue(str(t).endswith(l['target']))
-
                 try:
                     t = u.resolve_url(l['target_file'])
                     self.assertFalse(bool(l['resolve_error']))
@@ -45,7 +35,8 @@ class TestPackages(unittest.TestCase):
                     self.assertTrue(bool(l['resolve_error']))
                     continue
 
-                # Testing containment because t can have path in local filesystem.
+                # Testing containment because t can have path in local filesystem, which changes depending on where
+                # test is run
                 print("   ", t)
                 self.assertTrue(l['resolved_url'] in str(t), (i, l['resolved_url'], str(t)))
 

@@ -328,7 +328,7 @@ def write_doc(doc, mt_file):
             .stdout.decode('utf-8')
 
         fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l)
-    except (TimeoutError, StopIteration, subprocess.TimeoutExpired):
+    except (TimeoutError, StopIteration, subprocess.TimeoutExpired, FileNotFoundError):
         fetchline = None
 
     if fetchline:
