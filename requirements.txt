@@ -15,6 +15,7 @@ certifi==2018.1.18
 chardet==3.0.4
 click==6.7
 codegen==1.0
+contexttimer==0.3.3
 datapackage==0.8.9
 decorator==4.2.1
 docopt==0.6.2
@@ -24,6 +25,7 @@ et-xmlfile==1.0.1
 filelock==3.0.4
 fs==2.0.20
 future==0.16.0
+graphviz==0.8.3
 html5lib==1.0.1
 idna==2.6
 ijson==2.3
@@ -50,6 +52,7 @@ linear-tsv==1.1.0
 LiveStats==1.0
 Markdown==2.6.11
 MarkupSafe==1.0
+meta===-
 mistune==0.8.3
 nameparser==0.5.6
 nbconvert==5.3.1
@@ -85,6 +88,7 @@ six==1.11.0
 snowballstemmer==1.2.1
 Sphinx==1.7.2
 sphinx-argparse==0.2.2
+sphinxcontrib-autoprogram==0.1.4
 sphinxcontrib-websupport==1.0.1
 SQLAlchemy==1.2.5
 tableintuit==0.1.1
