@@ -53,7 +53,7 @@ def build(subparsers):
         help='Build derived packages',
         description=build.__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
+        epilog='')
 
 
     parser.set_defaults(run_command=run_metapack)

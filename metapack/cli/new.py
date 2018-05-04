@@ -8,6 +8,7 @@ Metapack CLI program for creating new metapack package directories
 from metapack.package import *
 
 from .core import MetapackCliMemo as _MetapackCliMemo
+import argparse
 
 downloader = Downloader()
 
@@ -18,10 +19,32 @@ class MetapackCliMemo(_MetapackCliMemo):
         super().__init__(args, downloader)
 
 def new_args(subparsers):
+    """
+    The `mp new` command creates source package directories
+    with a proper name, a `.gitignore` file, and optionally, example data,
+    entries and code. Typical usage, for creating a new package with most
+    of the example options, is ::
+    
+        mp new -o metatab.org -d tutorial -L -E -T "Quickstart Example Package" 
+    
+    The :option:`-C` option will set a configuration file, which is a
+    Metatab file that with terms that are copied into the `metadata.csv` file
+    of the new package. Currently, it copies a limited number of terms,
+     including:
+    
+    - Terms in the Contacts section
+    - Root.Space
+    - Root.Time
+    - Root.Grain
+    - Root.Variant
+    - Root.Version
 
+    """
     parser = subparsers.add_parser(
         'new',
-        help='Create new Metatab packages'
+        help='Create new Metatab packages',
+        description=new_args.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.set_defaults(run_command=new_cmd)
@@ -45,7 +68,6 @@ def new_args(subparsers):
     parser.add_argument('-C', '--config', help="Path to config file. "
                                                "Defaults to ~/.metapack-defaults.csv or value of METAPACK_DEFAULTS env var."
                                                 "Sets defaults for specia root terms and the Contacts section.")
-
 
 
     return parser
@@ -115,7 +137,8 @@ def new_cmd(args):
     doc['Documentation'].new_term('Root.IncludeDocumentation', 'file:README.md', title='README')
 
     if args.example:
-        doc['Resources'].new_term('Root.Datafile', 'http://public.source.civicknowledge.com/example.com/sources/random-names.csv',
+        doc['Resources'].new_term('Root.Datafile',
+                                  'http://public.source.civicknowledge.com/example.com/sources/random-names.csv',
                                   name='random_names')
 
         doc['Documentation'].new_term('Root.Homepage', 'http://metatab.org', title='Metatab Home Page')

@@ -1,43 +1,51 @@
 CLI Commands
 ============
 
-.. _mp_new:
+Metapack Management Program
+-------------------------------
 
-mp new: Creating New Packages
+.. autoprogram:: metapack.cli.mp:base_parser()
+    :prog: mp
+    :maxdepth: 1
+   
+.. _mp_new: 
+
+new: Creating New Packages
 -----------------------------
 
-.. argparse::
-    :ref: metapack.cli.mp.base_parser
+.. autoprogram:: metapack.cli.mp:base_parser()
     :prog: mp
-    :path: new
+    :start_command: new
+
+update: Update Package Information
+-------------------------------------
+
+.. autoprogram:: metapack.cli.mp:base_parser()
+    :prog: mp
+    :start_command: update
+
+
     
-.. _mp_info:
-    
-mp info: Show information about packages
+info: Show Information About Packages
 ----------------------------------------
 
-.. argparse::
-    :ref: metapack.cli.mp.base_parser
+.. autoprogram:: metapack.cli.mp:base_parser()
     :prog: mp
-    :path: info
-  
-.. _mp_run:
+    :start_command: info
+
     
-mp run: Run resoruces and generate tabular data
+run: Run Resources and Generate Tabular Data
 -----------------------------------------------
 
-.. argparse::
-    :ref: metapack.cli.mp.base_parser
+.. autoprogram:: metapack.cli.mp:base_parser()
     :prog: mp
-    :path: run 
+    :start_command: run 
     
-.. _mp_build: 
 
-mp build: Building Packages
+build: Building Packages
 ---------------------------
 
-.. argparse::
-    :ref: metapack.cli.mp.base_parser
+.. autoprogram:: metapack.cli.mp:base_parser()
     :prog: mp
-    :path: build
+    :start_command: build
     

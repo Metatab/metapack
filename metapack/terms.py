@@ -523,7 +523,7 @@ class Resource(Term):
 
         t = self.resolved_url.get_resource().get_target()
 
-        return pandas.read_csv(t.path, *args, **kwargs)
+        return pandas.read_csv(t.fspath, *args, **kwargs)
 
     def read_fwf(self, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_fwf.
@@ -533,13 +533,13 @@ class Resource(Term):
 
         t = self.resolved_url.get_resource().get_target()
 
-        return pandas.read_fwf(t.path, *args, **kwargs)
+        return pandas.read_fwf(t.fspath, *args, **kwargs)
 
     def readlines(self):
         """Load the target, open it, and return the result from readlines()"""
 
         t = self.resolved_url.get_resource().get_target()
-        with open(t.path) as f:
+        with open(t.fspath) as f:
             return f.readlines()
 
     def petl(self, *args, **kwargs):
@@ -549,9 +549,9 @@ class Resource(Term):
         t = self.resolved_url.get_resource().get_target()
 
         if t.target_format == 'txt':
-            return petl.fromtext(t.path, *args, **kwargs)
+            return petl.fromtext(t.fspath, *args, **kwargs)
         elif t.target_format == 'csv':
-            return petl.fromcsv(t.path, *args, **kwargs)
+            return petl.fromcsv(t.fspath, *args, **kwargs)
         else:
             raise Exception("Can't handle")
 
@@ -648,7 +648,7 @@ class SqlQuery(Resource):
         if self.query.startswith('file:'): # .query resolves to value
             qu = parse_app_url(self.query, working_dir=self._doc.doc_dir).get_resource().get_target()
 
-            with open(qu.path) as f:
+            with open(qu.fspath) as f:
                 u.sql = f.read().format(**self.context)
         else:
             u.sql = self.query.format(**self.context)

@@ -465,8 +465,8 @@ class PackageBuilder(object):
 
         finally:
             dt = time() - start_time
-            rate = float(i) / (dt)
-            self.prt(f'Processed {i} rows in {round(dt,0)} sec, rate = {round(rate,2)} rows/sec')
+            rate = round((float(i) / (dt)),2) if dt != 0 else 'undef'
+            self.prt(f'Processed {i} rows in {round(dt,0)} sec, rate = {rate} rows/sec')
             f.close()
 
     def _get_ref_contents(self, t, working_dir=None):
