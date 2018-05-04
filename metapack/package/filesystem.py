@@ -218,7 +218,6 @@ class FileSystemPackageBuilder(PackageBuilder):
             self.warn("Documentation has no title, skipping: '{}' ".format(term.value))
             return
 
-
         path = join(self.package_path.path,  file_name)
 
         self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
@@ -232,7 +231,6 @@ class FileSystemPackageBuilder(PackageBuilder):
             f.write(contents)
 
     def _load_file(self,  filename, contents):
-
 
         if "__pycache__" in filename:
             return

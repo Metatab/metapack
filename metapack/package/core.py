@@ -363,8 +363,8 @@ class PackageBuilder(object):
 
         # Remove any DSNs
 
-        for dsn_t in self.doc.find('Root.Dsn'):
-            self.doc.remove_term(dsn_t)
+        #for dsn_t in self.doc.find('Root.Dsn'):
+        #    self.doc.remove_term(dsn_t)
 
 
         return doc

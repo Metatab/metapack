@@ -13,6 +13,7 @@ from metapack.package import *
 from .core import MetapackCliMemo as _MetapackCliMemo
 from tabulate import tabulate
 import sys
+from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
 
 downloader = Downloader()
 
@@ -45,6 +46,15 @@ def info_args(subparsers):
     group.add_argument('-s', '--schema', default=False, action='store_true',
                        help="Print a table of the common schema for all resources, or if the metatab file ref has a resource, only that one")
 
+    parser.add_argument('-v', '--version', default=False, action='store_true',
+                             help='Print Metapack versions')
+
+    parser.add_argument('-V', '--versions', default=False, action='store_true',
+                        help='Print version of several important packages')
+
+    parser.add_argument('-C', '--cache', default=False, action='store_true',
+                        help='Print the location of the cache')
+
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
@@ -52,16 +62,51 @@ def info(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    if m.args.name:
-        prt(m.doc.name)
-    elif m.args.resources:
-        list_rr(m.doc)
-    elif m.args.root_name:
-        prt(m.doc.as_version(None))
-    elif m.args.schema:
-        dump_schemas(m)
+    if not m.doc:
+        if args.version:
+            prt(get_distribution('metapack'))
+
+        elif args.cache:
+            from shlex import quote
+            from metapack import Downloader
+            downloader = Downloader()
+
+            prt(quote(downloader.cache.getsyspath('/')))
+
+        elif args.versions:
+
+            from pkg_resources import EntryPoint
+
+            prt('--- Main Packages')
+
+            main_packages = ('metapack', 'metatab', 'rowgenerators', 'publicdata')
+
+            for pkg_name in main_packages:
+                try:
+                    prt(get_distribution(pkg_name))
+                except (DistributionNotFound, ModuleNotFoundError) as e:
+                    # package is not installed
+
+                    pass
+
+            prt('')
+            prt('--- Subcommands')
+
+            for ep in iter_entry_points(group='mt.subcommands'):
+                prt(ep.name, ep.dist)
     else:
-        prt(m.doc.name)
+
+
+        if m.args.name:
+            prt(m.doc.name)
+        elif m.args.resources:
+            list_rr(m.doc)
+        elif m.args.root_name:
+            prt(m.doc.as_version(None))
+        elif m.args.schema:
+            dump_schemas(m)
+        else:
+            prt(m.doc.name)
 
 def list_rr(doc):
 
