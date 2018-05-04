@@ -16,13 +16,14 @@ downloader = Downloader()
 
 class TestPackages(unittest.TestCase):
     def test_resolve_resource_urls(self):
-        """Test how resources are resolved in packages. The resource values must be one of:
+        """Test how resources are resolved in packages.
             - A name, for excel and CSV packages
             - a path, for ZIP and filesystem packages
             - a web url, for any kind of package
         """
         with open(test_data('packages.csv')) as f:
             for i, l in enumerate(DictReader(f)):
+
 
                 print(l['url'], l['target_file'])
 
@@ -37,11 +38,27 @@ class TestPackages(unittest.TestCase):
 
                 # Testing containment because t can have path in local filesystem, which changes depending on where
                 # test is run
+
+                if False:
+                    jt = u.join_target(l['target_file'])
+                    print("URL      ", l['url'])
+                    print("Package  ", u)
+                    print("Joined   ", jt)
+                    jtr = jt.get_resource()
+                    print("Joined R ", jtr)
+                    jtt = jtr.get_target()
+                    print("Joined T ", jtt)
+                    print("Base     ", t)
+                    print("RESOURCE ", t.get_resource())
+                    print("TARGET   ", t.get_resource().get_target())
+
                 print("   ", t)
                 self.assertTrue(l['resolved_url'] in str(t), (i, l['resolved_url'], str(t)))
 
                 try:
                     g = get_generator(t.get_resource().get_target())
+
+
                     self.assertEqual(101, len(list(g)))
                     self.assertFalse(bool(l['generate_error']))
                 except RowGeneratorError:
