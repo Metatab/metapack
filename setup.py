@@ -97,6 +97,8 @@ setup_d = dict(
             'run=metapack.cli.run:run',
             'search=metapack.cli.search:search',
             'info=metapack.cli.info:info_args',
+            'doc=metapack.cli.doc:doc_args',
+            'stats=metapack.cli.stats:stats_args',
             'edit=metapack.cli.edit:edit_args',
 
         ]

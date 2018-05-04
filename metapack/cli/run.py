@@ -12,7 +12,7 @@ from itertools import islice
 from os import environ
 
 from metapack import Downloader
-from metapack.cli.core import prt, MetapackCliMemo
+from metapack.cli.core import prt, MetapackCliMemo, list_rr
 from tabulate import tabulate
 from terminaltables import SingleTable, GithubFlavoredMarkdownTable
 
@@ -96,18 +96,6 @@ def run(subparsers):
                        help="Limit the number of output rows ")
 
     parser.set_defaults(handler=None)
-
-def list_rr(doc):
-
-    d = []
-    for r in doc.resources():
-        d.append(('Resource', r.name, r.url))
-
-    for r in doc.references():
-        d.append(('Reference', r.name, r.url))
-
-
-    prt(tabulate(d, 'Type Name Url'.split()))
 
 
 def get_resource(m):

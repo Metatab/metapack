@@ -1,5 +1,7 @@
 import logging
 
+from tabulate import tabulate
+
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
@@ -526,6 +528,11 @@ class MetapackCliMemo(object):
 
         self.resource = self.mtfile_url.resource_name
 
+        # This is probably a bug in AppUrl, but I'm not sure.
+        if self.mtfile_url.resource_format == 'zip' and self.resource == 'metadata.csv':
+            self.resource = None
+
+
         self.package_url = self.mtfile_url.package_url
         self.mt_file = self.mtfile_url.metadata_url
 
@@ -608,3 +615,14 @@ def new_search_index():
     return []
 
 
+def list_rr(doc):
+
+    d = []
+    for r in doc.resources():
+        d.append(('Resource', r.name, r.url))
+
+    for r in doc.references():
+        d.append(('Reference', r.name, r.url))
+
+
+    prt(tabulate(d, 'Type Name Url'.split()))

@@ -32,6 +32,9 @@ class _MetapackUrl(object):
         return self.fragment[0]
 
 
+def is_metapack_url(u):
+    return isinstance(u,_MetapackUrl)
+
 class MetapackDocumentUrl(Url, _MetapackUrl):
     def __init__(self, url=None, downloader=None, **kwargs):
         kwargs['proto'] = 'metapack'
@@ -203,6 +206,11 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
     def metadata_url(self):
 
         return MetapackDocumentUrl(str(self.clone().clear_fragment()), downloader=self._downloader).metadata_url
+
+    @property
+    def doc(self):
+        """Return the metatab document for the URL"""
+        return self.metadata_url.doc
 
     def rebuild_fragment(self):
         self.fragment = ''

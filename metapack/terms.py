@@ -70,6 +70,20 @@ class Resource(Term):
         return self.doc.cache.opendir(sub_dir).getsyspath(slugify(self.name) + '.py')
 
     @property
+    def expanded_url(self):
+
+        if not self.url:
+            return None
+
+        u = parse_app_url(self.url)
+
+        if u.scheme == 'index':
+            u = u.resolve()
+
+        return u
+
+
+    @property
     def resolved_url(self):
         """Return a URL that properly combines the base_url and a possibly relative
         resource url"""
@@ -213,24 +227,26 @@ class Resource(Term):
         try:
             # For resources that are metapack packages.
             r =  self.resolved_url.resource.columns()
-            yield from r
+            return list(r)
         except AttributeError:
             pass
 
         t = self.schema_term
 
-        if not t:
-            return
+        columns = []
 
-        for i, c in enumerate(t.children):
+        if t:
+            for i, c in enumerate(t.children):
 
-            if c.term_is("Table.Column"):
-                p = c.all_props
-                p['pos'] = i
-                p['name'] = c.value
-                p['header'] = self._name_for_col_term(c, i)
+                if c.term_is("Table.Column"):
+                    p = c.all_props
+                    p['pos'] = i
+                    p['name'] = c.value
+                    p['header'] = self._name_for_col_term(c, i)
 
-                yield p
+                    columns.append(p)
+
+        return columns
 
     def row_processor_table(self, ignore_none=False):
         """Create a row processor from the schema, to convert the text values from the
