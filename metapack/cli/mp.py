@@ -19,9 +19,7 @@ except DistributionNotFound:
 
 from metapack.cli.core import  cli_init
 
-
 def base_parser():
-
 
     parser = argparse.ArgumentParser(
         prog='mp',

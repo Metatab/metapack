@@ -59,17 +59,33 @@ def info_args(subparsers):
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
 def info(args):
+    from metapack.exc import MetatabFileNotFound
 
     m = MetapackCliMemo(args, downloader)
 
-    if not m.doc:
+    try:
+        m.doc
+
+        if m.args.name:
+            prt(m.doc.name)
+        elif m.args.resources:
+            list_rr(m.doc)
+        elif m.args.root_name:
+            prt(m.doc.as_version(None))
+        elif m.args.schema:
+            dump_schemas(m)
+        else:
+            prt(m.doc.name)
+
+    except MetatabFileNotFound:
+
         if args.version:
             prt(get_distribution('metapack'))
 
         elif args.cache:
             from shlex import quote
-            from metapack import Downloader
-            downloader = Downloader()
+
+
 
             prt(quote(downloader.cache.getsyspath('/')))
 
@@ -94,19 +110,9 @@ def info(args):
 
             for ep in iter_entry_points(group='mt.subcommands'):
                 prt(ep.name, ep.dist)
-    else:
 
 
-        if m.args.name:
-            prt(m.doc.name)
-        elif m.args.resources:
-            list_rr(m.doc)
-        elif m.args.root_name:
-            prt(m.doc.as_version(None))
-        elif m.args.schema:
-            dump_schemas(m)
-        else:
-            prt(m.doc.name)
+
 
 def list_rr(doc):
 
