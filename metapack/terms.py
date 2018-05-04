@@ -31,13 +31,8 @@ class Resource(Term):
         return self.doc._ref
 
     @property
-    def env(self):
-        """The execution context for rowprocessors and row-generating notebooks and functions. """
-        from copy import copy
-
-        env = copy(self.doc.env)
-
-        env.update({
+    def _envvar_env(self):
+        return {
             # These become their own env vars when calling a program.
             'CACHE_DIR': self._doc._cache.getsyspath('/'),
             'RESOURCE_NAME': self.name,
@@ -46,7 +41,16 @@ class Resource(Term):
             'METATAB_DOC': str(self._doc.ref),
             'METATAB_WORKING_DIR': str(self._doc.doc_dir),
             'METATAB_PACKAGE': str(self._doc.package_url)
-        })
+        }
+
+    @property
+    def env(self):
+        """The execution context for rowprocessors and row-generating notebooks and functions. """
+        from copy import copy
+
+        env = copy(self.doc.env)
+
+        env.update(self._envvar_env)
 
         env.update(self.all_props)
 
