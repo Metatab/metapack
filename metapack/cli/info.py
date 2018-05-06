@@ -77,6 +77,7 @@ def info(args):
         else:
             prt(m.doc.name)
 
+
     except MetatabFileNotFound:
 
         if args.version:
@@ -85,33 +86,37 @@ def info(args):
         elif args.cache:
             from shlex import quote
 
-
-
             prt(quote(downloader.cache.getsyspath('/')))
 
         elif args.versions:
+            print_versions(m)
 
-            from pkg_resources import EntryPoint
-
-            prt('--- Main Packages')
-
-            main_packages = ('metapack', 'metatab', 'rowgenerators', 'publicdata')
-
-            for pkg_name in main_packages:
-                try:
-                    prt(get_distribution(pkg_name))
-                except (DistributionNotFound, ModuleNotFoundError) as e:
-                    # package is not installed
-
-                    pass
-
-            prt('')
-            prt('--- Subcommands')
-
-            for ep in iter_entry_points(group='mt.subcommands'):
-                prt(ep.name, ep.dist)
+        else:
+            print_versions(m)
 
 
+
+def print_versions(m):
+    from pkg_resources import EntryPoint
+    from tabulate import tabulate
+
+    main_packages = ('metapack', 'metatab', 'metatabdecl', 'rowgenerators', 'publicdata', 'tableintuit')
+
+    packages = []
+    for pkg_name in main_packages:
+        try:
+            d = get_distribution(pkg_name)
+            packages.append([d.project_name, d.version])
+
+        except (DistributionNotFound, ModuleNotFoundError) as e:
+            # package is not installed
+
+            pass
+
+    prt(tabulate(packages, headers='Package Version'.split()))
+    prt('')
+    prt(tabulate([(ep.name, ep.dist) for ep in iter_entry_points(group='mt.subcommands')],
+                                                                headers='Subcommand Package Version'.split()))
 
 
 def list_rr(doc):

@@ -113,7 +113,8 @@ setup_d = dict(
     classifiers=classifiers,
     extras_require={
         'test': ['datapackage'],
-        'geo': ['fiona', 'shapely', 'pyproj'],
+        'geo': ['fiona', 'shapely', 'pyproj', 'geopandas'],
+        'jupyter': ['jupyter', 'pandas', 'geopandas' ],
 
     },
 

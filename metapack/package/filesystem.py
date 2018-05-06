@@ -128,12 +128,16 @@ class FileSystemPackageBuilder(PackageBuilder):
 
 
     def _load_resource(self, source_r, abs_path=False):
-        """The CSV package has no reseources, so we just need to resolve the URLs to them. Usually, the
+        """The CSV package has no resources, so we just need to resolve the URLs to them. Usually, the
             CSV package is built from a file system ackage on a publically acessible server. """
 
         from itertools import islice
         from metapack.exc import MetapackError
 
+        # Refetch the resource ... IIRC b/c the source_r resource may actuall be from
+        # a different package. So r is the resource we want to possibly modify in this package,
+        # while source_r is from a different souce package, whose data is being loaded into this
+        # one.
         r = self.datafile(source_r.name)
 
         self.prt("Loading data for '{}' ".format(r.name))
@@ -162,7 +166,10 @@ class FileSystemPackageBuilder(PackageBuilder):
         headers = source_r.headers
         self.write_csv(path, headers, gen)
 
-        # Writting between resources so row-generating programs and notebooks can
+        for k, v in source_r.post_iter_meta.items():
+            r[k] = v
+
+        # Writing between resources so row-generating programs and notebooks can
         # access previously created resources. We have to clean the doc before writing it
 
         ref = self._write_doc()

@@ -19,6 +19,9 @@ class Resource(Term):
 
         self.errors = {}  # Typecasting errors
 
+        # Metadata returned by the iteratator, available after iteration
+        self.post_iter_meta = {}
+
         super().__init__(term, value, term_args, row, col, file_name, file_type, parent, doc, section)
 
     @property
@@ -412,6 +415,8 @@ class Resource(Term):
             self.errors = rg.errors if rg.errors else {}
         except AttributeError:
             self.errors = {}
+
+        self.post_iter_meta = base_row_gen.meta
 
     @property
     def iterdict(self):
