@@ -187,13 +187,13 @@ def _exec_build(p, package_root, force,  nv_name, extant_url_f, post_f):
         reason = 'Forcing build'
         should_build = True
     elif p.is_older_than_metadata():
-        reason = 'Package is older than metadata'
+        reason = 'Metadata was changed after package'
         should_build = True
     elif not p.exists():
         reason = "Package doesn't exist"
         should_build = True
     else:
-        reason = 'Package is younger than metadata'
+        reason = 'Metadata was changed before package'
         should_build = False
 
     if should_build:
@@ -372,6 +372,8 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
     except KeyError:
         doc.new_section('Schema', ['DataType', 'Altname', 'Description'])
 
+    schemas_processed = 0
+
     for r in doc['Resources'].find('Root.Resource'):
 
         schema_term = r.schema_term
@@ -390,6 +392,7 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
                 .format(r.schema_name, col_count-datatype_count))
 
         prt("Processing {}".format(r.name))
+        schemas_processed += 1
 
         try:
             slice = islice(r.row_generator, 500)
@@ -434,7 +437,7 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
                                     datatype=type_map.get(c['resolved_type'], c['resolved_type']),
                                     altname=alt_name)
 
-    if write_doc_to_file:
+    if write_doc_to_file and schemas_processed:
         write_doc(doc, mt_file)
 
 

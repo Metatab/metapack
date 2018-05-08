@@ -118,6 +118,13 @@ class PandasDataframeSource(Source):
         self.finish()
 
 
+def copy_reference(resource, doc, env, *args, **kwargs):
+    """A row-generating function that yields from a reference. This permits an upstream package to be
+    copied and modified by this package, while being formall referenced as a dependency
 
+    The function will generate rows from a reference that has the same name as the resource term
+    """
+
+    yield from doc.reference(resource.name)
 
 

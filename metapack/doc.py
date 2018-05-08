@@ -249,9 +249,7 @@ class MetapackDoc(MetatabDoc):
 
             try:
                 for t in self['Documentation'].find('Root.Documentation'):
-
                     if t.get_value('url'):
-
                         out += ("\n**{} **{}"
                                 .format(linkify(t.get_value('url'), t.get_value('title')),
                                         t.get_value('description')
@@ -303,7 +301,7 @@ class MetapackDoc(MetatabDoc):
 {% endif %}
 <p>{{description|default("", True) }}</p>
 <p>{{ref|default("", True)}}</p>
-{% if documentation %}
+{% if doc %}
 ### Documentation
 {{doc}}
 {% endif %}

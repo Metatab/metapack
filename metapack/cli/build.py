@@ -138,7 +138,6 @@ def run_metapack(args):
     clean_cache(m.cache)
 
 
-
 def metatab_derived_handler(m):
     """Create local Zip, Excel and Filesystem packages
 
@@ -285,20 +284,7 @@ def add_single_resource(doc, ref, cache, seen_names):
     encoding = start_line = None
     header_lines = []
 
-    if False:
-        try:
-            encoding, ri = run_row_intuit(path, cache)
-            prt("Added resource for '{}', name = '{}' ".format(ref, name))
-            start_line = ri.start_line
-            header_lines = ri.header_lines
-        except RowIntuitError as e:
-            warn("Failed to intuit '{}'; {}".format(path, e))
 
-        except SourceError as e:
-            warn("Source Error: '{}'; {}".format(path, e))
-
-        except Exception as e:
-            warn("Error: '{}'; {}".format(path, e))
 
     if not name:
         from hashlib import sha1

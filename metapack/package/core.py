@@ -596,6 +596,7 @@ class PackageBuilder(object):
         """
         from genericpath import getmtime
 
+
         try:
             path = self.path.path
         except AttributeError:

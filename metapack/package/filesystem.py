@@ -61,7 +61,8 @@ class FileSystemPackageBuilder(PackageBuilder):
 
     def is_older_than_metadata(self):
         """
-        Return True if the package save file is older than the metadata. Returns False if the time of either can't be determined
+        Return True if the package save file is older than the metadata. If it is, it should be rebuilt.  Returns
+        False if the time of either can't be determined
 
         :param path: Optional extra save path, used in save_path()
 

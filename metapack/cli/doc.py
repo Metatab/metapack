@@ -38,6 +38,9 @@ def doc_args(subparsers):
     parser.add_argument('-d', '--dependencies', default=False, action='store_true',
                         help="List the dependencies")
 
+    parser.add_argument('-p', '--packages', default=False, action='store_true',
+                        help="When listing dependencies, list only packages")
+
     parser.add_argument('-v', '--view', default=False, action='store_true',
                        help="View doc file after creating it")
 
@@ -184,7 +187,6 @@ class ResourceDependencyNode(_DependencyNode):
             'shape': 'oval'
         }
 
-
 class SqlDependencyNode(_DependencyNode):
 
     def __init__(self, ref, parent):
@@ -198,7 +200,6 @@ class SqlDependencyNode(_DependencyNode):
             'label': self.resource.name,
             'shape': 'cylinder'
         }
-
 
 def yield_deps(doc):
     """
@@ -232,13 +233,15 @@ def dependencies(m):
 
     nodes, edges = nodes_edges(m)
 
-    for n in nodes:
-        print(n.label)
+    if m.args.packages:
+        for n in nodes:
+            if isinstance(n,PackageDependencyNode):
+                print(n.label)
 
-    return
+    else:
+        rows = [ (this.label, that.label) for this, that in sorted(edges) ]
 
-    for this, that in sorted(edges):
-        print("{} <- {}".format(this.label, that.label))
+        print (tabulate(rows,headers='This That'.split()))
 
 
 def wrap_url(s, l):

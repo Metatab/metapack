@@ -10,6 +10,7 @@ from metapack.test.support import test_data
 from metatab.generate import TextRowGenerator
 from rowgenerators import get_generator,  parse_app_url
 from rowgenerators.exceptions import RowGeneratorError
+import platform
 
 downloader = Downloader()
 
@@ -39,18 +40,7 @@ class TestPackages(unittest.TestCase):
                 # Testing containment because t can have path in local filesystem, which changes depending on where
                 # test is run
 
-                if False:
-                    jt = u.join_target(l['target_file'])
-                    print("URL      ", l['url'])
-                    print("Package  ", u)
-                    print("Joined   ", jt)
-                    jtr = jt.get_resource()
-                    print("Joined R ", jtr)
-                    jtt = jtr.get_target()
-                    print("Joined T ", jtt)
-                    print("Base     ", t)
-                    print("RESOURCE ", t.get_resource())
-                    print("TARGET   ", t.get_resource().get_target())
+
 
                 print("   ", t)
                 self.assertTrue(l['resolved_url'] in str(t), (i, l['resolved_url'], str(t)))
@@ -247,6 +237,8 @@ class TestPackages(unittest.TestCase):
 
         self.assertIsInstance(row['geometry'], ShapeValue, type(row['geometry']))
 
+
+    @unittest.skipIf(platform.system() == 'Windows','Program generators do not work on windows')
     def test_program_resource(self):
 
         m = MetapackUrl(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'), downloader=downloader)

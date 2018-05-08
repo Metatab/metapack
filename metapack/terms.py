@@ -554,9 +554,9 @@ class Resource(Term):
         t = self.resolved_url.get_resource().get_target()
 
         if t.target_format == 'txt':
-            return petl.fromtext(t.fspath, *args, **kwargs)
+            return petl.fromtext(str(t.fspath), *args, **kwargs)
         elif t.target_format == 'csv':
-            return petl.fromcsv(t.fspath, *args, **kwargs)
+            return petl.fromcsv(str(t.fspath), *args, **kwargs)
         else:
             raise Exception("Can't handle")
 
