@@ -19,3 +19,5 @@ Row Transforms
     :param errors: A dict used to store error messages. Persists for all columns in a row, but not between rows.
     :param accumulator: A dict for use in accumulating values, such as computing aggregates.
     :return: The final value to be supplied for the column.
+    
+    
