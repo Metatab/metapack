@@ -52,10 +52,42 @@ where ``resource`` is the Metatab resource term for the ``Datafile`` term, and
 Common Patterns
 ---------------
 
+Link Datasets
++++++++++++++
+
 One of the most common reasons to create a row generating function is to link
 multiple datasets together. Frequently this involves iterating over another
 Metapack package, constructing maps from other datasets, and linking them
 together.
+
+Copy a Reference
+++++++++++++++++
+
+If you want to maintain dependency information, particularly using ``mp doc``,
+it is important to have all of the foreign packages used by a Metapack package
+referenced in the ``References`` section. You can copy in a foreign package by
+including it as a ``Root.Datafile`` in the ``Resources`` section, but then ``mp
+doc -d`` won't report it as a dependency.
+
+To maintin dependencies, you can:
+
+- Reference the foren package in the ``References``
+- Copy it into a Resource with the ``python:metapack.rowgenerator#copy_reference`` row generator. 
+
+For instance::
+
+    Section: References
+    Reference: index:bc.edu-comments-creations#comments
+    Reference.Name: comments
+    
+    Section: Resources
+    Datafile: python:metapack.rowgenerator#copy_reference
+    Datafile.Name: comments
+
+In this example, the ``copy_reference`` function will copy the 'comments' reference into the 'comments' Datafile. 
+
+
+
 
 
 Generating Rows With Programs
