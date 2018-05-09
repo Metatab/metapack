@@ -331,7 +331,13 @@ class Resource(Term):
 
         self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
 
+        if not self.value:
+            raise ResourceError("Can't generate rows, term '{}' has no url value  ".format(self.name))
+
         ru = self.resolved_url
+
+        if not ru:
+            raise ResourceError("Failed to resolve url for  '{}' ".format(self))
 
         try:
             resource = ru.resource # For Metapack urls
@@ -345,14 +351,14 @@ class Resource(Term):
         if not rur:
             raise ResourceError("Failed to get resource for '{}' ".format(ru))
 
-        t = rur.get_target()
+        ut = rur.get_target()
 
         # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)
 
         # source_url will be None for Sql terms.
         ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
-
+cc
         table = self.row_processor_table()
 
         g = get_generator(ut, table=table, resource=self,

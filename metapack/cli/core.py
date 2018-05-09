@@ -394,6 +394,7 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
         prt("Processing {}".format(r.name))
         schemas_processed += 1
 
+
         try:
             slice = islice(r.row_generator, 500)
         except SchemaError:

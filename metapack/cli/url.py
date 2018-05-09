@@ -67,7 +67,7 @@ def classify_url(url):
     elif ss.target_format in DOC_FORMATS:
         term_name = 'Documentation'
     else:
-        term_name = 'Resource'
+        term_name = 'Datafile'
 
     return term_name
 
