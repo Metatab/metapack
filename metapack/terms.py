@@ -340,7 +340,12 @@ class Resource(Term):
         except AttributeError:
             pass
 
-        ut = ru.get_resource().get_target()
+        rur = ru.get_resource()
+
+        if not rur:
+            raise ResourceError("Failed to get resource for '{}' ".format(ru))
+
+        t = rur.get_target()
 
         # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)

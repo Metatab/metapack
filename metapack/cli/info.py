@@ -63,36 +63,40 @@ def info(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    try:
-        m.doc
 
+    try:
         if m.args.name:
             prt(m.doc.name)
+
         elif m.args.resources:
             list_rr(m.doc)
+
         elif m.args.root_name:
             prt(m.doc.as_version(None))
+
         elif m.args.schema:
             dump_schemas(m)
-        else:
-            prt(m.doc.name)
 
-
-    except MetatabFileNotFound:
-
-        if args.version:
+        elif args.version:
             prt(get_distribution('metapack'))
 
         elif args.cache:
             from shlex import quote
-
             prt(quote(downloader.cache.getsyspath('/')))
 
         elif args.versions:
             print_versions(m)
 
         else:
-            print_versions(m)
+            try:
+                prt(m.doc.name)
+            except MetatabFileNotFound:
+                print_versions(m)
+
+    except MetatabFileNotFound:
+        err('No metatab file found')
+
+
 
 
 
