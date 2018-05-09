@@ -181,7 +181,7 @@ def add_single_resource(doc, ref, cache, seen_names):
 def run_row_intuit(path, cache):
     from tableintuit import RowIntuiter
     from itertools import islice
-    from rowgenerators import TextEncodingError
+    from rowgenerators.exceptions import TextEncodingError
 
     for encoding in ('ascii', 'utf8', 'latin1'):
         try:
