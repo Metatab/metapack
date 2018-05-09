@@ -358,7 +358,7 @@ class Resource(Term):
 
         # source_url will be None for Sql terms.
         ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
-cc
+
         table = self.row_processor_table()
 
         g = get_generator(ut, table=table, resource=self,
