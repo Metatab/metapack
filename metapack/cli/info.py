@@ -131,14 +131,6 @@ def list_rr(doc):
 
     prt(tabulate(d, 'Type Name Url'.split()))
 
-def dump_schema(m, r):
-    st = r.schema_term
-    rows_about_columns = []
-    for c in st.find('Table.Column'):
-        rows_about_columns.append((c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description')))
-
-    prt(tabulate(rows_about_columns, headers='Name AltName DataType Description'.split()))
-
 def dump_schemas(m):
 
     r = m.doc.resource(m.resource)
@@ -153,3 +145,12 @@ def dump_schemas(m):
         sys.exit(0)
 
     dump_schema(m, r)
+
+
+def dump_schema(m, r):
+    st = r.schema_term
+    rows_about_columns = []
+    for c in st.find('Table.Column'):
+        rows_about_columns.append((c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description')))
+
+    prt(tabulate(rows_about_columns, headers='Name AltName DataType Description'.split()))

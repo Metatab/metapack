@@ -8,7 +8,7 @@ The program uses the Root.Distributions in the source package to locate packages
 
 """
 
-from metapack.cli.core import prt, err
+from metapack.cli.core import prt, err, warn
 from metapack.package import *
 from .core import MetapackCliMemo as _MetapackCliMemo
 from tabulate import tabulate
@@ -30,38 +30,69 @@ def doc_args(subparsers):
         help='Generate documentation'
     )
 
-    parser.set_defaults(run_command=doc)
+    cmdsp = parser.add_subparsers(help='sub-command help')
 
-    parser.add_argument('-g', '--graph', default=False, action='store_true',
-                             help="Create a dependency graph")
+    cmdp = cmdsp.add_parser('graph', help='Dependency graph')
+    cmdp.set_defaults(run_command=graph_cmd)
 
-    parser.add_argument('-d', '--dependencies', default=False, action='store_true',
+    cmdp.add_argument('-d', '--dependencies', default=False, action='store_true',
                         help="List the dependencies")
 
-    parser.add_argument('-p', '--packages', default=False, action='store_true',
-                        help="When listing dependencies, list only packages")
-
-    parser.add_argument('-v', '--view', default=False, action='store_true',
+    cmdp.add_argument('-v', '--view', default=False, action='store_true',
                        help="View doc file after creating it")
 
-    parser.add_argument('-D', '--directory',  help="Output file name")
+    cmdp.add_argument('-V', '--graphviz', default=False, action='store_true',
+                       help="Also dump the Graphviz file to the stdout")
 
-    parser.add_argument('--legend', action='store_true', help="Create the dependency graph legend")
+    cmdp.add_argument('-D', '--directory',  help="Output file name")
 
-    parser.add_argument('metatabfile', nargs='?',
+    cmdp.add_argument('--legend', action='store_true', help="Create the dependency graph legend")
+
+    cmdp.add_argument('-N', '--nonversion', default=False, action='store_true',
+                      help="Use the nonversioned package name for the file name")
+
+    cmdp.add_argument('metatabfile', nargs='?',
+                      help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+
+    ##
+    ##
+    cmdp = cmdsp.add_parser('deps', help='Display a table of dependencies')
+    cmdp.set_defaults(run_command=graph_cmd)
+
+    cmdp.add_argument('-p', '--packages', default=False, action='store_true',
+                        help="When listing dependencies, list only packages")
+
+    cmdp.add_argument('-f', '--format', default='pipe',
+                      help="Table format, an argument to tabulate(). Common options are:"
+                      " plain, simple, jira, html, pipe, rst, mediawiki. Use pipe for markdown.")
+
+    cmdp.add_argument('metatabfile', nargs='?',
+                      help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+
+    ##
+    ##
+    cmdp = cmdsp.add_parser('schema', help='Print a schema')
+    cmdp.set_defaults(run_command=dump_schemas)
+
+    cmdp.add_argument('-f', '--format', default='pipe',
+                      help="Table format, an argument to tabulate(). Common options are:"
+                      " plain, simple, jira, html, pipe, rst, mediawiki. Use pipe for markdown.")
+
+    cmdp.add_argument('-c', '--column', action='append',
+                      help="Add a column from the schema to the output table. If specified, only the"
+                           "'name' column is included by default")
+
+    cmdp.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
-def doc(args):
+def graph_cmd(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    if m.args.graph:
-        graph(m)
-    elif m.args.dependencies:
-        dependencies(m)
-
     if m.args.legend:
         legend(m)
+    else:
+        graph(m)
 
 from functools import total_ordering
 
@@ -263,40 +294,7 @@ def wrap_url(s, l):
 
         return '/\n'.join(lines)
 
-def graph(m):
-    """
 
-    :param m:
-    :return:
-    """
-    from graphviz import Digraph
-
-    from os.path import splitext, dirname
-
-    output =  m.doc.name+'.jpg'
-
-    basename, format = splitext(output)
-
-    g = Digraph(comment=m.doc.name, filename=basename+'.gv', directory=m.args.directory)
-
-    nodes, edges = nodes_edges(m)
-
-    for n in nodes:
-        g.node(name=n.name, label=wrap_url(n.label,40), shape = n.shape)
-
-    for this, that in edges:
-        g.edge(that.name, this.name)
-
-    g.attr(overlap='false')
-    g.format = format.lstrip('.')
-    g.engine = 'dot'
-    g.render(basename, view=m.args.view, cleanup=True)
-
-    if not m.args.view:
-        prt("Wrote file "+output)
-
-
-# This draws the legend for the interface documents.
 dependency_legend = """
 digraph {
     labelloc="t";
@@ -308,8 +306,80 @@ digraph {
     "Rest" [label="REST" shape=cds]
     "Web" [label="Web Doc" shape=note]
 
+    Datapackage->Database
+    Database->DataFile
+    DataFile->Other
+    Other->Rest
+    Rest->Web
 }
 """
+
+def legend_subgraph(g):
+
+    with g.subgraph(name='cluster1') as c:
+        c.attr(rank='sink')
+        #c.attr(rankdir='TB')
+        c.attr(labeltoc='t')
+        c.attr(label='Legend')
+        c.node(name='Datapackage', label='datapackage', shape='component')
+        c.node(name='Database', label='Database', shape='cylinder')
+        c.node(name='DataFile', label='Data File', shape='folder')
+        c.node(name='Other', label='Other Datafile', shape='oval')
+        c.node(name='Rest', label='REST', shape='cds')
+        c.node(name='Web', label='Web Doc', shape='note')
+
+        c.edge('Datapackage', 'Database', style='invis')
+        c.edge('Database','DataFile', style='invis')
+        #c.edge('DataFile', 'Other')
+        c.edge('Other', 'Rest', style='invis')
+        c.edge('Rest', 'Web', style='invis')
+
+def graph(m):
+    """
+
+    :param m:
+    :return:
+    """
+    from graphviz import Digraph
+
+    from os.path import splitext, dirname
+
+    if m.args.nonversion:
+        output = m.doc.nonver_name + '.jpg'
+    else:
+        output = m.doc.name + '.jpg'
+
+
+    basename, format = splitext(output)
+
+    g = Digraph(comment=m.doc.name, filename=basename+'.gv', directory=m.args.directory)
+
+    legend_subgraph(g)
+
+    nodes, edges = nodes_edges(m)
+
+    for n in nodes:
+        g.node(name=n.name, label=wrap_url(n.label,40), shape = n.shape)
+
+    for this, that in edges:
+        g.edge(that.name, this.name)
+
+    g.attr(overlap='false')
+    g.attr(rankdir='LR')
+
+    g.format = format.lstrip('.')
+    g.engine = 'dot'
+    g.render(basename, view=m.args.view, cleanup=True)
+
+    if m.args.graphviz:
+        prt(g.source)
+
+    if not m.args.view:
+        prt("Wrote file "+output)
+
+
+# This draws the legend for the interface documents.
+
 
 def legend(m):
     from graphviz import Source
@@ -323,7 +393,65 @@ def legend(m):
 
     prt("Wrote legend file")
 
+def dump_schemas(args):
+    from .run import get_resource
+
+    m = MetapackCliMemo(args, downloader)
+
+    r = m.doc.resource(m.resource)
+
+    if not r:
+        # Try a reference, which must be resolved to a resource in the foreign data package
+        # to get a schema.
+        outer_r = m.doc.reference(m.resource)
+
+        if outer_r:
+            try:
+                r = outer_r.expanded_url.resource
+            except AttributeError:
+                warn("Reference '{}' is not a Metapack url, doesn't have a schema".format(m.resource))
+        else:
+            r = None
 
 
+    if not r:
+        prt('\nSelect a resource or reference to display the schema for:\n')
+        d = []
+        for r in m.doc.resources():
+            d.append(('Resource', r.name, r.url))
+
+        for r in m.doc.references():
+            d.append(('Reference', r.name, r.url))
 
 
+        prt(tabulate(d, 'Type Name Url'.split()))
+
+        prt('')
+        prt("Specify the resource as a fragment, escaping it if the '#' is the first character. For instance: ")
+        prt("  mp doc schema .#resource_name")
+        prt('')
+        sys.exit(0)
+
+    dump_schema(m, r)
+
+def dump_schema(m, r):
+
+    st = r.schema_term
+    rows_about_columns = []
+
+    if m.args.column:
+
+        headers = ['Name']+[e.title() for e in m.args.column]
+
+        for c in st.find('Table.Column'):
+            table_row = [c.name]
+            for table_col in m.args.column:
+                table_row.append(c.get_value(table_col))
+            rows_about_columns.append(table_row)
+
+    else:
+        headers = 'Name AltName DataType Description'.split()
+        for c in st.find('Table.Column'):
+            rows_about_columns.append((c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description')))
+
+    prt(tabulate(rows_about_columns, headers=headers, tablefmt=m.args.format))

@@ -98,6 +98,13 @@ class MetapackDoc(MetatabDoc):
         return self.get_value('root.name', self.get_value('root.identifier',slugify(self._ref)))
 
     @property
+    def nonver_name(self):
+        """Return the non versioned name"""
+        return self.as_version(None)
+
+    @property
+
+    @property
     def identifier(self):
 
         # Maybe there are multiple values
