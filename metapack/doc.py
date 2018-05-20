@@ -100,9 +100,12 @@ class MetapackDoc(MetatabDoc):
     @property
     def nonver_name(self):
         """Return the non versioned name"""
-        return self.as_version(None)
+        nv = self.as_version(None)
+        if not nv:
+            import re
+            nv = re.sub(r'-[^-]+$','', self.name)
 
-    @property
+        return nv
 
     @property
     def identifier(self):
@@ -253,8 +256,19 @@ class MetapackDoc(MetatabDoc):
                 self['Documentation']
             except KeyError:
                 return ''
-
             try:
+
+                inline = ''
+                for t in self['Documentation'].find('Root.IncludeDocumentation'):
+                    u = parse_app_url(t.value)
+
+                    t = self.package_url.join_target(u).get_resource().get_target()
+
+                    with open(t.path) as f:
+                        inline += f.read()
+
+                out += inline
+
                 for t in self['Documentation'].find('Root.Documentation'):
                     if t.get_value('url'):
                         out += ("\n**{} **{}"

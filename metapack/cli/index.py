@@ -14,6 +14,7 @@ from metapack.index import SearchIndex, search_index_file
 from metapack.exc import MetatabFileNotFound
 from rowgenerators import parse_app_url
 from rowgenerators.appurl.file import FileUrl
+from rowgenerators.appurl.web import S3Url
 from rowgenerators.exceptions import RowGeneratorError
 from .core import MetapackCliMemo as _MetapackCliMemo, new_search_index
 from .core import err, prt, debug_logger
@@ -116,11 +117,39 @@ def index(args):
     elif args.clear:
         idx.clear()
         prt('Cleared the index')
-    else:
-        if not isinstance(u, FileUrl):
-            err(f"Can only index File urls, not {type(u)}")
-
+    elif isinstance(u, FileUrl):
+        entries = []
         for p in walk_packages(args, u):
-            idx.add(p)
+            idx.add_package(p)
+            entries.append(p.name)
 
         idx.write()
+        prt("Indexed ", len(entries), entries)
+
+    elif isinstance(u, S3Url):
+        # S3 package collections are flat, so we don't have to walk recursively.
+        # However, we are only going to take the S3 packages, because they have the distribution
+        # information for the rest of the packages, so we can get info about Excel and Zip packages
+        # without opening them.
+        entries = []
+        import re
+        for e in u.list():
+            if e.target_format == 'csv':
+
+                p = open_package(e)
+
+                for d in p.find('Root.Distribution'):
+                    u = parse_app_url(d.value)
+
+                    version_m = re.search('-([^-]+)$', p.name)
+
+                    if u.target_format in ('xlsx','zip','csv'):
+                        idx.add_entry(p.identifier, p.name, p.nonver_name, version_m.group(1), u.target_format,
+                                      'metapack+'+str(u))
+                        entries.append(p.name)
+        idx.write()
+
+        prt("Indexed ",len(entries), 'entries')
+
+    else:
+        err(f"Can only index File and S3 urls, not {type(u)}")

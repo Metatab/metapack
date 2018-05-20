@@ -25,7 +25,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.3',
+    version='0.8.4',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -89,7 +89,7 @@ setup_d = dict(
             'url=metapack.cli.url:url',
             'update=metapack.cli.update:update',
             'build=metapack.cli.build:build',
-            's3=metapack.cli.metas3:metas3',
+            's3=metapack.cli.s3:s3',
             'index=metapack.cli.index:index_args',
             'new=metapack.cli.new:new_args',
             'ckan=metapack.cli.metakan:metakan',

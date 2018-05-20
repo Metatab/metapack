@@ -2,7 +2,7 @@
 # MIT License, included in this distribution as LICENSE
 
 from metapack import Downloader
-from .metas3 import metas3
+from .s3 import metas3
 from .metakan import metakan
 from .install_file import  install_file
 from .install_git import  install_git

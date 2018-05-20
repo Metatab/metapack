@@ -524,11 +524,12 @@ class MetapackCliMemo(object):
         self.frag = frag
         self.mtfile_arg = mtf + frag
 
-        self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
+        u = parse_app_url(self.mtfile_arg, downloader=self.downloader)
 
-        # Find the target for a search URL
-        if self.mtfile_url.scheme == 'index':
-            self.mtfile_url = parse_app_url(self.mtfile_arg, downloader=self.downloader).get_resource()
+        if u.scheme == 'index':
+            self.mtfile_url = MetapackUrl(u.resolve(), downloader=self.downloader)
+        else:
+            self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
 
         self.resource = self.mtfile_url.resource_name
 
@@ -540,7 +541,7 @@ class MetapackCliMemo(object):
         self.package_url = self.mtfile_url.package_url
         self.mt_file = self.mtfile_url.metadata_url
 
-        assert self.package_url.scheme == 'file'
+        #assert self.package_url.scheme == 'file'
 
         if hasattr(self.args, 'build_directory') and self.args.build_directory:
             self.package_root = parse_app_url(self.args.build_directory)
@@ -588,6 +589,8 @@ def get_config():
 def update_index(packages, package_path, suffix=''):
     from os import listdir
     from os.path import join, exists, isdir, splitext
+
+    raise DeprecationWarning()
 
     if packages:
         # Just update one packages

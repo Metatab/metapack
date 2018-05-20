@@ -18,6 +18,11 @@ from .core import PackageBuilder
 from metapack.util import ensure_dir, write_csv, slugify, datetime_now
 from metapack.appurl import MetapackUrl, SearchUrl
 
+def count_decl(doc):
+    decls = doc.find('Root.Declare')
+    assert len(doc.terms) == 0 or len(decls) == 1, (len(decls), len(doc.terms) )
+
+
 
 class FileSystemPackageBuilder(PackageBuilder):
     """Build a filesystem package"""
@@ -82,7 +87,6 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         except (FileNotFoundError, OSError):
             return False
-
 
     def save(self):
 

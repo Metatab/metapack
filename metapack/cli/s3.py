@@ -25,7 +25,7 @@ from rowgenerators.util import fs_join as join
 class MetapackCliMemo(object):
 
     def __init__(self, args):
-        from appurl import get_cache
+
         self.cwd = getcwd()
 
         self.args = args
@@ -51,7 +51,7 @@ class MetapackCliMemo(object):
 
         self.s3_url = parse_app_url(self.args.s3)
 
-        if not self.s3_url.scheme == 's3':
+        if self.s3_url and not self.s3_url.scheme == 's3':
             self.s3_url = parse_app_url("s3://{}".format(self.args.s3))
 
         self.doc = MetapackDoc(self.mt_file)
@@ -60,10 +60,10 @@ class MetapackCliMemo(object):
 
         self.acl = 'private' if access_value == 'private' else 'public-read'
 
-        self.bucket = S3Bucket(self.s3_url, acl=self.acl , profile=self.args.profile)
+        self.bucket = S3Bucket(self.s3_url, acl=self.acl , profile=self.args.profile) if self.s3_url else None
 
 
-def metas3(subparsers):
+def s3(subparsers):
 
     parser = subparsers.add_parser(
         's3',

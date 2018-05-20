@@ -8,7 +8,6 @@ from rowgenerators import parse_app_url
 from rowgenerators.exceptions import  DownloadError
 from rowgenerators.rowpipe import RowProcessor
 
-
 class Resource(Term):
     # These property names should return null if they aren't actually set.
     _common_properties = 'url name description schema'.split()
@@ -615,6 +614,17 @@ class Reference(Resource):
             yield from self.resolved_url.resource
         except AttributeError:
             yield from self.row_generator
+
+    @property
+    def resource(self):
+        return self.expanded_url.resource
+
+    def _repr_html_(self):
+        try:
+            return self.resource._repr_html_()
+        except AttributeError:
+            return super()._repr_html_()
+
 
 class SqlQuery(Resource):
 

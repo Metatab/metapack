@@ -93,7 +93,7 @@ class SearchIndex(object):
             'url': url
         }
 
-    def add(self, pkg):
+    def add_package(self, pkg):
         from os.path import abspath
 
         from metapack.package import open_package
@@ -113,6 +113,10 @@ class SearchIndex(object):
             format = ref_url.get_resource().get_target().target_format
 
         self._make_package_entry(identifier, name, nv_name, version, format, ref)
+
+    def add_entry(self, ident, name, nvname, version, format, url):
+        self._make_package_entry(ident, name, nvname, version, format, url)
+
 
     def list(self):
 
@@ -169,8 +173,3 @@ class SearchIndex(object):
                     packages.append(p)
 
         return list(reversed(sorted(packages, key=lambda x: (x['version'], self.pkg_format_priority[x['format']]) )))
-
-
-
-
-

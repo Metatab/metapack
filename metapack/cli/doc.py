@@ -46,8 +46,6 @@ def doc_args(subparsers):
 
     cmdp.add_argument('-D', '--directory',  help="Output file name")
 
-    cmdp.add_argument('--legend', action='store_true', help="Create the dependency graph legend")
-
     cmdp.add_argument('-N', '--nonversion', default=False, action='store_true',
                       help="Use the nonversioned package name for the file name")
 
@@ -57,7 +55,7 @@ def doc_args(subparsers):
     ##
     ##
     cmdp = cmdsp.add_parser('deps', help='Display a table of dependencies')
-    cmdp.set_defaults(run_command=graph_cmd)
+    cmdp.set_defaults(run_command=deps_cmd)
 
     cmdp.add_argument('-p', '--packages', default=False, action='store_true',
                         help="When listing dependencies, list only packages")
@@ -89,10 +87,7 @@ def graph_cmd(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    if m.args.legend:
-        legend(m)
-    else:
-        graph(m)
+    graph(m)
 
 from functools import total_ordering
 
@@ -260,7 +255,9 @@ def nodes_edges(m):
 
     return nodes, list(edges)
 
-def dependencies(m):
+def deps_cmd(args):
+
+    m = MetapackCliMemo(args, downloader)
 
     nodes, edges = nodes_edges(m)
 
@@ -295,24 +292,6 @@ def wrap_url(s, l):
         return '/\n'.join(lines)
 
 
-dependency_legend = """
-digraph {
-    labelloc="t";
-    label="Legend";
-	"Datapackage" [label="datapackage" shape=component]
-    "Database" [label="Database" shape=cylinder]
-    "DataFile" [label="Data File" shape=folder]
-    "Other" [label="Other Datafile" shape=oval]
-    "Rest" [label="REST" shape=cds]
-    "Web" [label="Web Doc" shape=note]
-
-    Datapackage->Database
-    Database->DataFile
-    DataFile->Other
-    Other->Rest
-    Rest->Web
-}
-"""
 
 def legend_subgraph(g):
 
@@ -378,20 +357,7 @@ def graph(m):
         prt("Wrote file "+output)
 
 
-# This draws the legend for the interface documents.
 
-
-def legend(m):
-    from graphviz import Source
-
-    g = Source(dependency_legend)
-
-    g.format = 'jpg'
-    g.engine = 'dot'
-
-    g.render(filename='legend', directory=m.args.directory, cleanup=True)
-
-    prt("Wrote legend file")
 
 def dump_schemas(args):
     from .run import get_resource
