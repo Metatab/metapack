@@ -32,7 +32,7 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=Non
 
     c = Config()
 
-    nb, resources = AddProlog(config=c, env=env).preprocess(nb, {})
+    nb, resources = AddProlog(config=c, env=env or {}).preprocess(nb, {})
 
     nb, resources = AddEpilog(config=c, pkg_dir=pkg_dir,
                               dataframes=dataframes,
