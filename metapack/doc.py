@@ -18,6 +18,7 @@ from rowgenerators.exceptions import RowGeneratorError, AppUrlError
 from metapack.util import datetime_now
 from metapack.exc import MetatabFileNotFound
 
+
 class Resolver(WebResolver):
     def get_row_generator(self, ref, cache=None):
 
@@ -26,14 +27,14 @@ class Resolver(WebResolver):
         except AttributeError:
             return super().get_row_generator(ref, cache)
 
+
 class MetapackDoc(MetatabDoc):
+    lib_dir_names = ('lib', 'pylib')  # Names of subdirs to look for to find a loadable module
 
-    lib_dir_names = ('lib', 'pylib') # Names of subdirs to look for to find a loadable module
-
-    def __init__(self, ref=None, decl=None,  cache=None, resolver=None, package_url=None, clean_cache=False,
+    def __init__(self, ref=None, decl=None, cache=None, resolver=None, package_url=None, clean_cache=False,
                  downloader=None):
 
-        #assert isinstance(ref, (MetapackDocumentUrl, MetapackResourceUrl)), (type(ref), ref)
+        # assert isinstance(ref, (MetapackDocumentUrl, MetapackResourceUrl)), (type(ref), ref)
 
         if downloader:
             self.downloader = downloader
@@ -68,8 +69,7 @@ class MetapackDoc(MetatabDoc):
         except RowGeneratorError as e:
             raise MetatabFileNotFound("Failed to get Metatabfile for reference: '{}' ".format(ref))
 
-
-        self.default_resource = None # Set externally in open_package when the URL has a resource.
+        self.default_resource = None  # Set externally in open_package when the URL has a resource.
 
     def __enter__(self):
         """Context Management entry. Does nothing"""
@@ -80,7 +80,6 @@ class MetapackDoc(MetatabDoc):
 
         if not exc_type:
             self.write_csv()
-
 
     @property
     def path(self):
@@ -95,7 +94,7 @@ class MetapackDoc(MetatabDoc):
     def name(self):
         """Return the name from the metatab document, or the identity, and as a last resort,
         the slugified file reference"""
-        return self.get_value('root.name', self.get_value('root.identifier',slugify(self._ref)))
+        return self.get_value('root.name', self.get_value('root.identifier', slugify(self._ref)))
 
     @property
     def nonver_name(self):
@@ -103,7 +102,7 @@ class MetapackDoc(MetatabDoc):
         nv = self.as_version(None)
         if not nv:
             import re
-            nv = re.sub(r'-[^-]+$','', self.name)
+            nv = re.sub(r'-[^-]+$', '', self.name)
 
         return nv
 
@@ -120,14 +119,12 @@ class MetapackDoc(MetatabDoc):
 
         return None
 
-
     def wrappable_term(self, term):
         """Return the Root.Description, possibly combining multiple terms.
         :return:
         """
 
-        return ' '.join( e.value.strip() for e in self['Root'].find(term) if e and e.value)
-
+        return ' '.join(e.value.strip() for e in self['Root'].find(term) if e and e.value)
 
     def set_wrappable_term(self, v, term):
         """Set the Root.Description, possibly splitting long descriptions across multiple terms. """
@@ -161,7 +158,6 @@ class MetapackDoc(MetatabDoc):
         """Return the module associated with a package's python library"""
 
         try:
-
             return self.get_lib_module_dict()
         except ImportError:
             return {}
@@ -177,7 +173,7 @@ class MetapackDoc(MetatabDoc):
         doc_dir = dirname(abspath(u.path))
         # Add the dir with the metatab file to the system path
 
-        for lib_dir_name in  self.lib_dir_names:
+        for lib_dir_name in self.lib_dir_names:
             if isdir(join(doc_dir, lib_dir_name)):
                 if not 'docdir' in sys.path:
                     sys.path.insert(0, doc_dir)
@@ -209,7 +205,8 @@ class MetapackDoc(MetatabDoc):
                 except ImportError as e:
                     continue
 
-                raise ImportError(f"Failed to import python module from lib directory; tried: {lib_dir_names}; ", str(e))
+                raise ImportError(f"Failed to import python module from lib directory; tried: {lib_dir_names}; ",
+                                  str(e))
 
         else:
             return {}
@@ -264,8 +261,11 @@ class MetapackDoc(MetatabDoc):
 
                     t = self.package_url.join_target(u).get_resource().get_target()
 
-                    with open(t.path) as f:
-                        inline += f.read()
+                    try:
+                        with open(t.path) as f:
+                            inline += f.read()
+                    except FileNotFoundError:
+                        pass
 
                 out += inline
 
@@ -382,7 +382,7 @@ class MetapackDoc(MetatabDoc):
 
         # Sort the Sections
 
-        self.sort_sections(['Root', 'Contacts', 'Documentation', 'References','Resources','Citations','Schema'])
+        self.sort_sections(['Root', 'Contacts', 'Documentation', 'References', 'Resources', 'Citations', 'Schema'])
 
         # Sort Terms in the root section
 
@@ -420,7 +420,5 @@ class MetapackDoc(MetatabDoc):
             'Root.Access',
             'Root.Distribution'
         ])
-
-
 
         return super().write_csv(path)

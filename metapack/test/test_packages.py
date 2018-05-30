@@ -2,10 +2,11 @@ import unittest
 from csv import DictReader
 
 from metapack import MetapackDoc
+from metapack.constants import PACKAGE_PREFIX
 from metapack import MetapackPackageUrl, MetapackUrl, ResourceError, Downloader
 from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package,
                                make_csv_package,
-                               PACKAGE_PREFIX, cli_init)
+                               cli_init)
 from metapack.test.support import test_data
 from metatab.generate import TextRowGenerator
 from rowgenerators import get_generator,  parse_app_url

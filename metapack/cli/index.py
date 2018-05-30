@@ -18,6 +18,7 @@ from rowgenerators.appurl.web import S3Url
 from rowgenerators.exceptions import RowGeneratorError
 from .core import MetapackCliMemo as _MetapackCliMemo, new_search_index
 from .core import err, prt, debug_logger
+from metapack.constants import PACKAGE_PREFIX
 
 from tabulate import tabulate
 
@@ -45,8 +46,17 @@ def index_args(subparsers):
     parser.add_argument('-c', '--clear', default=False, action='store_true',
                         help="Clear the index")
 
+    parser.add_argument('-C', '--config', default=False, action='store_true',
+                        help="Show the location of the index file")
+
     parser.add_argument('-d', '--directory', default=downloader.cache.getsyspath('/'),
                         help="Directory where index will be stored")
+
+    parser.add_argument('-D', '--dump',
+                        help="Dump a Metatab formatted version of the index")
+
+    parser.add_argument('-L', '--load',
+                        help="Load in a Metatab formatted index file ")
 
     parser.add_argument('metatab_url', nargs='?', default='./',
                         help='URL to a metatab package or container for packages')
@@ -71,9 +81,9 @@ def walk_packages(args, u):
             p = open_package(root)
             # This was a package, so only recurse if it is a source package and has a _packages dir
 
-            if '_packages' in dirs:
+            if PACKAGE_PREFIX in dirs:
                 del dirs[:]
-                dirs.append('_packages')
+                dirs.append(PACKAGE_PREFIX)
             else:
                 del dirs[:]
 
@@ -102,8 +112,6 @@ def index(args):
 
     idx = SearchIndex(search_index_file())
 
-    prt('Index file:', idx.path)
-
     u = parse_app_url(args.metatab_url)
 
     if args.list:
@@ -113,10 +121,17 @@ def index(args):
             pkg_list.append((p.name, p.ref))
 
         prt(tabulate(pkg_list, headers='name Url'.split()))
+    elif args.config:
+        import shlex
+        prt(idx.path)
 
     elif args.clear:
         idx.clear()
         prt('Cleared the index')
+    elif args.dump:
+        dump_index(args, idx)
+    elif args.load:
+        load_index(args, idx)
     elif isinstance(u, FileUrl):
         entries = []
         for p in walk_packages(args, u):
@@ -124,7 +139,7 @@ def index(args):
             entries.append(p.name)
 
         idx.write()
-        prt("Indexed ", len(entries), entries)
+        prt("Indexed ", len(entries), 'entries')
 
     elif isinstance(u, S3Url):
         # S3 package collections are flat, so we don't have to walk recursively.
@@ -133,6 +148,7 @@ def index(args):
         # without opening them.
         entries = []
         import re
+
         for e in u.list():
             if e.target_format == 'csv':
 
@@ -146,6 +162,9 @@ def index(args):
                     if u.target_format in ('xlsx','zip','csv'):
                         idx.add_entry(p.identifier, p.name, p.nonver_name, version_m.group(1), u.target_format,
                                       'metapack+'+str(u))
+
+
+
                         entries.append(p.name)
         idx.write()
 
@@ -153,3 +172,45 @@ def index(args):
 
     else:
         err(f"Can only index File and S3 urls, not {type(u)}")
+
+def dump_index(args, idx):
+
+    import csv
+    import sys
+
+    from metatab import MetatabDoc
+
+    doc = MetatabDoc()
+
+    pack_section = doc.new_section('Packages', ['Identifier', 'Name', 'Nvname', 'Version', 'Format'])
+
+    r = doc['Root']
+    r.new_term('Root.Title', 'Package Index')
+
+    for p in idx.list():
+
+        pack_section.new_term('Package',
+                   p['url'],
+                   identifier=p['ident'],
+                   name=p['name'],
+                   nvname=p['nvname'],
+                   version=p['version'],
+                   format=p['format'])
+
+    doc.write_csv(args.dump)
+
+def load_index(args, idx):
+    import json
+
+    from metatab import MetatabDoc
+
+    doc = MetatabDoc(args.load)
+
+    entries = set()
+
+    for t in doc['Packages']:
+        idx.add_entry(t.identifier, t.name, t.nvname, t.version, t.format, t.value)
+        entries.add(t.value)
+
+    prt("Loaded {} packages".format(len(entries)))
+    idx.write()

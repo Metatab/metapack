@@ -4,6 +4,7 @@ import unittest
 
 from rowgenerators import parse_app_url
 from metapack import open_package, MetapackDoc, Downloader
+from metapack.constants import PACKAGE_PREFIX
 from metatab.util import flatten
 from metatab.generate import TextRowGenerator
 from itertools import islice
@@ -161,7 +162,7 @@ class TestIPython(unittest.TestCase):
             return
 
         from metapack import MetapackUrl, MetapackDocumentUrl
-        from metapack.cli.core import make_filesystem_package, PACKAGE_PREFIX, process_schemas
+        from metapack.cli.core import make_filesystem_package, process_schemas
 
         m = MetapackDocumentUrl(test_data('packages/example.com/example.com-notebook/metadata.csv'), downloader=downloader)
 

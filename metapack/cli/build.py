@@ -146,6 +146,8 @@ def metatab_derived_handler(m):
     :return:
     """
     from metapack.exc import PackageError
+    from metapack.util import get_materialized_data_cache
+    from shutil import rmtree
 
     create_list = []
     url = None
@@ -167,6 +169,9 @@ def metatab_derived_handler(m):
 
     nv_name = m.args.nonversion_name
     nv_link = m.args.nonversion_link
+
+    # Remove any data that may have been cached , for instance, from Jupyter notebooks
+    rmtree(get_materialized_data_cache(doc), ignore_errors=True)
 
     try:
 

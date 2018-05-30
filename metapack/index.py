@@ -75,7 +75,7 @@ class SearchIndex(object):
 
         self._db[ident] = {'t':'ident', 'ref':nvname } # these should always be equivalent
 
-        self._db[name] = {'t':'name',  'ref': nvname, 'version': version }
+        self._db[name] = {'t':'name',  'ref': nvname, 'version': version , 'ident': ident}
 
         if not nvname in self._db:
             self._db[nvname] = {
@@ -90,6 +90,7 @@ class SearchIndex(object):
             'nvname': nvname,
             'version': version,
             'format': format,
+            'ident': ident,
             'url': url
         }
 
@@ -117,6 +118,16 @@ class SearchIndex(object):
     def add_entry(self, ident, name, nvname, version, format, url):
         self._make_package_entry(ident, name, nvname, version, format, url)
 
+    def update(self,o):
+        """Update from another index or index dict"""
+
+        self.open()
+
+        try:
+            self._db.update(o._db)
+        except AttributeError:
+            self._db.update(o)
+
 
     def list(self):
 
@@ -130,6 +141,13 @@ class SearchIndex(object):
                     packages.append(e)
 
         return list(reversed(sorted(packages, key=lambda x: (x['name'], x['version'], self.pkg_format_priority[x['format']]))))
+
+    def records(self):
+        self.open()
+        for k,v in self._db.items():
+            if v['t'] == 'nvname':
+                for pk, pv in v['packages'].items():
+                    yield [pv['name'], pv['nvname'], pv['version'], pv['format'], pv['url']]
 
     def search(self, key, format='issued'):
         from rowgenerators import parse_app_url
@@ -148,28 +166,38 @@ class SearchIndex(object):
         if format and not isinstance(format, (list, tuple)):
             format = [format]
 
-        e = self._db.get(search_term)
+        record = self._db.get(search_term) # Case when the term is a name, nvname, or ident
 
-        if not e:
-            return []
-
-        key_type = e['t']
-
-        if key_type == 'ident':
-            match_key = 'nvname'
-            match_value = e['ref']
+        if record:
+            records = [record]
+            match_type = 'exact'
         else:
-            match_key = key_type
-            match_value = search_term
-
-        if e.get('ref'):
-            e = self._db[e['ref']]
+            records = [ record for k, record in self._db.items() if search_term in k]
+            match_type = 'subset'
 
         packages = []
+        seen = set()
+        for e in records:
 
-        for pkey, p in e['packages'].items():
-            if p[match_key] == match_value:
-                if (format and p['format'] in format) or format is None:
-                    packages.append(p)
+            key_type = e['t']
+
+            if key_type == 'ident':
+                match_key = 'nvname'
+                match_value = e['ref']
+            else:
+                match_key = key_type
+                match_value = search_term
+
+            if e.get('ref'):
+                e = self._db[e['ref']]
+
+            for pkey, p in e['packages'].items():
+
+                if (match_type == 'exact' and p[match_key] == match_value) or \
+                   (match_type == 'subset' and search_term in p[match_key]):
+                    if (format and p['format'] in format) or format is None:
+                        if not p['name'] in seen:
+                            packages.append(p)
+                            seen.add(p['name'])
 
         return list(reversed(sorted(packages, key=lambda x: (x['version'], self.pkg_format_priority[x['format']]) )))

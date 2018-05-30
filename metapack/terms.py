@@ -34,6 +34,8 @@ class Resource(Term):
 
     @property
     def _envvar_env(self):
+        from os.path import join
+
         return {
             # These become their own env vars when calling a program.
             'CACHE_DIR': self._doc._cache.getsyspath('/'),
@@ -43,6 +45,7 @@ class Resource(Term):
             'METATAB_DOC': str(self._doc.ref),
             'METATAB_WORKING_DIR': str(self._doc.doc_dir),
             'METATAB_PACKAGE': str(self._doc.package_url)
+
         }
 
     @property
@@ -95,11 +98,13 @@ class Resource(Term):
 
         u = parse_app_url(self.url)
 
+
         if u.scheme == 'index':
             u = u.resolve()
 
         if u.scheme != 'file':
             # Hopefully means the URL is http, https, ftp, etc.
+
             return u
         elif u.resource_format == 'ipynb':
 
@@ -130,8 +135,12 @@ class Resource(Term):
                 t.scheme_extension = parse_app_url(self.url).scheme_extension
 
                 # Another Hack!
-                if not t.fragment and u.fragment:
-                    t.fragment = u.fragment
+                try:
+                    if not any(t.fragment) and any(u.fragment):
+                        t.fragment = u.fragment
+                except TypeError:
+                    if not t.fragment and u.fragment:
+                        t.fragment = u.fragment
 
                 # Yet more hack!
                 t = parse_app_url(str(t))

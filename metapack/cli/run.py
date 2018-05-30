@@ -13,6 +13,7 @@ from os import environ
 
 from metapack import Downloader
 from metapack.cli.core import prt, MetapackCliMemo, list_rr
+from metapack.util import get_materialized_data_cache
 from tabulate import tabulate
 from terminaltables import SingleTable, GithubFlavoredMarkdownTable
 
@@ -41,8 +42,6 @@ def run(subparsers):
 
     group.add_argument('-f', '--reference',
                         help="Name of the Root.Reference to run  ")
-
-
 
     #
     # Output format
@@ -118,6 +117,10 @@ def run_run(args):
     r = get_resource(m)
 
     doc = m.doc
+
+    # Remove any data that may have been cached , for instance, from Jupyter notebooks
+    shutil.rmtree(get_materialized_data_cache(doc), ignore_errors=True)
+
 
     if not r:
         list_rr(doc)

@@ -10,7 +10,7 @@ from textwrap import dedent
 from IPython.core.magic_arguments import (parse_argstring)
 from nbconvert.preprocessors import Preprocessor
 from nbformat.notebooknode import from_dict
-from traitlets import Unicode, List
+from traitlets import Unicode, List, Dict
 
 from metapack import MetapackDoc
 from metatab import TermParser
@@ -398,7 +398,7 @@ class AddEpilog(Preprocessor):
                 'outputs': [],
                 'metadata': {'mt_dataframes': True, 'epilog': True},
                 'execution_count': None,
-                'source': '\n'.join("%mt_materialize {} {} ".format(df, self.pkg_dir) for df in self.dataframes)
+                'source': '\n'.join("%mt_materialize {} '{}' ".format(df, self.pkg_dir) for df in self.dataframes)
             }))
 
         nb.cells.append(from_dict({
@@ -407,7 +407,7 @@ class AddEpilog(Preprocessor):
             'metadata': {'mt_materialize': True, 'epilog': True},
             'execution_count': None,
             'source': dedent("""
-            %mt_materialize_all {pkg_dir}
+            %mt_materialize_all '{pkg_dir}'
             """.format(pkg_dir=self.pkg_dir))
         }))
 
@@ -434,6 +434,39 @@ class AddEpilog(Preprocessor):
         }))
 
         return nb, resources
+
+class AddProlog(Preprocessor):
+    """Add final cells that writes the Metatab file, materializes datasets, etc.  """
+
+    env = Dict(help='Initial local variables. Must be primitive types').tag(config=True)
+
+    def preprocess(self, nb, resources):
+        from datetime import datetime
+
+        source = '\n'.join( '{}={}'.format(k,repr(v)) for k,v in self.env.items()
+                            if k and isinstance(v,(int,float,str)))
+
+        nb.cells = [
+                       from_dict({
+                           'cell_type': 'code',
+                           'outputs': [],
+                           'metadata': {'': True, 'prolog': True},
+                           'execution_count': None,
+                           'source': source
+                       }),
+                    # Mark this notebook as being run in a build, which can change the behaviour of some magics
+                       from_dict({
+                           'cell_type': 'code',
+                           'outputs': [],
+                           'metadata': {'': True, 'prolog': True},
+                           'execution_count': None,
+                           'source': "METAPACK_BUILDING=True"
+                       }),
+
+                   ] + nb.cells
+
+        return nb, resources
+
 
 
 class OrganizeMetadata(Preprocessor):

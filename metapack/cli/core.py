@@ -1,4 +1,5 @@
 import logging
+from metapack.constants import PACKAGE_PREFIX
 
 from tabulate import tabulate
 
@@ -176,8 +177,6 @@ def get_table(doc, name):
 
     return t
 
-
-PACKAGE_PREFIX = '_packages'
 
 
 def _exec_build(p, package_root, force,  nv_name, extant_url_f, post_f):
@@ -479,6 +478,9 @@ type_map = {
     int.__name__: 'integer',
     bytes.__name__: 'string',
     str.__name__: 'text',
+
+    # Numpy types
+    'datetime64[ns]': 'datetime'
 }
 
 

@@ -10,29 +10,25 @@ jupyter nbextension install --py metatab.jupyter.magic
 
 from __future__ import print_function
 
+import sys
+
 import logging
 import os
-import shlex
-import sys
-from collections import OrderedDict
-from os import makedirs, getcwd
-from os.path import join, abspath, dirname, exists, normpath
-from warnings import warn
-
-import docopt
 from IPython import get_ipython
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic, line_cell_magic
 from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
-from IPython.display import  display, HTML, Latex
-
-from rowgenerators import Downloader, parse_app_url
+from IPython.display import display, HTML, Latex
 from metapack import MetapackDoc
 from metapack.appurl import MetapackPackageUrl
 from metapack.cli.core import process_schemas
 from metapack.html import bibliography, data_sources
 from metatab import TermParser
 from metatab.generate import TextRowGenerator
+from os import makedirs, getcwd
+from os.path import join, abspath, dirname, exists, normpath
+from rowgenerators import Downloader, parse_app_url
+from warnings import warn
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -224,7 +220,7 @@ class MetatabMagic(Magics):
     @argument('--feather', help='Use feather for serialization', action='store_true' )
     @line_magic
     def mt_materialize_all(self, line):
-        """Materialize all of the dataframes that has been previoulsly added with mt_add_dataframe
+        """Materialize all of the dataframes that has been previously added with mt_add_dataframe
         """
 
         from json import dumps
@@ -273,40 +269,36 @@ class MetatabMagic(Magics):
     @magic_arguments()
     @argument('df_name', help='Dataframe name')
     @argument('dir', help='Path to output directory. Created if it does not exist')
-    @argument('--feather', help='Materialize with feather', action="store_true")
     @line_magic
     def mt_materialize(self, line):
-        """Materialize all of the dataframes that has been previoulsly added with mt_add_dataframe
+        """Materialize a single dataframe
         """
 
         from json import dumps
         from rowgenerators import get_cache
         from metapack.rowgenerator import PandasDataframeSource
+        from metapack.util import ensure_dir
         import csv
         from os.path import join
 
         args = parse_argstring(self.mt_materialize, line)
+
+        dr = args.dir.strip("'")
+
+        ensure_dir(dr)
 
         try:
             cache = self.mt_doc._cache
         except KeyError:
             cache = get_cache()
 
-        if not exists(args.dir):
-            makedirs(args.dir)
+        path = join(dr, args.df_name + ".csv")
+        df = self.shell.user_ns[args.df_name].fillna('')
+        gen = PandasDataframeSource(parse_app_url(path), df, cache=cache)
 
-        if args.feather:
-            path = join(args.dir, args.df_name+".feather")
-            df = self.shell.user_ns[args.df_name]
-            df.to_feather(path)
-        else:
-            path = join(args.dir, args.df_name + ".csv")
-            df = self.shell.user_ns[args.df_name].fillna('')
-            gen = PandasDataframeSource(parse_app_url(path), df, cache=cache)
-
-            with open(path, 'w') as f:
-                w = csv.writer(f)
-                w.writerows(gen)
+        with open(path, 'w') as f:
+            w = csv.writer(f)
+            w.writerows(gen)
 
         print(dumps({
             'df_name': args.df_name,
@@ -624,6 +616,63 @@ class MetatabMagic(Magics):
             print(json.dumps([]))
 
 
+
+@magics_class
+class MetapackMagic(Magics):
+
+    """Magics for using Metatab in Jupyter Notebooks
+
+    """
+
+    @magic_arguments()
+    @argument('dataframe_name',  help='Variable name of the dataframe name')
+    @argument('--doc', help='Variable name of the document. Defaults to the local source package')
+    @argument('--description', help='Description of the resource')
+    @argument('-r','--reset-index', action='store_true', help='Reset the dataframe index before adding')
+    @line_magic
+    def mp_add_dataframe(self, line, cell=''):
+
+        from metapack.util import get_materialized_data_cache
+        from .ipython import add_dataframe, open_source_package
+        from json import dumps
+        from metapack.rowgenerator import PandasDataframeSource
+        import csv
+        from os.path import join
+
+        args = parse_argstring(self.mp_add_dataframe, line)
+
+        if args.doc:
+            doc = self.shell.user_ns[args.doc]
+        else:
+            doc = open_source_package()
+
+        if self.shell.user_ns.get("METAPACK_BUILDING"): # var set by AddProlog
+            warn("Building, so materializing instead of adding to document")
+
+            cache = get_materialized_data_cache(doc)
+
+            path = join(cache, args.dataframe_name + ".csv")
+            df = self.shell.user_ns[args.dataframe_name].fillna('')
+            gen = PandasDataframeSource(parse_app_url(path), df, cache=cache)
+
+            with open(path, 'w') as f:
+                w = csv.writer(f)
+                w.writerows(gen)
+
+            print(dumps({
+                'df_name': args.dataframe_name,
+                'path': path,
+
+            }, indent=4))
+
+        else:
+            # We're in interactive mode, so just records the dataset in the metadata
+            df = self.shell.user_ns[args.dataframe_name]
+
+            add_dataframe(df if not args.reset_index else df.reset_index(),
+                          args.dataframe_name, pkg=doc, description=args.description.strip("'"))
+
+
 def load_ipython_extension(ipython):
     # In order to actually use these magics, you must register them with a
     # running IPython.  This code must be placed in a file that is loaded once
@@ -632,6 +681,7 @@ def load_ipython_extension(ipython):
     # You can register the class itself without instantiating it.  IPython will
     # call the default constructor on it.
     ip.register_magics(MetatabMagic)
+    ip.register_magics(MetapackMagic)
 
     # init_logging()
 

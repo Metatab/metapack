@@ -12,8 +12,9 @@ from botocore.exceptions import  NoCredentialsError
 
 
 from metapack import MetapackDoc, MetapackUrl
+from metapack.constants import PACKAGE_PREFIX
 from metapack import MetapackPackageUrl
-from metapack.cli.core import prt, err, make_s3_package, PACKAGE_PREFIX
+from metapack.cli.core import prt, err, make_s3_package
 from metapack.package import *
 from metapack.package.s3 import S3Bucket
 from metapack.util import datetime_now

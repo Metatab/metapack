@@ -6,7 +6,12 @@
 """
 
 from rowgenerators import Source
+from metapack.jupyter.exec import execute_notebook
+from os.path import join, exists
+from csv import reader
 
+from rowgenerators.exceptions import AppUrlError
+from metapack.util import get_materialized_data_cache
 
 class JupyterNotebookSource(Source):
     """Generate rows from an IPython Notebook.
@@ -16,8 +21,11 @@ class JupyterNotebookSource(Source):
      the temporary file is yielded to the caller. Not most efficient, but it fits the model.
      """
 
-    def __init__(self, ref, cache=None, working_dir=None, **kwargs):
+    def __init__(self, ref, cache=None, working_dir=None, env=None, doc=None, **kwargs):
         super().__init__(ref, cache, working_dir, **kwargs)
+
+        self.env = env
+        self.doc = doc
 
     def start(self):
         pass
@@ -28,48 +36,31 @@ class JupyterNotebookSource(Source):
 
     def __iter__(self):
 
-        import pandas as pd
-        from metapack.jupyter.exec import execute_notebook
-        from tempfile import mkdtemp
-        from os import remove, makedirs
-        from os.path import join, isdir
-        from csv import reader
-        from shutil import rmtree
-        from rowgenerators.exceptions import AppUrlError
+        from os.path import basename
 
-        dr_name = None
+        self.start()
 
-        try:
-            self.start()
+        dr_name = get_materialized_data_cache(self.doc)
 
-            dr_name = mkdtemp()
+        path = join(dr_name,  self.ref.target_file + ".csv")
 
-            if not isdir(dr_name):
-                makedirs(dr_name)
+        # The first python notebook in the resources will get executed, cache the datafiles,
+        # then the remaining ones will just use the caches data.
+        if not exists(path):
 
-            # The execute_motebook() function will add a cell with the '%mt_materialize' magic,
+            # The execute_notebook() function will add a cell with the '%mt_materialize' magic,
             # with a path that will case the file to be written to the same location as
             # path, below.
 
             if not self.ref.target_dataframe():
                 raise AppUrlError('Url did not specify a dataframe; use the "#" fragment ')
 
-            nb = execute_notebook(self.ref.path, dr_name, [self.ref.target_dataframe()], True)
+            nb = execute_notebook(self.ref.path, dr_name, [self.ref.target_dataframe()], True, self.env)
 
-            path = join(dr_name, self.ref.target_file + ".csv")
+        with open(path) as f:
+            yield from reader(f)
 
-            with open(path) as f:
-                yield from reader(f)
-
-            self.finish()
-
-        finally:
-
-            if dr_name:
-                try:
-                    rmtree(dr_name)
-                except FileNotFoundError:
-                    pass
+        self.finish()
 
 
 class PandasDataframeSource(Source):
@@ -89,7 +80,7 @@ class PandasDataframeSource(Source):
 
         df = self._df
 
-        if len(df.index.names) == 1 and df.index.names[0] == None and df.index.dtype != np.dtype('O'):
+        if len(df.index.names) == 1 and df.index.names[0] is None and df.index.dtype != np.dtype('O'):
             # For an unnamed, single index, assume that it is just a row number
             # and we don't really need it
 

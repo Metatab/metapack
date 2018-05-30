@@ -287,6 +287,7 @@ def walk_up(bottom):
 
 
 def ensure_dir(path):
+
     if path and not exists(path):
         makedirs(path)
 
@@ -334,3 +335,21 @@ def datetime_now():
     import datetime
 
     return datetime.datetime.utcnow().replace(microsecond=0).isoformat()
+
+def get_materialized_data_cache(doc=None):
+    """Return the cache directory where data can be written during a build, usually for
+    a Jupyter notebook that generates many files for each execution"""
+
+    from metapack.constants import MATERIALIZED_DATA_PREFIX
+    from os.path import join
+
+    if not doc:
+        from metapack import Downloader
+        downloader = Downloader()
+        return downloader.cache.getsyspath(MATERIALIZED_DATA_PREFIX)
+    else:
+        dr = doc._cache.getsyspath(join(MATERIALIZED_DATA_PREFIX, doc.name))
+
+        ensure_dir(dr)
+
+        return dr

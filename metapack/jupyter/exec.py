@@ -7,24 +7,8 @@ Functions for executing Jupyter notebooks
 
 from .exc import NotebookError
 
-def x_execute(nb_path, env):
-    """Convert the notebook to a python script and execute it, returning the local context
-    as a dict"""
 
-    from nbconvert.exporters import get_exporter
-
-    preprocessors = ['metatab.jupyter.preprocessors.RemoveMagics']
-
-    exporter = get_exporter('python')(preprocessors=preprocessors)
-
-    (script, notebook) = exporter.from_filename(filename=nb_path)
-
-    exec(compile(script.replace('# coding: utf-8', ''), 'script', 'exec'), env)
-
-    return env
-
-
-def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False):
+def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=None):
     """
     Execute a notebook after adding the prolog and epilog. Can also add %mt_materialize magics to
     write dataframes to files
@@ -36,7 +20,7 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False):
     """
 
     import nbformat
-    from metapack.jupyter.preprocessors import AddEpilog
+    from metapack.jupyter.preprocessors import AddEpilog, AddProlog
     from metapack.jupyter.exporters import ExecutePreprocessor, Config
     from os.path import dirname, join, splitext, basename
     from nbconvert.preprocessors.execute import CellExecutionError
@@ -48,8 +32,10 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False):
 
     c = Config()
 
+    nb, resources = AddProlog(config=c, env=env).preprocess(nb, {})
+
     nb, resources = AddEpilog(config=c, pkg_dir=pkg_dir,
-                              dataframes=dataframes
+                              dataframes=dataframes,
                               ).preprocess(nb, {})
 
     try:

@@ -55,6 +55,9 @@ def info_args(subparsers):
     parser.add_argument('-C', '--cache', default=False, action='store_true',
                         help='Print the location of the cache')
 
+    parser.add_argument('-M', '--materialized', default=False, action='store_true',
+                        help='Print the location of the materialized data cache')
+
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
@@ -82,7 +85,11 @@ def info(args):
 
         elif args.cache:
             from shlex import quote
-            prt(quote(downloader.cache.getsyspath('/')))
+            prt(downloader.cache.getsyspath('/'))
+
+        elif args.materialized:
+            from metapack.util import get_materialized_data_cache
+            prt(get_materialized_data_cache())
 
         elif args.versions:
             print_versions(m)
