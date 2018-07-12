@@ -233,6 +233,8 @@ class Resource(Term):
         else:
             return None
 
+
+
     def columns(self):
 
         try:
@@ -406,12 +408,11 @@ class Resource(Term):
         except ValueError as e:
             start = 1
 
+        base_row_gen = self.row_generator
+        assert base_row_gen is not None
+
         if headers:  # There are headers, so use them, and create a RowProcess to set data types
             yield headers
-
-            base_row_gen = self.row_generator
-
-            assert base_row_gen is not None
 
             assert type(self.env) == dict
 
@@ -426,7 +427,7 @@ class Resource(Term):
             headers = self._get_header()  # Try to get the headers from defined header lines
 
             yield headers
-            rg = islice(self.row_generator, start, None)
+            rg = islice(base_row_gen, start, None)
 
         yield from rg
 
@@ -538,14 +539,42 @@ class Resource(Term):
 
         return self.dataframe().geo
 
-    def read_csv(self, *args, **kwargs):
+
+
+
+    def read_csv(self, dtype=False, parse_dates=False, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_csv
 
         Don't provide the first argument of read_csv(); it is supplied internally.
         """
+
         import pandas
+        import numpy as np
 
         t = self.resolved_url.get_resource().get_target()
+
+        type_map = {
+            None: None,
+            'string': str,
+            'text': str,
+            'number': float,
+            'integer': int,
+            'datetime': str,
+            'time': str,
+            'date': str
+        }
+
+        if dtype is True:
+            kwargs['dtype'] = { c['name']:type_map.get(c['datatype'], c['datatype']) for c in self.columns() }
+        elif dtype:
+            kwargs['dtype'] = dtype
+
+        if parse_dates is True:
+            kwargs['parse_dates'] = [ c['name'] for c in self.columns() if c['datatype'] in ('date','datetime','time') ]
+        elif parse_dates:
+            kwargs['parse_dates'] = parse_dates
+
+        kwargs['low_memory'] = False
 
         return pandas.read_csv(t.fspath, *args, **kwargs)
 
@@ -672,7 +701,7 @@ class SqlQuery(Resource):
             return None
 
         # SQL Urls can be split into a Dsn part ( connection info ) and the SQL
-        #  so the Sql urls have special handing for the references.
+        #  so the Sql urls have special handling for the references.
         dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
 
         try:
