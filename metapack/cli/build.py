@@ -59,7 +59,8 @@ def build(subparsers):
     parser.set_defaults(run_command=run_metapack)
 
     parser.add_argument('metatabfile', nargs='?',
-                        help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+                        help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv'. "
+                          )
 
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
 
@@ -101,9 +102,6 @@ def build(subparsers):
     derived_group.add_argument('-c', '--csv', action='store_true', default=False,
                                help='Create a CSV archive from a metatab file')
 
-
-
-
     ##
     ## Administration Group
 
@@ -116,8 +114,8 @@ def build(subparsers):
                              help="For some operations, like updating schemas, clear the section of existing terms first")
 
 
-
 def run_metapack(args):
+    from rowgenerators.rowpipe.exceptions import TooManyCastingErrors
 
     m = MetapackCliMemo(args, downloader)
 
@@ -129,6 +127,14 @@ def run_metapack(args):
     try:
         for handler in ( metatab_derived_handler, metatab_admin_handler):
             handler(m)
+    except TooManyCastingErrors as e:
+        prt('Casting Errors:')
+        for error in e.errors:
+            prt(error)
+        if m.args.exceptions:
+            raise e
+        else:
+            err(e)
     except Exception as e:
         if m.args.exceptions:
             raise e
