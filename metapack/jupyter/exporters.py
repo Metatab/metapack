@@ -417,7 +417,26 @@ class HugoOutputExtractor(ExtractOutputPreprocessor):
 
 
 class HugoExporter(MarkdownExporter):
-    """ Export a python notebook to markdown, with frontmatter for Hugo.
+    """ Export a python notebook to markdown, with frontmatter for Hugo. Not much of this is particular to
+    Metapack.
+
+    The Frontmatter is contained in a cell of type RawNBConvert, tagged with the tag 'frontmatter', and
+    formatted in YAML. For instance
+
+        https://github.com/sandiegodata/notebooks/blob/master/crime/Crime%20Monthly%20Rhythm%20Maps.ipynb
+
+    Has this frontmatter:
+
+        draft: false
+        weight: 3
+        description: Rhythm maps for San Diego Crime incidents, from 2007 to 2014
+        toc: false
+        show_input: hide
+        section: notebooks
+        authors:
+        - name: Eric Busboom
+        github: https://github.com/sandiegodata/notebooks/blob/master/crime/Crime%20Monthly%20Rhythm%20Maps.ipynb
+
     """
 
     hugo_dir = Unicode(help="Root of the Hugo directory").tag(config=True)
