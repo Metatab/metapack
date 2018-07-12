@@ -269,7 +269,7 @@ def send_to_ckan(m):
         elif dist.type == 'fs':
             # Fervently hope that this is a web acessible fs distribution
             from requests import HTTPError
-            from appurl import DownloadError
+            from rowgenerators.exceptions import DownloadError
             try:
                 markdown = metadata_url.doc.markdown
             except (HTTPError, DownloadError):

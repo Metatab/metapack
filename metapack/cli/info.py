@@ -46,6 +46,9 @@ def info_args(subparsers):
     group.add_argument('-s', '--schema', default=False, action='store_true',
                        help="Print a table of the common schema for all resources, or if the metatab file ref has a resource, only that one")
 
+    group.add_argument('-T', '--row-table', default=False, action='store_true',
+                       help="Print the row-processor table, including transforms and valuetypes")
+
     parser.add_argument('-v', '--version', default=False, action='store_true',
                              help='Print Metapack versions')
 
@@ -79,6 +82,9 @@ def info(args):
 
         elif m.args.schema:
             dump_schemas(m)
+
+        elif m.args.row_table:
+            dump_rptable(m)
 
         elif args.version:
             prt(get_distribution('metapack'))
@@ -138,7 +144,7 @@ def list_rr(doc):
 
     prt(tabulate(d, 'Type Name Url'.split()))
 
-def dump_schemas(m):
+def get_resource(m):
 
     r = m.doc.resource(m.resource)
 
@@ -151,13 +157,22 @@ def dump_schemas(m):
         prt('')
         sys.exit(0)
 
-    dump_schema(m, r)
+    return r
 
+def dump_schemas(m):
 
-def dump_schema(m, r):
+    r = get_resource(m)
+
     st = r.schema_term
     rows_about_columns = []
     for c in st.find('Table.Column'):
         rows_about_columns.append((c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description')))
 
     prt(tabulate(rows_about_columns, headers='Name AltName DataType Description'.split()))
+
+
+def dump_rptable(m):
+
+    r = get_resource(m)
+
+    print(r.row_processor_table())

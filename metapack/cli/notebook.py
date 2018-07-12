@@ -52,7 +52,8 @@ def notebook(subparsers):
                              help='With -M, make only the documentation')
 
     build_group.add_argument('-H', '--hugo', default=False, nargs='?',
-                             help='Write images and Markdown into a Hugo statis site directory. or use METAPACK_HUGO_DIR env var')
+                             help='Write images and Markdown into a Hugo static site directory. or use '
+                                  'METAPACK_HUGO_DIR env var')
 
     build_group.add_argument('-w', '--wordpress', default=False, nargs='?',
                              help='Publish the notebook to a Wordpress blog as a post. Arg refers to credentials in the config')
