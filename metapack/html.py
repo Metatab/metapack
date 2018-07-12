@@ -180,7 +180,7 @@ def documentation_block(doc):
 
             t = doc.package_url.join_target(u).get_resource().get_target()
 
-            with open(t.path) as f:
+            with open(t.fspath) as f:
                 inline += f.read()
 
         for t in doc['Documentation'].find('Root.Documentation'):
