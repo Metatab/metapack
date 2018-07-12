@@ -377,25 +377,7 @@ class MetapackDoc(MetatabDoc):
         from .html import markdown
         return markdown(self)
 
-    def write_csv(self, path=None):
-        """Write CSV file. Sorts the sections before calling the superclass write_csv"""
-
-        # Sort the Sections
-
-        self.sort_sections(['Root', 'Contacts', 'Documentation', 'References', 'Resources', 'Citations', 'Schema'])
-
-        # Sort Terms in the root section
-
-        # Re-wrap the description and abstract
-        if self.description:
-            self.description = self.description
-
-        if self.abstract:
-            self.description = self.abstract
-
-        t = self['Root'].get_or_new_term('Root.Modified')
-        t.value = datetime_now()
-
+    def sort_by_term(self):
         self['Root'].sort_by_term(order=[
             'Root.Declare',
             'Root.Title',
@@ -420,5 +402,27 @@ class MetapackDoc(MetatabDoc):
             'Root.Access',
             'Root.Distribution'
         ])
+
+
+    def write_csv(self, path=None):
+        """Write CSV file. Sorts the sections before calling the superclass write_csv"""
+
+        # Sort the Sections
+
+        self.sort_sections(['Root', 'Contacts', 'Documentation', 'References', 'Resources', 'Citations', 'Schema'])
+
+        # Sort Terms in the root section
+
+        # Re-wrap the description and abstract
+        if self.description:
+            self.description = self.description
+
+        if self.abstract:
+            self.description = self.abstract
+
+        t = self['Root'].get_or_new_term('Root.Modified')
+        t.value = datetime_now()
+
+        self.sort_by_term()
 
         return super().write_csv(path)
