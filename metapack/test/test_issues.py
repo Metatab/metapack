@@ -44,8 +44,9 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             print(c.get('name'), c.get('description'))
 
     def test_refs_not_using_schemas(self):
-        from rowgenerators.valuetype import ShapeValue
 
+        from metapack import  MetapackDoc
+        from rowgenerators.valuetype import ShapeValue
         from metapack.test.support import test_data
         from metatab.generate import TextRowGenerator
 
@@ -80,7 +81,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
     def x_test_csv_join(self):
 
-        from metapack import MetapackDoc
+
         from rowgenerators import parse_app_url
         import metapack as mp
 
