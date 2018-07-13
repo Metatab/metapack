@@ -1,13 +1,8 @@
 import unittest
 
-from metapack import MetapackDoc
-from metapack.test.support import test_data
-from metatab.generate import TextRowGenerator
 
 class TestIssues(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
-
-
 
     def test_ref_resource_confusion(self):
         from metapack import open_package
@@ -19,6 +14,10 @@ class TestIssues(unittest.TestCase):
 
 
     def test_no_reference_descriptions(self):
+
+        from metapack import MetapackDoc
+        from metapack.test.support import test_data
+        from metatab.generate import TextRowGenerator
 
         mt_lines="""
 Declare: metatab-latest
@@ -46,6 +45,9 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
     def test_refs_not_using_schemas(self):
         from rowgenerators.valuetype import ShapeValue
+
+        from metapack.test.support import test_data
+        from metatab.generate import TextRowGenerator
 
         with open(test_data('line', 'line-oriented-doc.txt')) as f:
             text = f.read()
@@ -76,8 +78,9 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             print(c.get('description'))
 
 
-    def test_csv_join(self):
+    def x_test_csv_join(self):
 
+        from metapack import MetapackDoc
         from rowgenerators import parse_app_url
         import metapack as mp
 
@@ -94,7 +97,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             print('A', t._fragment)
 
 
-    def test_wack_doc_urls(self):
+    def x_test_wack_doc_urls(self):
         """Getting inline documentation fails when the package URL is for an online CSV package"""
 
         import metapack as mp
