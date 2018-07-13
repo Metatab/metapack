@@ -174,32 +174,50 @@ def documentation_block(doc):
 
     try:
 
-        for t in doc['Documentation'].find('Root.IncludeDocumentation'):
-
-            u = parse_app_url(t.value)
-
-            t = doc.package_url.join_target(u).get_resource().get_target()
-
-            with open(t.fspath) as f:
-                inline += f.read()
+        # Local Markdown files are loaded into the block, others are
+        # shown as links
 
         for t in doc['Documentation'].find('Root.Documentation'):
 
-            title = t.get_value('title')
-            desc = t.get_value('description')
+            u = parse_app_url(t.value)
 
-            if title and desc:
-                dl_templ = "{}\n:   {}\n\n"
-            elif title:
-                dl_templ = "{}\n\n"
-            elif desc:
-                title = desc
-                dl_templ = "{}\n\n"
-            else:
-                title = t.value
-                dl_templ = "{}\n\n"
+            # Local Markdown files are loaded into the block, others are
+            # shown as links
 
-            doc_links += (dl_templ.format(linkify(t.resolved_url, title), desc))
+            if u.target_format == 'md':
+                if u.proto == 'file':
+                    # File really ought to be relative
+                    t = doc.package_url.join_target(u).get_resource().get_target()
+
+                else:
+                    t = u.get_resource().get_target()
+
+                try:
+                    with open(t.fspath) as f:
+                        inline += f.read()
+
+                except FileNotFoundError:
+                    pass
+
+        for t in doc['Documentation'].find('Root.Documentation'):
+
+            if u.proto != 'file' or u.target_format != 'md':
+
+                title = t.get_value('title')
+                desc = t.get_value('description')
+
+                if title and desc:
+                    dl_templ = "{}\n:   {}\n\n"
+                elif title:
+                    dl_templ = "{}\n\n"
+                elif desc:
+                    title = desc
+                    dl_templ = "{}\n\n"
+                else:
+                    title = t.value
+                    dl_templ = "{}\n\n"
+
+                doc_links += (dl_templ.format(linkify(t.resolved_url, title), desc))
 
         # The doc_img alt text is so we can set a class for CSS to resize the image.
         # img[alt=doc_img] { width: 100 px; }

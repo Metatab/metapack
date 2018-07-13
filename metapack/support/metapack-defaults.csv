@@ -1,0 +1,13 @@
+Declare,metatab-latest,,,
+Name,,,,
+Version,1,,,
+,,,,
+Section,References,Name,Description,
+,,,,
+Section,Resources,Name,Description,
+,,,,
+Section ,Documentation,Title,Description,
+,,,,
+Section,Contacts,Email,Organization,Url
+,,,,
+Section,Schema,DataType,AltName,Description

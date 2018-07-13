@@ -18,7 +18,7 @@ from .core import PackageBuilder
 
 
 class S3PackageBuilder(PackageBuilder):
-    """A Zip File package"""
+    """A FS package in an S3 bucket """
 
     type_code = 's3'
 
@@ -74,8 +74,6 @@ class S3PackageBuilder(PackageBuilder):
 
         self.prt("Preparing S3 package '{}' from '{}'".format(self.package_name, self.source_dir))
 
-
-
         # Copy all of the files from the Filesystem package
         for root, dirs, files in walk(self.source_dir):
             for f in files:
@@ -91,8 +89,10 @@ class S3PackageBuilder(PackageBuilder):
 
         # Rewrite Documentation urls:
         for r in self.doc.find(['Root.Documentation', 'Root.Image']):
-            if parse_app_url(r.url).proto == 'file':
-                r.url = self.bucket.access_url(r.url)
+
+            url = parse_app_url(r.url)
+            if url.proto == 'file':
+                r.url = self.bucket.access_url(url.path)
 
         # re-write the metatab with the new URLs
         #self._write_doc()

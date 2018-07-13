@@ -485,7 +485,7 @@ class PackageBuilder(object):
     def _load_documentation_files(self):
         """Copy all of the Datafile entries into the Excel file"""
 
-        for doc in self.doc.find(['Root.Documentation', 'Root.Image', 'Root.IncludeDocumentation']):
+        for doc in self.doc.find(['Root.Documentation', 'Root.Image']):
 
             resource = self._get_ref_contents(doc)
 

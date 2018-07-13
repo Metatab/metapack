@@ -134,7 +134,7 @@ def new_cmd(args):
 
     ensure_dir(nv_name)
 
-    doc['Documentation'].new_term('Root.IncludeDocumentation', 'file:README.md', title='README')
+    doc['Documentation'].new_term('Root.Documentation', 'file:README.md', title='README')
 
     if args.example:
         doc['Resources'].new_term('Root.Datafile',

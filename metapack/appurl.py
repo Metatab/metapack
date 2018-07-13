@@ -171,6 +171,9 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
         return self.inner.get_target()
 
     def join_target(self, tf):
+
+        print("Type=", type(self))
+
         if self.target_file == DEFAULT_METATAB_FILE:
             return self.inner.join_dir(tf)
         else:
@@ -217,7 +220,7 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
     def join_resource_name(self, v):
         """Return a MetapackResourceUrl that includes a reference to the resource. Returns a
-        MetapackResourceUrl, which will have a a fragment """
+        MetapackResourceUrl, which will have a fragment """
         d = self.dict
         d['fragment'] = [v, None]
         return MetapackResourceUrl(downloader=self._downloader, **d)

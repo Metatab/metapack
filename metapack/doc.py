@@ -256,16 +256,25 @@ class MetapackDoc(MetatabDoc):
             try:
 
                 inline = ''
-                for t in self['Documentation'].find('Root.IncludeDocumentation'):
+                # IncludeDocumentation is obsolete, but still exists
+                for t in self['Documentation'].find('Root.Documentation', 'Root.IncludeDocumentation'):
                     u = parse_app_url(t.value)
 
-                    t = self.package_url.join_target(u).get_resource().get_target()
+                    if u.target_format == 'md':
+                        if u.proto == 'file':
+                            # File really ought to be relative
+                            t = self.package_url.join_target(u).get_resource().get_target()
 
-                    try:
-                        with open(t.path) as f:
-                            inline += f.read()
-                    except FileNotFoundError:
-                        pass
+                        else:
+                            t = u.get_resource().get_target()
+
+                        try:
+                            with open(t.fspath) as f:
+                                inline += f.read()
+
+                        except FileNotFoundError:
+                            pass
+
 
                 out += inline
 

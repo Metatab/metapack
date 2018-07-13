@@ -76,5 +76,61 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             print(c.get('description'))
 
 
+    def test_csv_join(self):
+
+        from rowgenerators import parse_app_url
+        import metapack as mp
+
+        pkg = mp.open_package('http://library.metatab.org/noaa.gov-localclimate-200808_201807-san-3.csv')
+
+        for t in pkg['Documentation'].find('Root.Documentation'):
+            u = parse_app_url(t.value)
+
+            t = pkg.package_url.join_target(u).get_resource().get_target()
+            print("u=",u)
+            print("pu=",pkg.package_url)
+            print("jt=",pkg.package_url.join_target(u))
+            print("R=",pkg.package_url.join_target(u).get_resource() )
+            print('A', t._fragment)
+
+
+    def test_wack_doc_urls(self):
+        """Getting inline documentation fails when the package URL is for an online CSV package"""
+
+        import metapack as mp
+
+        from rowgenerators import parse_app_url
+
+        pkg = mp.open_package('http://library.metatab.org/noaa.gov-localclimate-200808_201807-san-3.csv')
+
+        for t in pkg['Documentation'].find('Root.IncludeDocumentation'):
+            u = parse_app_url(t.value)
+
+            t = pkg.package_url.join_target(u).get_resource().get_target()
+            print("u=",u)
+            print("pu=",pkg.package_url)
+            print("jt=",pkg.package_url.join_target(u))
+            print("R=",pkg.package_url.join_target(u).get_resource() )
+            print('A', t._fragment)
+
+
+        pkg = mp.open_package('http://library.metatab.org/noaa.gov-localclimate-200808_201807-san-3.zip')
+
+        for t in pkg['Documentation'].find('Root.IncludeDocumentation'):
+            u = parse_app_url(t.value)
+
+            t = pkg.package_url.join_target(u).get_resource().get_target()
+            self.assertTrue(t.exists())
+            self.assertTrue(t.path.endswith('README.md'))
+
+        pkg = mp.open_package('/Users/eric/Library/Application '
+                              'Support/metapack/library.metatab.org/noaa.gov-localclimate-200808_201807-san-3/')
+
+        for t in pkg['Documentation'].find('Root.IncludeDocumentation'):
+            u = parse_app_url(t.value)
+            t = pkg.package_url.join_target(u).get_resource().get_target()
+            self.assertTrue(t.exists())
+            self.assertTrue(t.path.endswith('README.md'))
+
 if __name__ == '__main__':
     unittest.main()

@@ -137,6 +137,7 @@ def upload(m):
     for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
         au = m.bucket.access_url(cache_path)
 
+        # Just copy the Excel and Zip files directly to S3
         if ptype in ('xlsx', 'zip'):
             with open(purl.path, mode='rb') as f:
                 m.bucket.write(f.read(), basename(purl.path), m.acl)
@@ -151,7 +152,7 @@ def upload(m):
             try:
                 s3_package_root = MetapackPackageUrl(str(m.s3_url), downloader=m.downloader)
 
-                fs_p, fs_url, created = make_s3_package(purl.metadata_url, s3_package_root, m.cache, env, m.acl, skip_if_exist)
+                fs_p, fs_url, created = make_s3_package(purl.metadata_url, s3_package_root, m.cache, env, skip_if_exist, m.acl)
             except NoCredentialsError:
                 print(getenv('AWS_SECRET_ACCESS_KEY'))
                 err("Failed to find boto credentials for S3. "
@@ -180,6 +181,17 @@ def upload(m):
 
             for au in dist_urls:
                 p.doc['Root'].new_term('Root.Distribution', au)
+
+            # Re-write the URLS for the datafiles
+            for r in p.datafiles:
+                r.url = fs_p.bucket.access_url(r.url)
+
+            # Rewrite Documentation urls:
+            for r in p.doc.find(['Root.Documentation', 'Root.Image']):
+
+                url = parse_app_url(r.url)
+                if url.proto == 'file':
+                    r.url = fs_p.bucket.access_url(url.path)
 
             csv_url = p.save()
 
