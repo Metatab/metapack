@@ -257,7 +257,7 @@ class MetapackDoc(MetatabDoc):
 
                 inline = ''
                 # IncludeDocumentation is obsolete, but still exists
-                for t in self['Documentation'].find('Root.Documentation', 'Root.IncludeDocumentation'):
+                for t in self['Documentation'].find(['Root.Documentation', 'Root.IncludeDocumentation']):
                     u = parse_app_url(t.value)
 
                     if u.target_format == 'md':
@@ -279,6 +279,10 @@ class MetapackDoc(MetatabDoc):
                 out += inline
 
                 for t in self['Documentation'].find('Root.Documentation'):
+
+                    if u.target_format == 'md':
+                        continue
+
                     if t.get_value('url'):
                         out += ("\n**{} **{}"
                                 .format(linkify(t.get_value('url'), t.get_value('title')),

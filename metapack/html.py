@@ -177,7 +177,7 @@ def documentation_block(doc):
         # Local Markdown files are loaded into the block, others are
         # shown as links
 
-        for t in doc['Documentation'].find('Root.Documentation'):
+        for t in doc['Documentation'].find(['Root.Documentation', 'Root.Includedocumentation']):
 
             u = parse_app_url(t.value)
 
