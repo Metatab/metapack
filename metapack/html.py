@@ -201,7 +201,7 @@ def documentation_block(doc):
 
         for t in doc['Documentation'].find('Root.Documentation'):
 
-            if u.proto != 'file' or u.target_format != 'md':
+            if u.target_format != 'md':
 
                 title = t.get_value('title')
                 desc = t.get_value('description')
