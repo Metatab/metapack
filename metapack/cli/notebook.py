@@ -6,8 +6,6 @@ CLI program for managing packages
 """
 
 from metapack import Downloader
-from metapack.jupyter.convert import convert_documentation, convert_notebook, convert_wordpress,\
-    extract_metatab, convert_hugo
 from metapack.cli.core import prt, err, warn, get_config
 from os import environ
 from os.path import basename
@@ -62,6 +60,8 @@ def notebook(subparsers):
                              help='Publish the notebook to a Wordpress blog as a page. Arg refers to credentials in the config')
 
 def run_notebook(args):
+    from metapack.jupyter.convert import convert_documentation, convert_notebook, convert_wordpress, \
+        extract_metatab, convert_hugo
 
     # Maybe need to convert a notebook first
     if args.package:
