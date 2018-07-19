@@ -11,7 +11,7 @@ from .package import open_package, Downloader
 from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl
 from .terms import Resource
 
-from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
+#from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
 
 import rowgenerators.appurl.url
 
