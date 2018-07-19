@@ -245,9 +245,15 @@ class MetapackDoc(MetatabDoc):
                         description=r.get_value('description', ''),
                         url=resolved_url)
 
-        def documentation():
 
-            out = ''
+        def inline_documentation():
+            """Display any Markdown docs as inline documentation. Note that they are manipulated a
+            bit -- the first "#" title is removed to allow for inserting the title from the metadata. """
+
+            import re
+            from rowgenerators.appurl.archive.zip import ZipUrlError
+
+            inline = ''
 
             try:
                 self['Documentation']
@@ -255,7 +261,6 @@ class MetapackDoc(MetatabDoc):
                 return ''
             try:
 
-                inline = ''
                 # IncludeDocumentation is obsolete, but still exists
                 for t in self['Documentation'].find(['Root.Documentation', 'Root.IncludeDocumentation']):
                     u = parse_app_url(t.value)
@@ -275,22 +280,44 @@ class MetapackDoc(MetatabDoc):
                         except FileNotFoundError:
                             pass
 
+            except ZipUrlError as e:
+                inline = str(e)
 
-                out += inline
+            except KeyError:
+                raise
+                pass
+
+            inline = inline.strip()
+
+            inline = re.sub(r'^\#.*','',inline, count=1)
+
+            return inline
+
+
+        def documentation():
+
+            docs = ''
+            others = ''
+
+            try:
+                self['Documentation']
+            except KeyError:
+                return ''
+            try:
 
                 for t in self['Documentation'].find('Root.Documentation'):
-
+                    u = parse_app_url(t.value)
                     if u.target_format == 'md':
                         continue
 
                     if t.get_value('url'):
-                        out += ("\n**{} **{}"
+                        docs += ("* **{}** {}\n"
                                 .format(linkify(t.get_value('url'), t.get_value('title')),
                                         t.get_value('description')
                                         ))
 
                     else:  # Mostly for notes
-                        out += ("\n**{}: **{}"
+                        others += ("\n**{}: **{}\n"
                                 .format(t.record_term.title(), t.value))
 
 
@@ -298,7 +325,7 @@ class MetapackDoc(MetatabDoc):
                 raise
                 pass
 
-            return out
+            return docs + '\n' +others
 
         def contacts():
 
@@ -330,11 +357,11 @@ class MetapackDoc(MetatabDoc):
 
         t = Template("""
 ## {{title|default(name, True) }}
-{% if title %}
-<p>{{name|default("", True)}}</p>
+<p><em>{{description|default("", True) }}</em></p>
+<p><small>{{name|default("", True)}} from {{ref|default("", True)}}</small></p>
+{% if inline_doc %}
+{{inline_doc}}
 {% endif %}
-<p>{{description|default("", True) }}</p>
-<p>{{ref|default("", True)}}</p>
 {% if doc %}
 ### Documentation
 {{doc}}
@@ -354,23 +381,29 @@ class MetapackDoc(MetatabDoc):
 {% endif %}
 </ol>""")
 
-        try:
-            resources = '\n'.join(
-                ["<li>" + resource_repr(r) + "</li>" for r in self['Resources'].find('Root.Resource')])
-        except KeyError as e:
-            resources = None
+        resources = ''
 
-        try:
-            references = '\n'.join(
-                ["<li>" + resource_repr(r) + "</li>" for r in self['References'].find('Root.Resource')])
-        except KeyError as e:
-            references = None
+        for r in self['Resources'].find('Root.Resource'):
+            try:
+                resources += "<li>{}</li>\n".format(resource_repr(r))
+            except Exception as e:
+                resources += "<li>Error: {}</li>\n".format(e)
+
+        references = ''
+
+        for r in self['References'].find('Root.Resource'):
+            try:
+                references += "<li>{}</li>\n".format(resource_repr(r))
+            except Exception as e:
+                references += "<li>Error: {}</li>\n".format(e)
+
 
         v = t.render(
             title=self.find_first_value('Root.Title', section='Root'),
             name=self.find_first_value('Root.Name', section='Root'),
             ref=self.ref,
             description=self.find_first_value('Root.Description', section='Root'),
+            inline_doc=inline_documentation(),
             doc=documentation(),
             contact=contacts(),
             resources=resources,

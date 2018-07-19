@@ -181,6 +181,7 @@ class SearchIndex(object):
 
             key_type = e['t']
 
+
             if key_type == 'ident':
                 match_key = 'nvname'
                 match_value = e['ref']
@@ -196,8 +197,8 @@ class SearchIndex(object):
                 if (match_type == 'exact' and p[match_key] == match_value) or \
                    (match_type == 'subset' and search_term in p[match_key]):
                     if (format and p['format'] in format) or format is None:
-                        if not p['name'] in seen:
+                        if not (p['format'],p['name']) in seen:
                             packages.append(p)
-                            seen.add(p['name'])
+                            seen.add((p['format'],p['name']))
 
         return list(reversed(sorted(packages, key=lambda x: (x['version'], self.pkg_format_priority[x['format']]) )))

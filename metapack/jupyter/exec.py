@@ -38,8 +38,22 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=Non
                               dataframes=dataframes,
                               ).preprocess(nb, {})
 
+    def _write_notebook(nb_path, root, ext, write_notebook):
+        if write_notebook:
+            if write_notebook is True:
+                exec_nb_path = join(dirname(nb_path), root + '-executed' + ext)
+            else:
+                exec_nb_path = write_notebook
+
+            with open(exec_nb_path, 'wt') as f:
+                nbformat.write(nb, f)
+
+    _write_notebook(nb_path, root, ext, write_notebook)
+
     try:
         ep = ExecutePreprocessor(config=c)
+
+        ep.timeout = 5*60
 
         nb, _ = ep.preprocess(nb, {'metadata': {'path': dirname(nb_path)}})
     except (CellExecutionError, TimeoutError) as e:
@@ -53,14 +67,6 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=Non
     except ImportError as e:
         raise NotebookError("Failed to import a library required for notebook execution: {}".format(str(e)))
 
-
-    if write_notebook:
-        if write_notebook is True:
-            exec_nb_path = join(dirname(nb_path), root + '-executed' + ext)
-        else:
-            exec_nb_path = write_notebook
-
-        with open(exec_nb_path, 'wt') as f:
-            nbformat.write(nb, f)
+    _write_notebook(nb_path, root, ext, write_notebook)
 
     return nb

@@ -61,6 +61,7 @@ def index_args(subparsers):
     parser.add_argument('metatab_url', nargs='?', default='./',
                         help='URL to a metatab package or container for packages')
 
+
 def walk_packages(args, u):
     from os import walk
     from os.path import islink, join, isdir
@@ -135,6 +136,7 @@ def index(args):
     elif isinstance(u, FileUrl):
         entries = []
         for p in walk_packages(args, u):
+            print(p.ref)
             idx.add_package(p)
             entries.append(p.name)
 
@@ -150,7 +152,10 @@ def index(args):
         import re
 
         for e in u.list():
+
             if e.target_format == 'csv':
+
+                prt("Processing ", e)
 
                 p = open_package(e)
 
@@ -162,8 +167,6 @@ def index(args):
                     if u.target_format in ('xlsx','zip','csv'):
                         idx.add_entry(p.identifier, p.name, p.nonver_name, version_m.group(1), u.target_format,
                                       'metapack+'+str(u))
-
-
 
                         entries.append(p.name)
         idx.write()

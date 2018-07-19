@@ -7,14 +7,12 @@
 
 ((* block maketitle *))
 
-((*- if nb.metadata.metatab.author.name: -*))
+((*- if nb.metadata.metatab.author and nb.metadata.metatab.author.name: -*))
     \author{((( nb.metadata.metatab.author.name )))}
 ((*- endif *))
 
-((*- if nb.metadata.metatab.author.organization : -*))
+((*- if nb.metadata.metatab.author and nb.metadata.metatab.author.organization : -*))
     \affil{((( nb.metadata.metatab.author.organization )))}
-((*- else -*))
-    \affil{University of Nope}
 ((*- endif *))
 
 ((*- if nb.metadata.metatab.title: -*))

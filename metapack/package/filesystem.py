@@ -193,7 +193,7 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         notebook_docs = []
 
-        # First find and remove notebooks from the docs. These wil ge processed to create
+        # First find and remove notebooks from the docs. These wil get processed to create
         # normal documents.
         try:
             for term in list(self.doc['Documentation'].find('Root.Documentation')):
@@ -214,8 +214,10 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         # Now, generate the documents directly into the filesystem package
         for term in notebook_docs:
+
             u = parse_app_url(term.value)
-            nb_path = u.path(self.source_dir)
+
+            nb_path = join(self.source_dir, u.path) # Only works if the path is relative.
 
             output, resources = de.from_filename(nb_path)
             fw.write(output, resources, notebook_name='notebook')

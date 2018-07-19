@@ -142,7 +142,18 @@ def list_rr(doc):
     for r in doc.resources():
         d.append(('Resource', r.name, r.url))
 
-    prt(tabulate(d, 'Type Name Url'.split()))
+    if d:
+        prt('== Resources ==')
+        prt(tabulate(d, 'Type Name Url'.split()))
+        prt('')
+
+    d = []
+    for r in doc.references():
+        d.append(('Reference', r.name, r.url))
+
+    if d:
+        prt('== References ==')
+        prt(tabulate(d, 'Type Name Url'.split()))
 
 def get_resource(m):
 

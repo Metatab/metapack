@@ -125,7 +125,8 @@ class DocumentationExporter(MetatabExporter):
         # Get all of the image resources
         nb_copy, resources = self.extract_resources(nb_copy, resources)
 
-        # Add resources for the html and markdown versionf of the notebook
+        # Add resources for the html and markdown version of the notebook
+
         self.add_pdf(nb_copy, resources)
         self.add_markdown_doc(nb_copy, resources)
         self.add_html_doc(nb_copy, resources)
@@ -141,10 +142,15 @@ class DocumentationExporter(MetatabExporter):
             .preprocess(nb, resources)
 
     def add_pdf(self, nb, resources):
+        from ipython_genutils.py3compat import which
 
         template_file = 'notebook.tplx'
 
         exp = PDFExporter(config=self.config, template_file=template_file)
+
+
+        if not which(exp.latex_command[0]):
+            return
 
         (body, _) = exp.from_notebook_node(nb)
 

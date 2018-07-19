@@ -25,7 +25,6 @@ update: Update Package Information
     :start_command: update
 
 
-    
 info: Show Information About Packages
 ----------------------------------------
 
@@ -48,4 +47,12 @@ build: Building Packages
 .. autoprogram:: metapack.cli.mp:base_parser()
     :prog: mp
     :start_command: build
+ 
+.. _mp_s3:  
     
+s3: Store Packages in S3
+---------------------------
+
+.. autoprogram:: metapack.cli.mp:base_parser()
+    :prog: mp
+    :start_command: s3

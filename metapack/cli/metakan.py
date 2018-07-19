@@ -212,7 +212,8 @@ def send_to_ckan(m):
                 name=basename(package_url.path),
                 format='ZIP',
                 mimetype=mimetypes.guess_type(package_url.path)[0],
-                description='ZIP version of package'
+                description = load_instructions_description('ZIP version of package, in Metatab format.',
+                                                        str(package_url.inner))
             )
             resources.append(d)
             prt("Adding ZIP package ", d['name'])
@@ -223,7 +224,8 @@ def send_to_ckan(m):
                 name=basename(package_url.path),
                 format='XLSX',
                 mimetype=mimetypes.guess_type(package_url.path)[0],
-                description='Excel version of package'
+                description = load_instructions_description('Excel version of package, in Metatab format.',
+                                                        str(package_url.inner))
             )
             resources.append(d)
             prt("Adding XLS package ", d['name'])
@@ -235,7 +237,8 @@ def send_to_ckan(m):
                 name=basename(package_url.path),
                 format='csv',
                 mimetype=mimetypes.guess_type(metadata_url.path)[0],
-                description='CSV Package Metadata in Metatab format'
+                description=load_instructions_description('CSV version of package, in Metatab format.',
+                                                          str(package_url.inner))
             )
 
             resources.append(d)
@@ -245,6 +248,8 @@ def send_to_ckan(m):
                 p = open_package(metadata_url)
             except (IOError, MetatabError) as e:
                 err("Failed to open package '{}' from reference '{}': {}".format(package_url, dist.url, e))
+
+            # Resources are always created from the CSV package.
 
             for r in p.resources():
 
@@ -341,6 +346,22 @@ def configure_ckan(m):
                                   description=o.get_value('description'),
                                   id=o.get_value('id'),
                                   image_url=o.get_value('image_url'))
+
+def load_instructions_description(desc,url):
+
+    from textwrap import dedent
+    return dedent(
+        """
+        {desc}
+        
+        Load dataset into a Python program:
+        
+            import metapack as mp
+            pkg = mp.open_package('{url}')
+            
+        """
+    ).format(desc=desc, url=url)
+
 
 def dump_ckan(m):
     """Create a groups and organization file"""

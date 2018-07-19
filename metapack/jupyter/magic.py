@@ -653,11 +653,14 @@ class MetapackMagic(Magics):
 
             path = join(cache, args.dataframe_name + ".csv")
             df = self.shell.user_ns[args.dataframe_name].fillna('')
-            gen = PandasDataframeSource(parse_app_url(path), df, cache=cache)
+            
+            #gen = PandasDataframeSource(parse_app_url(path), df, cache=cache)
 
-            with open(path, 'w') as f:
-                w = csv.writer(f)
-                w.writerows(gen)
+            #with open(path, 'w') as f:
+            #    w = csv.writer(f)
+            #    w.writerows(gen)
+
+            df.to_csv(path)
 
             print(dumps({
                 'df_name': args.dataframe_name,
@@ -666,7 +669,7 @@ class MetapackMagic(Magics):
             }, indent=4))
 
         else:
-            # We're in interactive mode, so just records the dataset in the metadata
+            # We're in interactive mode, so just record the dataset in the metadata
             df = self.shell.user_ns[args.dataframe_name]
 
             add_dataframe(df if not args.reset_index else df.reset_index(),
