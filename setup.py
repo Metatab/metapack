@@ -22,15 +22,17 @@ classifiers = [
     'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
+
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.11',
+    version='0.8.12',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
     package_data={
         '': ['*.tpl', '*.tplx', '*.csv', '*.json', '*.txt', '*.ipynb', ''],
+        'metapack.jupyter.templates': ['*.tpl']
     },
 
     zip_safe=False,
