@@ -383,19 +383,27 @@ class MetapackDoc(MetatabDoc):
 
         resources = ''
 
-        for r in self['Resources'].find('Root.Resource'):
-            try:
-                resources += "<li>{}</li>\n".format(resource_repr(r))
-            except Exception as e:
-                resources += "<li>Error: {}</li>\n".format(e)
+        try:
+            for r in self['Resources'].find('Root.Resource'):
+                try:
+                    resources += "<li>{}</li>\n".format(resource_repr(r))
+                except Exception as e:
+                    resources += "<li>Error: {}</li>\n".format(e)
+        except KeyError:
+            # No Resources section
+            pass
 
         references = ''
 
-        for r in self['References'].find('Root.Resource'):
-            try:
-                references += "<li>{}</li>\n".format(resource_repr(r))
-            except Exception as e:
-                references += "<li>Error: {}</li>\n".format(e)
+        try:
+            for r in self['References'].find('Root.Resource'):
+                try:
+                    references += "<li>{}</li>\n".format(resource_repr(r))
+                except Exception as e:
+                    references += "<li>Error: {}</li>\n".format(e)
+        except KeyError:
+            # No references section
+            pass
 
 
         v = t.render(

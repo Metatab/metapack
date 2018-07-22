@@ -26,14 +26,11 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.12',
+    version='0.8.13',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
-    package_data={
-        '': ['*.tpl', '*.tplx', '*.csv', '*.json', '*.txt', '*.ipynb', ''],
-        'metapack.jupyter.templates': ['*.tpl']
-    },
+    # package_data= {}, package_data is only used for binary distributions! ARRRG!
 
     zip_safe=False,
     install_requires=[

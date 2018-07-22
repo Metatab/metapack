@@ -19,7 +19,7 @@ from metatab import  DEFAULT_METATAB_FILE, MetatabError
 from metapack.package.s3 import S3Bucket
 from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import prt, warn, write_doc
-
+from textwrap import dedent
 
 downloader = Downloader()
 
@@ -199,12 +199,14 @@ def send_to_ckan(m):
     # correct links.
     markdown = None
 
+    inst_distributions = []
     for dist in doc.find('Root.Distribution'):
 
         prt("Processing {} package: {}".format(dist.type, dist.value))
 
         package_url = dist.package_url
         metadata_url = dist.metadata_url
+
 
         if dist.type == 'zip':
             d = dict(
@@ -216,7 +218,9 @@ def send_to_ckan(m):
                                                         str(package_url.inner))
             )
             resources.append(d)
-            prt("Adding ZIP package ", d['name'])
+            inst_distributions.append(dist)
+            prt("Adding {} package {}".format(d['format'], d['name']))
+
 
         elif dist.type == 'xlsx':
             d = dict(
@@ -228,20 +232,21 @@ def send_to_ckan(m):
                                                         str(package_url.inner))
             )
             resources.append(d)
-            prt("Adding XLS package ", d['name'])
+            prt("Adding {} package {}".format(d['format'], d['name']))
 
         elif dist.type == 'csv':
 
             d=dict(
                 url=str(package_url.inner),
                 name=basename(package_url.path),
-                format='csv',
+                format='CSV',
                 mimetype=mimetypes.guess_type(metadata_url.path)[0],
                 description=load_instructions_description('CSV version of package, in Metatab format.',
                                                           str(package_url.inner))
             )
 
             resources.append(d)
+            inst_distributions.append(dist)
             prt("Adding {} package {}".format(d['format'], d['name']))
 
             try:
@@ -282,6 +287,8 @@ def send_to_ckan(m):
 
         else:
             warn("Unknown distribution type '{}' for '{}'  ".format(dist.type, dist.value))
+
+    markdown += package_load_instructions(inst_distributions)
 
     try:
         pkg['notes'] = markdown or doc.markdown #doc.find_first_value('Root.Description')
@@ -348,8 +355,8 @@ def configure_ckan(m):
                                   image_url=o.get_value('image_url'))
 
 def load_instructions_description(desc,url):
+    """Display loading the package into metapack, displayed in the resource"""
 
-    from textwrap import dedent
     return dedent(
         """
         {desc}
@@ -362,6 +369,44 @@ def load_instructions_description(desc,url):
         """
     ).format(desc=desc, url=url)
 
+def package_load_instructions(inst_distributions):
+    """Load instructions, displayed in the package notes"""
+
+    per_package_inst = ''
+
+    for dist in inst_distributions:
+
+        if dist.type == 'zip':
+            per_package_inst += dedent(
+                """
+                # Loading the ZIP Package
+                
+                Zip packages are compressed, so large resources may load faster.
+                
+                    import metapack as mp
+                    pkg = mp.open_package('{url}')
+                    
+                """.format(url=dist.package_url.inner))
+
+        elif dist.type == 'csv':
+            per_package_inst += dedent(
+                """
+                # Loading the CSV Package
+                
+                CSV packages load resources individually, so small resources may load faster.   
+                
+                
+                    import metapack as mp
+                    pkg = mp.open_package('{url}')
+                
+                """.format(url=dist.package_url.inner))
+
+    if per_package_inst:
+
+        return '\n---\n'+per_package_inst
+
+    else:
+        return ''
 
 def dump_ckan(m):
     """Create a groups and organization file"""
