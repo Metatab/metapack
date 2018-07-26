@@ -87,9 +87,21 @@ class Resource(Term):
 
         return u
 
-
     @property
     def resolved_url(self):
+
+        ru = self._resolved_url()
+
+        try:
+            ru._target_format = self.target_format
+        except AttributeError:
+            # No target_format is defined
+            pass
+
+        return ru
+
+
+    def _resolved_url(self):
         """Return a URL that properly combines the base_url and a possibly relative
         resource url"""
 
@@ -97,7 +109,6 @@ class Resource(Term):
             return None
 
         u = parse_app_url(self.url)
-
 
         if u.scheme == 'index':
             u = u.resolve()

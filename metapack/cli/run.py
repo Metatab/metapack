@@ -93,6 +93,7 @@ def run(subparsers):
 
     output_group.add_argument('-L', '--limit', type=int,
                        help="Limit the number of output rows ")
+    output_group.add_argument('-N', '--number', action='store_true', help="Add line numbers as the first column")
 
     parser.set_defaults(handler=None)
 
@@ -170,7 +171,7 @@ def run_run(args):
             rows = [header] + rows
 
         # Only display the columns that will fit in the terminal window
-        # If I were good, this would be a comprehension
+        # If I were a good python programmer, this would be a comprehension
         max_lengths = [0] * len(list(rows[0]))
         for row in rows:
             for i, col in enumerate(row):
@@ -180,7 +181,12 @@ def run_run(args):
                 else:
                     ln = len(str(col))+3
 
-                max_lengths[i] = max(max_lengths[i], ln )
+                try:
+                    max_lengths[i] = max(max_lengths[i], ln )
+                except IndexError:
+                    max_lengths.extend([0])
+                    max_lengths[i] = max(max_lengths[i], ln)
+
 
         display_cols = bisect([ sum(max_lengths[:i]) for i in range(1,len(max_lengths)+1)],t_width-4)
 
@@ -202,6 +208,15 @@ def run_run(args):
             gen_wrap = lambda g: islice(g, None, args.limit)
         else:
             gen_wrap = lambda g: g
+
+        if args.number:
+            def add_number(gen_wrap, g):
+
+                for i,r in enumerate(gen_wrap(g)):
+                    yield [i]+r
+
+            from functools import partial
+            gen_wrap = partial(add_number, gen_wrap)
 
         if m.args.json:
             for i,j in enumerate(gen_wrap(r.iterjson())):

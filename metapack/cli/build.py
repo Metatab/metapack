@@ -73,6 +73,9 @@ def build(subparsers):
     parser.add_argument('-F', '--force', action='store_true', default=False,
                              help='Force some operations, like updating the name and building packages')
 
+    parser.add_argument('-R', '--reuse-resources', action='store_true', default=False,
+                        help='When building Filesystem package, try to reuse resources built in prior build')
+
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument('-n', '--nonversion-name', action='store_true', default=False,
@@ -179,6 +182,8 @@ def metatab_derived_handler(m):
     # Remove any data that may have been cached , for instance, from Jupyter notebooks
     rmtree(get_materialized_data_cache(doc), ignore_errors=True)
 
+    reuse_resources=m.args.reuse_resources
+
     try:
 
         # Always create a filesystem package before ZIP or Excel, so we can use it as a source for
@@ -187,7 +192,8 @@ def metatab_derived_handler(m):
 
         # all_build_opts = [m.args.filesystem, m.args.excel, m.args.zip, m.args.csv]
 
-        _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force, False, nv_link)
+        _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force, False,
+                                                  nv_link, reuse_resources=reuse_resources)
         create_list.append(('fs', url, created))
 
         m.mt_file = url

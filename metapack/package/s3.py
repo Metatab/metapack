@@ -94,6 +94,7 @@ class S3PackageBuilder(PackageBuilder):
             if url.proto == 'file':
                 r.url = self.bucket.access_url(url.path)
 
+
         # re-write the metatab with the new URLs
         #self._write_doc()
 

@@ -184,7 +184,7 @@ def documentation_block(doc):
             # Local Markdown files are loaded into the block, others are
             # shown as links
 
-            if u.target_format == 'md':
+            if u.target_format == 'md': # The README.md file
                 if u.proto == 'file':
                     # File really ought to be relative
                     t = doc.package_url.join_target(u).get_resource().get_target()
@@ -200,6 +200,8 @@ def documentation_block(doc):
                     pass
 
         for t in doc['Documentation'].find('Root.Documentation'):
+
+            u = parse_app_url(t.value)
 
             if u.target_format != 'md':
 
@@ -219,10 +221,13 @@ def documentation_block(doc):
 
                 doc_links += (dl_templ.format(linkify(t.resolved_url, title), desc))
 
+
+
         # The doc_img alt text is so we can set a class for CSS to resize the image.
         # img[alt=doc_img] { width: 100 px; }
-
+       
         for t in doc['Documentation'].find('Root.Image'):
+
             doc_links += ('[![{}]({} "{}")]({})'
                           .format('doc_img', t.resolved_url, t.get_value('title'),
                                   t.resolved_url))

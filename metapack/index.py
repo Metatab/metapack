@@ -13,6 +13,7 @@ from os import rename
 
 
 def search_index_file():
+    """Return the default local index file, from the download cache"""
     from metapack import Downloader
     return Downloader().cache.getsyspath('index.json')
 

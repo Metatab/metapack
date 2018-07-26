@@ -73,7 +73,7 @@ def s3(subparsers):
 
     parser.set_defaults(run_command=run_s3)
 
-    parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
+    parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentials profile", required=False)
 
     parser.add_argument('-s', '--s3', help="URL to S3 where packages will be stored", required=False)
 
@@ -101,6 +101,7 @@ def run_s3(args):
     if m.args.credentials:
         show_credentials(m.args.profile)
         exit(0)
+
 
     dist_urls = upload(m)
 
@@ -144,7 +145,7 @@ def upload(m):
                 prt("Added {} distribution: {} ".format(ptype, au))
                 dist_urls.append(au)
 
-        elif ptype == 'fs':
+        elif ptype == 'fs': # Make the S3 package from the filesystem package
 
             env = {}
             skip_if_exist = False
@@ -223,6 +224,9 @@ def show_credentials(profile):
     prt("# Run {} to configure credentials in a shell".format(cred_line))
 
 
+
+
+
 def run_docker(m):
     """Re-run the metasync command in docker. """
 
@@ -260,4 +264,5 @@ def run_docker(m):
     exitcode = process.wait()  # 0 means success
 
     exit(exitcode)
+
 

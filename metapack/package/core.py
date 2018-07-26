@@ -483,27 +483,28 @@ class PackageBuilder(object):
         return u.get_resource() if u else None
 
     def _load_documentation_files(self):
-        """Copy all of the Datafile entries into the Excel file"""
+        """Copy all of the Datafile """
 
-        for doc in self.doc.find(['Root.Documentation', 'Root.Image']):
+        for t in self.doc.find(['Root.Documentation', 'Root.Image']):
 
-            resource = self._get_ref_contents(doc)
+            resource = self._get_ref_contents(t)
 
             if not resource:
                 continue
 
-            if doc.term_is('Root.Documentation'):
+            if t.term_is('Root.Documentation'):
                 # Prefer the slugified title to the base name, because in cases of collections
                 # of many data releases, like annual datasets, documentation files may all have the same name,
                 # but the titles should be different.
                 real_name_base, ext = splitext(resource.resource_file)
 
-                name = doc.get_value('name') if doc.get_value('name') else real_name_base
+                name = t.get_value('name') if t.get_value('name') else real_name_base
                 real_name = slugify(name) + ext
 
-            self._load_documentation(doc, resource.read(), resource.resource_file)
 
-    def _load_documentation(self, term, contents):
+            self._load_documentation(t, resource.read(), resource.resource_file)
+
+    def _load_documentation(self, term, contents, file_name):
         raise NotImplementedError()
 
     def _load_files(self):
@@ -616,7 +617,7 @@ class PackageBuilder(object):
 TableColumn = namedtuple('TableColumn', 'path name start_line header_lines columns')
 
 
-def open_package(ref, cache=None, clean_cache=False, downloader=None):
+def open_package(ref,  downloader=None):
     from metapack.doc import MetapackDoc
 
     if downloader is None:
@@ -626,20 +627,19 @@ def open_package(ref, cache=None, clean_cache=False, downloader=None):
 
     if isinstance(ref, MetapackUrl):
         u = ref
+
     else:
 
         ref = str(ref)
 
         if ref.startswith('index:'):
-            from metapack.appurl import  SearchUrl
+            from metapack.appurl import SearchUrl
             SearchUrl.initialize()
             ref = str(parse_app_url(ref).resolve())
 
         u = MetapackUrl(ref, downloader=downloader)
 
         resource = u.resource
-
-    cache = cache if cache else downloader.cache
 
     p = MetapackDoc(u, downloader=downloader)
     p.default_resource = resource

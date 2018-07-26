@@ -16,20 +16,15 @@ from rowgenerators import parse_app_url
 from rowgenerators.appurl.file import FileUrl
 from rowgenerators.appurl.web import S3Url
 from rowgenerators.exceptions import RowGeneratorError
-from .core import MetapackCliMemo as _MetapackCliMemo, new_search_index
-from .core import err, prt, debug_logger
+from .core import err, prt
 from metapack.constants import PACKAGE_PREFIX
+import tempfile
+from os.path import join
 
 from tabulate import tabulate
 
 downloader = Downloader()
 
-
-class MetapackCliMemo(_MetapackCliMemo):
-
-    def __init__(self, args, downloader):
-        super().__init__(args, downloader)
-        self
 
 
 def index_args(subparsers):
@@ -49,14 +44,19 @@ def index_args(subparsers):
     parser.add_argument('-C', '--config', default=False, action='store_true',
                         help="Show the location of the index file")
 
-    parser.add_argument('-d', '--directory', default=downloader.cache.getsyspath('/'),
-                        help="Directory where index will be stored")
+    parser.add_argument('-f', '--file', help="Alternative path to index file")
+
+    parser.add_argument('-w', '--write', help="After creating an index file from S3 and  write back the index file",
+                        action='store_true', required=False)
 
     parser.add_argument('-D', '--dump',
                         help="Dump a Metatab formatted version of the index")
 
     parser.add_argument('-L', '--load',
                         help="Load in a Metatab formatted index file ")
+
+    parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentials profile, for S3 indexing",
+                        required=False)
 
     parser.add_argument('metatab_url', nargs='?', default='./',
                         help='URL to a metatab package or container for packages')
@@ -109,11 +109,34 @@ def walk_packages(args, u):
                     pass
 
 
+def write_s3(m):
+
+
+    print('Indexing tmp index', path)
+
+    idx = SearchIndex(path)
+
+    index_s3(m.s3_url, idx)
+
+    with open(path) as f:
+        m.bucket.write(f.read(), 'index.json', m.acl)
+
 def index(args):
 
-    idx = SearchIndex(search_index_file())
+    if args.write and args.list:
+        err("Can't combine --write and --list")
+
+    if args.write:
+        if not args.file:
+            args.file = join(tempfile.mkdtemp(), 'something')
+            args.file = '/tmp/index.json'
+
+    idx = SearchIndex(args.file or search_index_file())
 
     u = parse_app_url(args.metatab_url)
+
+    if not isinstance(u, S3Url) and args.write:
+        err("--write can only be used with S3 urls")
 
     if args.list:
 
@@ -123,7 +146,6 @@ def index(args):
 
         prt(tabulate(pkg_list, headers='name Url'.split()))
     elif args.config:
-        import shlex
         prt(idx.path)
 
     elif args.clear:
@@ -144,37 +166,51 @@ def index(args):
         prt("Indexed ", len(entries), 'entries')
 
     elif isinstance(u, S3Url):
-        # S3 package collections are flat, so we don't have to walk recursively.
-        # However, we are only going to take the S3 packages, because they have the distribution
-        # information for the rest of the packages, so we can get info about Excel and Zip packages
-        # without opening them.
-        entries = []
-        import re
+       index_s3(u, idx)
 
-        for e in u.list():
+       if args.write:
+           from metapack.package.s3 import S3Bucket
 
-            if e.target_format == 'csv':
+           acl = 'public-read'
 
-                prt("Processing ", e)
+           bucket = S3Bucket(u, acl=acl, profile=args.profile)
 
-                p = open_package(e)
+           with open(args.file, mode='rb') as f:
+               bucket.write(f.read(), 'index.json', acl=acl)
 
-                for d in p.find('Root.Distribution'):
-                    u = parse_app_url(d.value)
-
-                    version_m = re.search('-([^-]+)$', p.name)
-
-                    if u.target_format in ('xlsx','zip','csv'):
-                        idx.add_entry(p.identifier, p.name, p.nonver_name, version_m.group(1), u.target_format,
-                                      'metapack+'+str(u))
-
-                        entries.append(p.name)
-        idx.write()
-
-        prt("Indexed ",len(entries), 'entries')
 
     else:
         err(f"Can only index File and S3 urls, not {type(u)}")
+
+def index_s3(u, idx):
+    # S3 package collections are flat, so we don't have to walk recursively.
+    # However, we are only going to take the S3 packages, because they have the distribution
+    # information for the rest of the packages, so we can get info about Excel and Zip packages
+    # without opening them.
+    entries = []
+    import re
+
+    for e in u.list():
+
+        if e.target_format == 'csv':
+
+            prt("Processing ", e)
+
+            p = open_package(e)
+
+            for d in p.find('Root.Distribution'):
+                u = parse_app_url(d.value)
+
+                version_m = re.search('-([^-]+)$', p.name)
+
+                if u.target_format in ('xlsx', 'zip', 'csv'):
+                    idx.add_entry(p.identifier, p.name, p.nonver_name, version_m.group(1), u.target_format,
+                                  'metapack+' + str(u))
+
+                    entries.append(p.name)
+    idx.write()
+
+    prt("Indexed ", len(entries), 'entries to ', idx.path)
 
 def dump_index(args, idx):
 

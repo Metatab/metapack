@@ -178,8 +178,7 @@ def get_table(doc, name):
     return t
 
 
-
-def _exec_build(p, package_root, force,  nv_name, extant_url_f, post_f):
+def _exec_build(p, package_root, force, nv_name, extant_url_f, post_f):
     from metapack import MetapackUrl
 
     if force:
@@ -223,7 +222,7 @@ def make_excel_package(file, package_root, cache, env, force, nv_name=None, nv_l
     p = ExcelPackageBuilder(file, package_root, callback=prt, env=env)
 
     return _exec_build(p,
-                       package_root, force,  nv_name,
+                       package_root, force, nv_name,
                        lambda p: p.package_path.path,
                        lambda: p.create_nv_link() if nv_link else None)
 
@@ -241,7 +240,7 @@ def make_zip_package(file, package_root, cache, env, force, nv_name=None, nv_lin
                        lambda: p.create_nv_link() if nv_link else None)
 
 
-def make_filesystem_package(file, package_root, cache, env, force, nv_name=None, nv_link=False):
+def make_filesystem_package(file, package_root, cache, env, force, nv_name=None, nv_link=False, reuse_resources=False):
     from os.path import join
 
     from metapack.package import FileSystemPackageBuilder
@@ -249,12 +248,12 @@ def make_filesystem_package(file, package_root, cache, env, force, nv_name=None,
 
     assert package_root
 
-    p = FileSystemPackageBuilder(file, package_root, callback=prt, env=env)
+    p = FileSystemPackageBuilder(file, package_root, callback=prt, env=env, reuse_resources=reuse_resources)
 
     return _exec_build(p,
                        package_root, force, nv_name,
                        lambda p: join(p.package_path.path.rstrip('/'), DEFAULT_METATAB_FILE),
-                       lambda: p.create_nv_link() if nv_link else None )
+                       lambda: p.create_nv_link() if nv_link else None)
 
 
 def make_csv_package(file, package_root, cache, env, force, nv_name=None, nv_link=False):
@@ -265,7 +264,7 @@ def make_csv_package(file, package_root, cache, env, force, nv_name=None, nv_lin
     p = CsvPackageBuilder(file, package_root, callback=prt, env=env)
 
     return _exec_build(p,
-                       package_root, force,  nv_name,
+                       package_root, force, nv_name,
                        lambda p: p.package_path.path,
                        lambda: p.create_nv_link() if nv_link else None)
 
@@ -386,13 +385,11 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
             continue
 
         if col_count != datatype_count:
-
             prt("Found table for '{}'; but {} columns don't have datatypes"
-                .format(r.schema_name, col_count-datatype_count))
+                .format(r.schema_name, col_count - datatype_count))
 
         prt("Processing {}".format(r.name))
         schemas_processed += 1
-
 
         try:
             slice = islice(r.row_generator, 500)
@@ -539,11 +536,10 @@ class MetapackCliMemo(object):
         if self.mtfile_url.resource_format == 'zip' and self.resource == 'metadata.csv':
             self.resource = None
 
-
         self.package_url = self.mtfile_url.package_url
         self.mt_file = self.mtfile_url.metadata_url
 
-        #assert self.package_url.scheme == 'file'
+        # assert self.package_url.scheme == 'file'
 
         if hasattr(self.args, 'build_directory') and self.args.build_directory:
             self.package_root = parse_app_url(self.args.build_directory)
@@ -587,7 +583,6 @@ def get_config():
     return {}
 
 
-
 def update_index(packages, package_path, suffix=''):
     from os import listdir
     from os.path import join, exists, isdir, splitext
@@ -619,19 +614,16 @@ def update_index(packages, package_path, suffix=''):
     return packages
 
 
-
 def new_search_index():
     return []
 
 
 def list_rr(doc):
-
     d = []
     for r in doc.resources():
         d.append(('Resource', r.name, r.url))
 
     for r in doc.references():
         d.append(('Reference', r.name, r.url))
-
 
     prt(tabulate(d, 'Type Name Url'.split()))

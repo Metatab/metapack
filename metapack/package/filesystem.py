@@ -30,16 +30,19 @@ class FileSystemPackageBuilder(PackageBuilder):
     type_code = 'fs'
     type_suffix = ''
 
-    def __init__(self, source_ref, package_root, callback=None, env=None):
+    def __init__(self, source_ref, package_root, callback=None, env=None, reuse_resources = False):
 
         super().__init__(source_ref, package_root,  callback, env)
 
         if not self.package_root.isdir():
             self.package_root.ensure_dir()
 
+        self.reuse_resources = reuse_resources
+
         self.package_path, self.cache_path = self.make_package_path(self.package_root, self.package_name)
 
         self.doc_file = self.package_path.join(DEFAULT_METATAB_FILE)
+
 
     @classmethod
     def make_package_path(cls, package_root, package_name):
@@ -131,7 +134,6 @@ class FileSystemPackageBuilder(PackageBuilder):
         with open(join(self.package_path.path, 'index.html'), 'w') as f:
             f.write(self._doc.html)
 
-
     def _load_resource(self, source_r, abs_path=False):
         """The CSV package has no resources, so we just need to resolve the URLs to them. Usually, the
             CSV package is built from a file system ackage on a publically acessible server. """
@@ -145,7 +147,10 @@ class FileSystemPackageBuilder(PackageBuilder):
         # one.
         r = self.datafile(source_r.name)
 
-        self.prt("Loading data for '{}' ".format(r.name))
+        if self.reuse_resources:
+            self.prt("Re-using data for '{}' ".format(r.name))
+        else:
+            self.prt("Loading data for '{}' ".format(r.name))
 
         if not r.name:
             raise MetapackError(f"Resource/reference term has no name: {str(r)}")
@@ -164,12 +169,18 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         makedirs(dirname(path), exist_ok=True)
 
-        if exists(path):
-            remove(path)
+        if self.reuse_resources and exists(path):
+            self.prt("Re-using {}".format(path))
+        else:
+            if self.reuse_resources:
+                self.prt("Resource {} doesn't exist, rebuilding".format(path))
 
-        gen = islice(source_r, 1, None)
-        headers = source_r.headers
-        self.write_csv(path, headers, gen)
+            if exists(path):
+                remove(path)
+
+            gen = islice(source_r, 1, None)
+            headers = source_r.headers
+            self.write_csv(path, headers, gen)
 
         for k, v in source_r.post_iter_meta.items():
             r[k] = v
@@ -204,7 +215,6 @@ class FileSystemPackageBuilder(PackageBuilder):
         except KeyError:
             self.warn("No documentation defined in metadata")
 
-
         # Process all of the normal files
         super()._load_documentation_files()
 
@@ -212,7 +222,7 @@ class FileSystemPackageBuilder(PackageBuilder):
         fw = FilesWriter()
         fw.build_directory = join(self.package_path.path,'docs')
 
-        # Now, generate the documents directly into the filesystem package
+        # Now, generate the notebook documents directly into the filesystem package
         for term in notebook_docs:
 
             u = parse_app_url(term.value)
@@ -233,6 +243,7 @@ class FileSystemPackageBuilder(PackageBuilder):
             return
 
         path = join(self.package_path.path,  file_name)
+
 
         self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
 

@@ -410,7 +410,7 @@ class MetapackDoc(MetatabDoc):
             title=self.find_first_value('Root.Title', section='Root'),
             name=self.find_first_value('Root.Name', section='Root'),
             ref=self.ref,
-            description=self.find_first_value('Root.Description', section='Root'),
+            description=self.description,
             inline_doc=inline_documentation(),
             doc=documentation(),
             contact=contacts(),
