@@ -15,7 +15,10 @@ from os import rename
 def search_index_file():
     """Return the default local index file, from the download cache"""
     from metapack import Downloader
-    return Downloader().cache.getsyspath('index.json')
+    from os import environ
+
+    return environ.get('METAPACK_SEARCH_INDEX',
+                       Downloader().cache.getsyspath('index.json'))
 
 class SearchIndex(object):
 
@@ -181,7 +184,6 @@ class SearchIndex(object):
         for e in records:
 
             key_type = e['t']
-
 
             if key_type == 'ident':
                 match_key = 'nvname'

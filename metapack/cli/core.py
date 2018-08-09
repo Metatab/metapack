@@ -181,17 +181,18 @@ def get_table(doc, name):
 def _exec_build(p, package_root, force, nv_name, extant_url_f, post_f):
     from metapack import MetapackUrl
 
+
     if force:
         reason = 'Forcing build'
         should_build = True
     elif p.is_older_than_metadata():
-        reason = 'Metadata was changed after package'
+        reason = 'Metadata is younger than package'
         should_build = True
     elif not p.exists():
         reason = "Package doesn't exist"
         should_build = True
     else:
-        reason = 'Metadata was changed before package'
+        reason = 'Metadata is older than package'
         should_build = False
 
     if should_build:
@@ -552,6 +553,25 @@ class MetapackCliMemo(object):
     def doc(self):
         from metapack import MetapackDoc
         return MetapackDoc(self.mt_file)
+
+    def get_resource(self):
+        return get_resource(self)
+
+
+def get_resource(m):
+
+
+
+    if m.resource:
+        r = m.doc.resource(m.resource)
+        return r if r else m.doc.reference(m.resource)
+    elif hasattr(m.args,'resource') and m.args.resource:
+        return m.doc.resource(m.args.resource)
+    elif hasattr(m.args,'reference') and m.args.reference:
+        return m.doc.reference(m.args.reference)
+    else:
+        return None
+
 
 
 def get_config():

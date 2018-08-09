@@ -248,9 +248,10 @@ class Resource(Term):
 
     def columns(self):
 
+
         try:
             # For resources that are metapack packages.
-            r =  self.resolved_url.resource.columns()
+            r = self.resolved_url.resource.columns()
             return list(r)
         except AttributeError:
             pass
@@ -550,10 +551,7 @@ class Resource(Term):
 
         return self.dataframe().geo
 
-
-
-
-    def read_csv(self, dtype=False, parse_dates=False, *args, **kwargs):
+    def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_csv
 
         Don't provide the first argument of read_csv(); it is supplied internally.
@@ -561,6 +559,7 @@ class Resource(Term):
 
         import pandas
         import numpy as np
+        from datetime import datetime, time, date
 
         t = self.resolved_url.get_resource().get_target()
 
@@ -570,9 +569,10 @@ class Resource(Term):
             'text': str,
             'number': float,
             'integer': int,
-            'datetime': str,
-            'time': str,
-            'date': str
+            'datetime': datetime,
+            'time': time,
+            'date': date
+
         }
 
         if dtype is True:
@@ -586,6 +586,7 @@ class Resource(Term):
             kwargs['parse_dates'] = parse_dates
 
         kwargs['low_memory'] = False
+
 
         return pandas.read_csv(t.fspath, *args, **kwargs)
 
@@ -673,6 +674,18 @@ class Reference(Resource):
             return self.resource._repr_html_()
         except AttributeError:
             return super()._repr_html_()
+
+    def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
+        try:
+            return self.resource.read_csv(dtype, parse_dates, *args, **kwargs)
+        except AttributeError:
+            return super()._repr_html_()
+
+    def dataframe(self, limit=None):
+        try:
+            return self.resource.dataframe(limit)
+        except AttributeError:
+            return super().dataframe(limit)
 
 
 class SqlQuery(Resource):

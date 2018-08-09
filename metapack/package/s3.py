@@ -106,8 +106,6 @@ class S3PackageBuilder(PackageBuilder):
     def close(self):
         pass
 
-
-
     def write_to_s3(self, path, body):
 
         self.prt("Writing '{}' to S3".format(path))

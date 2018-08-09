@@ -485,7 +485,7 @@ class PackageBuilder(object):
     def _load_documentation_files(self):
         """Copy all of the Datafile """
 
-        for t in self.doc.find(['Root.Documentation', 'Root.Image']):
+        for t in self.doc.find(['Root.Documentation', 'Root.Image', 'Root.Notebook']):
 
             resource = self._get_ref_contents(t)
 
@@ -500,7 +500,6 @@ class PackageBuilder(object):
 
                 name = t.get_value('name') if t.get_value('name') else real_name_base
                 real_name = slugify(name) + ext
-
 
             self._load_documentation(t, resource.read(), resource.resource_file)
 
@@ -587,6 +586,16 @@ class PackageBuilder(object):
 
         rename(from_path, to_path)
 
+    def package_build_time(self):
+        from genericpath import getmtime
+
+
+        try:
+            path = self.path.path
+        except AttributeError:
+            path = self.path
+
+        return getmtime(path)
 
     def is_older_than_metadata(self):
         """

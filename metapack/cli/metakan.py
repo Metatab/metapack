@@ -197,16 +197,16 @@ def send_to_ckan(m):
 
     # Try to set the markdown from a CSV package, since it will have the
     # correct links.
-    markdown = None
+    markdown = ''
 
     inst_distributions = []
+    csv_package = None
     for dist in doc.find('Root.Distribution'):
 
         prt("Processing {} package: {}".format(dist.type, dist.value))
 
         package_url = dist.package_url
         metadata_url = dist.metadata_url
-
 
         if dist.type == 'zip':
             d = dict(
@@ -256,6 +256,8 @@ def send_to_ckan(m):
 
             # Resources are always created from the CSV package.
 
+            csv_package = p
+
             for r in p.resources():
 
                 mimetype = mimetypes.guess_type(r.resolved_url.path)[0]
@@ -276,19 +278,13 @@ def send_to_ckan(m):
                 resources.append(d)
                 prt("Adding {} resource {}".format(d['format'], d['name']))
 
-        elif dist.type == 'fs':
-            # Fervently hope that this is a web acessible fs distribution
-            from requests import HTTPError
-            from rowgenerators.exceptions import DownloadError
-            try:
-                markdown = metadata_url.doc.markdown
-            except (HTTPError, DownloadError):
-                pass
+
 
         else:
             warn("Unknown distribution type '{}' for '{}'  ".format(dist.type, dist.value))
 
-    markdown += package_load_instructions(inst_distributions)
+
+    markdown = csv_package.markdown + package_load_instructions(inst_distributions)
 
     try:
         pkg['notes'] = markdown or doc.markdown #doc.find_first_value('Root.Description')

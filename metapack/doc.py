@@ -240,7 +240,7 @@ class MetapackDoc(MetatabDoc):
             except AppUrlError:
                 resolved_url = r.value
 
-            return "<p><strong>{name}</strong> - <a target=\"_blank\" href=\"{url}\">{url}</a> {description}</p>" \
+            return "<p><a target=\"_blank\" href=\"{url}\"><strong>{name}</strong></a> {description}</p>" \
                 .format(name='<a href="#resource-{name}">{name}</a>'.format(name=r.name) if anchor else r.name,
                         description=r.get_value('description', ''),
                         url=resolved_url)
@@ -319,6 +319,17 @@ class MetapackDoc(MetatabDoc):
                     else:  # Mostly for notes
                         others += ("\n**{}: **{}\n"
                                 .format(t.record_term.title(), t.value))
+
+                for t in self['Documentation'].find('Root.Image'):
+                    image_url = t.resolved_url
+
+                    image_md =  ('\n[![{}]({} "{}")]({})'
+                                  .format('doc_img', image_url, t.get_value('title'), image_url))
+
+
+                    print('!!!', image_md)
+
+                    docs += image_md
 
 
             except KeyError:
@@ -405,7 +416,6 @@ class MetapackDoc(MetatabDoc):
             # No references section
             pass
 
-
         v = t.render(
             title=self.find_first_value('Root.Title', section='Root'),
             name=self.find_first_value('Root.Name', section='Root'),
@@ -429,6 +439,7 @@ class MetapackDoc(MetatabDoc):
     @property
     def markdown(self):
         from .html import markdown
+
         return markdown(self)
 
     def sort_by_term(self):

@@ -8,6 +8,7 @@ from metapack.cli.core import prt, err
 from rowgenerators import parse_app_url
 from rowgenerators.exceptions import AppUrlError
 from metapack.index import SearchIndex, search_index_file
+from textwrap import dedent
 
 downloader = Downloader()
 
@@ -15,7 +16,14 @@ def search(subparsers):
 
     parser = subparsers.add_parser(
         'search',
-        help='Search for packages',
+        description=dedent("""
+        Index packages for searching. 
+
+        The index file is a JSON file, which is by default index.json in the cache. 
+        The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
+
+
+        """),
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
     parser.add_argument('-l', '--list', default=False, action='store_true',

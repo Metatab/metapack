@@ -25,12 +25,19 @@ from tabulate import tabulate
 
 downloader = Downloader()
 
-
+from textwrap import dedent
 
 def index_args(subparsers):
     parser = subparsers.add_parser(
         'index',
-        help='Index packages for searching. '
+        description=dedent("""
+        Index packages for searching. 
+        
+        The index file is a JSON file, which is by default index.json in the cache. 
+        The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
+        
+        
+        """)
     )
 
     parser.set_defaults(run_command=index)

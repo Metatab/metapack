@@ -98,30 +98,16 @@ def run(subparsers):
     parser.set_defaults(handler=None)
 
 
-def get_resource(m):
-
-    if m.resource:
-        r = m.doc.resource(m.resource)
-        return r if r else m.doc.reference(m.resource)
-    elif m.args.resource:
-        return m.doc.resource(m.args.resource)
-    elif m.args.reference:
-        return m.doc.reference(m.args.reference)
-    else:
-        return None
-
-
 def run_run(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    r = get_resource(m)
+    r = m.get_resource()
 
     doc = m.doc
 
     # Remove any data that may have been cached , for instance, from Jupyter notebooks
     shutil.rmtree(get_materialized_data_cache(doc), ignore_errors=True)
-
 
     if not r:
         list_rr(doc)
@@ -137,6 +123,7 @@ def run_run(args):
         from collections import Counter
 
         limit = m.args.limit if m.args.limit else 5000
+
 
         c = Counter( r[m.args.sample] for r in islice(r.iterrows, None, limit))
 

@@ -61,6 +61,8 @@ def info_args(subparsers):
     parser.add_argument('-M', '--materialized', default=False, action='store_true',
                         help='Print the location of the materialized data cache')
 
+
+
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 

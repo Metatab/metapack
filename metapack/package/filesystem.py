@@ -17,6 +17,7 @@ from metatab import DEFAULT_METATAB_FILE
 from .core import PackageBuilder
 from metapack.util import ensure_dir, write_csv, slugify, datetime_now
 from metapack.appurl import MetapackUrl, SearchUrl
+from metapack.util import slugify
 
 def count_decl(doc):
     decls = doc.find('Root.Declare')
@@ -66,6 +67,17 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         if self.package_path.is_dir():
             shutil.rmtree(self.package_path.path)
+
+    def package_build_time(self):
+        from genericpath import getmtime
+
+
+        try:
+            path = self.doc_file.path
+        except AttributeError:
+            path = self.doc_file
+
+        return getmtime(path)
 
     def is_older_than_metadata(self):
         """
@@ -218,34 +230,50 @@ class FileSystemPackageBuilder(PackageBuilder):
         # Process all of the normal files
         super()._load_documentation_files()
 
-        de = DocumentationExporter()
         fw = FilesWriter()
         fw.build_directory = join(self.package_path.path,'docs')
 
         # Now, generate the notebook documents directly into the filesystem package
         for term in notebook_docs:
 
+            de = DocumentationExporter(base_name=term.name or slugify(term.title))
+
             u = parse_app_url(term.value)
 
             nb_path = join(self.source_dir, u.path) # Only works if the path is relative.
 
-            output, resources = de.from_filename(nb_path)
-            fw.write(output, resources, notebook_name='notebook')
+            try:
+                output, resources = de.from_filename(nb_path)
+                fw.write(output, resources, notebook_name=de.base_name+'_full') # Write notebook html with inputs
 
-            de.update_metatab(self.doc, resources)
+                de.update_metatab(self.doc, resources)
+            except Exception as e:
+                from metapack.cli.core import warn
+                warn("Failed to convert document for {}: {}".format(term.name, e))
+
 
     def _load_documentation(self, term, contents, file_name):
-
+        """Load a single documentation entry"""
         try:
             title = term['title'].value
         except KeyError:
             self.warn("Documentation has no title, skipping: '{}' ".format(term.value))
             return
 
-        path = join(self.package_path.path,  file_name)
+        try:
+            eu = term.expanded_url
+        except AttributeError:
+            eu = parse_app_url(term.value)
+
+        if eu.proto == 'file' and not eu.path_is_absolute:
+            package_sub_dir = eu.fspath.parent
+        else:
+            package_sub_dir = 'docs'
 
 
-        self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
+        path = join(self.package_path.path,  package_sub_dir, file_name)
+
+        self.prt("Loading documentation for '{}', '{}'  ".format(title, file_name))
 
         makedirs(dirname(path), exist_ok=True)
 

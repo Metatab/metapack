@@ -30,7 +30,7 @@ def base_parser():
                         help='Show full stack tract for some unhandled exceptions')
 
     parser.add_argument('--debug', default=False, action='store_true',
-                        help='Turn on debug logging ( Basic Config ')
+                        help='Turn on debug logging ( Basic Config ) ')
 
 
     subparsers = parser.add_subparsers(help='Commands')

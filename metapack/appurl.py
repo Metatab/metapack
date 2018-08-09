@@ -483,6 +483,7 @@ class SearchUrl(Url):
         returns a non-None value"""
 
         for cb in SearchUrl.search_callbacks:
+
             try:
                 v = cb(self)
                 if v is not None:
@@ -494,7 +495,7 @@ class SearchUrl(Url):
         u = self.search()
 
         if not u:
-            raise AppUrlError(f"Search URL failed to resolve reference to {str(self)}")
+            raise AppUrlError("Search URL failed to resolve reference to {} ".format(str(self)))
 
         u.set_fragment(self.fragment)
 

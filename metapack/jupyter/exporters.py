@@ -5,35 +5,34 @@
 """
 Exporter to convert a notebook into a Metatab package.
 """
-import re
-import logging
 import sys
+
 import copy
 import io
 import json
-import metapack
+import logging
+import nbformat
+import re
+from datetime import datetime
 from metapack.exc import MetapackError
 from metapack.jupyter.exc import NotebookError
-# from metapack.jupyter.markdown import MarkdownExporter
-from nbconvert.exporters.markdown import MarkdownExporter
-import nbformat
+from metatab.util import ensure_dir
 from nbconvert.exporters import Exporter
 from nbconvert.exporters.html import HTMLExporter
-from nbconvert.exporters.pdf import PDFExporter
 from nbconvert.exporters.latex import LatexExporter
-from nbconvert.preprocessors import ExecutePreprocessor
-from nbconvert.preprocessors import ExtractOutputPreprocessor
+# from metapack.jupyter.markdown import MarkdownExporter
+from nbconvert.exporters.markdown import MarkdownExporter
+from nbconvert.exporters.pdf import PDFExporter
+from nbconvert.preprocessors import ExecutePreprocessor, ExtractOutputPreprocessor
 from nbconvert.preprocessors.execute import CellExecutionError
 from os import getcwd
 from os.path import dirname, join, abspath, basename
 from traitlets import List
+from traitlets import default
 from traitlets.config import Unicode, Config, Dict
+
 from .preprocessors import (AddEpilog, ExtractInlineMetatabDoc, RemoveMetatab,
                             ExtractFinalMetatabDoc, ExtractMetatabTerms, ExtractLibDirs)
-from datetime import datetime
-from traitlets import default
-
-from metatab.util import ensure_dir
 
 
 def write_files(self, resources):
@@ -77,6 +76,9 @@ class DocumentationExporter(MetatabExporter):
     """Exports multiple forms of documentation"""
 
     metadata = Dict(help='Extra metadata, added to the \'metatab\' key', default_value={}).tag(config=True)
+
+    base_name = Unicode(u'documentation',
+                               help="Base name for the documentation file").tag(config=True)
 
     @property
     def default_config(self):
@@ -148,48 +150,51 @@ class DocumentationExporter(MetatabExporter):
 
         exp = PDFExporter(config=self.config, template_file=template_file)
 
-
         if not which(exp.latex_command[0]):
             return
 
         (body, _) = exp.from_notebook_node(nb)
 
-        resources['outputs']['documentation.pdf'] = body
+        resources['outputs'][self.base_name+'.pdf'] = body
 
         exp = LatexExporter(config=self.config, template_file=template_file)
 
         (body, _) = exp.from_notebook_node(nb)
 
-        resources['outputs']['documentation.latex'] = body.encode('utf-8')
+        resources['outputs'][self.base_name+'.latex'] = body.encode('utf-8')
 
     def add_basic_html_doc(self, nb, resources):
         html_exp = HTMLExporter(config=self.config, template_file='hide_input_html_basic.tpl')
 
         (html_basic_body, _) = html_exp.from_notebook_node(nb)
 
-        resources['outputs']['html_basic_body.html'] = html_basic_body.encode('utf-8')
+        resources['outputs'][self.base_name+'_html_body.html'] = html_basic_body.encode('utf-8')
 
     def add_html_doc(self, nb, resources):
         html_exp = HTMLExporter(config=self.config, template_file='hide_input_html.tpl')
 
         (html_full_body, _) = html_exp.from_notebook_node(nb)
 
-        resources['outputs']['documentation.html'] = html_full_body.encode('utf-8')
+        resources['outputs'][self.base_name+'.html'] = html_full_body.encode('utf-8')
 
     def add_markdown_doc(self, nb, resources):
 
         exp = MarkdownExporter(config=self.config)
         (md_body, _) = exp.from_notebook_node(nb)
 
-        resources['outputs']['documentation.md'] = md_body.encode('utf-8')
+        resources['outputs'][self.base_name+'.md'] = md_body.encode('utf-8')
 
     def update_metatab(self, doc, resources):
         """Add documentation entries for resources"""
 
         if not 'Documentation' in doc:
+
             doc.new_section("Documentation")
 
         ds = doc['Documentation']
+
+        if not 'Name' in ds.args:
+            ds.add_arg('Name', prepend=True)
 
         # This is the main output from the HTML exporter, not a resource.
         ds.new_term('Root.Documentation', 'docs/notebook.html', name="notebook.html", title='Jupyter Notebook (HTML)')

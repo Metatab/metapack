@@ -16,6 +16,9 @@ from rowgenerators.exceptions import SourceError
 from rowgenerators.util import clean_cache
 from tableintuit import RowIntuitError
 import argparse
+from pathlib import Path
+
+
 
 downloader = Downloader()
 
@@ -63,9 +66,6 @@ def build(subparsers):
                           )
 
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
-
-    parser.add_argument('-d', '--build-directory', help="Set an alternate build directory, instead of '_packages'",
-                            required=False)
 
     parser.add_argument('-D', '--package-directory', help="Write Zip, Excel and CSV packages to an alternate directory",
                             required=False)
@@ -121,7 +121,6 @@ def run_metapack(args):
     from rowgenerators.rowpipe.exceptions import TooManyCastingErrors
 
     m = MetapackCliMemo(args, downloader)
-
 
     if m.args.profile:
         from metatab.s3 import set_s3_profile
@@ -190,11 +189,14 @@ def metatab_derived_handler(m):
         # data for the other packages. This means that Transform processes and programs only need
         # to be run once.
 
-        # all_build_opts = [m.args.filesystem, m.args.excel, m.args.zip, m.args.csv]
-
         _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force, False,
                                                   nv_link, reuse_resources=reuse_resources)
         create_list.append(('fs', url, created))
+
+        lb_path = Path( m.package_root.fspath,'last_build')
+
+        if created or not lb_path.exists():
+            Path( m.package_root.fspath,'last_build').touch()
 
         m.mt_file = url
 
