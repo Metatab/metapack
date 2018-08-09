@@ -75,6 +75,7 @@ def walk_packages(args, u):
 
     seen = set()
 
+    # Try all files as packages
     if not isdir(u.path):
         try:
             yield open_package(u.path)
@@ -165,7 +166,7 @@ def index(args):
     elif isinstance(u, FileUrl):
         entries = []
         for p in walk_packages(args, u):
-            print(p.ref)
+            prt(p.ref)
             idx.add_package(p)
             entries.append(p.name)
 

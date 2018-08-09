@@ -27,7 +27,8 @@ class SearchIndex(object):
         'zip': 4,
         'xlsx': 3,
         'csv': 2,
-        'source': 1
+        'source': 1,
+        'unk': 0
     }
 
     def __init__(self, path):
@@ -75,7 +76,7 @@ class SearchIndex(object):
             pass
 
         if format is None:
-            format = 'fs'
+            format = 'unk'
 
         self._db[ident] = {'t':'ident', 'ref':nvname } # these should always be equivalent
 
@@ -112,10 +113,15 @@ class SearchIndex(object):
         version = pkg.get_value('Root.Version')
         identifier = pkg.get_value('Root.Identifier')
 
-        if not pkg.get_value('Root.Issued'):
-            format = 'source'
+        target_ref = ref_url.get_resource().get_target()
+
+        if target_ref.fspath.is_dir() and target_ref.fspath.joinpath('metadata.csv').exists():
+            if not pkg.get_value('Root.Issued') or target_ref.fspath.joinpath('_packages').exists():
+                format = 'source'
+            else:
+                format = 'fs'
         else:
-            format = ref_url.get_resource().get_target().target_format
+            format = target_ref.target_format
 
         self._make_package_entry(identifier, name, nv_name, version, format, ref)
 
