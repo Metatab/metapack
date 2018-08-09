@@ -138,12 +138,12 @@ class FileSystemPackageBuilder(PackageBuilder):
 
     def _write_dpj(self):
 
-        with open(join(self.package_path.path, 'datapackage.json'), 'w') as f:
+        with open(join(self.package_path.path, 'datapackage.json'), 'w', encoding="utf-8") as f:
             f.write(json.dumps(convert_to_datapackage(self._doc), indent=4))
 
     def _write_html(self):
 
-        with open(join(self.package_path.path, 'index.html'), 'w') as f:
+        with open(join(self.package_path.path, 'index.html'), 'w', encoding="utf-8") as f:
             f.write(self._doc.html)
 
     def _load_resource(self, source_r, abs_path=False):
