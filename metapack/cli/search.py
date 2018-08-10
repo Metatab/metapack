@@ -9,6 +9,7 @@ from rowgenerators import parse_app_url
 from rowgenerators.exceptions import AppUrlError
 from metapack.index import SearchIndex, search_index_file
 from textwrap import dedent
+import json
 
 downloader = Downloader()
 
@@ -27,19 +28,36 @@ def search(subparsers):
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
     parser.add_argument('-l', '--list', default=False, action='store_true',
-                        help="List the packages that would be indexed ( Only from the JSON index")
+                        help="List the packages in the index")
 
     parser.add_argument('-f', '--format', help='Select a specific package format')
 
     parser.add_argument('-1', '--one', action='store_true',
                         help='Find only one result, using the same resolution process used when building packages')
 
+    parser.add_argument('-p', '--path', default=False, action='store_true',
+                        help="Instead of displaying the Metapack URL, display only the local file path")
+
     parser.add_argument('-c', '--config', default=False, action='store_true',
                         help="Show the path to the index file")
+
+    parser.add_argument('-j', '--json', default=False, action='store_true',
+                       help="Output json for some commands")
 
     parser.set_defaults(run_command=run_search)
 
     parser.add_argument('search', nargs='?', help="Path or URL to a metatab file")
+
+
+def maybe_path(args,e):
+    if args.path:
+        u = parse_app_url(e).inner
+        if u.proto == 'file':
+            return u.fspath
+        else:
+            return ''
+    else:
+        return e
 
 def run_search(args):
 
@@ -53,10 +71,17 @@ def run_search(args):
 
         idx = SearchIndex(search_index_file())
 
-        packages = [ (e['name'], e['format'], e['url']) for e in idx.list()
-                     if args.format is None or args.format == e['format']]
+        if args.json:
 
-        print(tabulate(packages, headers='Name Format Url'.split()))
+            packages = [e for e in idx.list() if args.format is None or args.format == e['format']]
+
+            print(json.dumps(packages))
+        else:
+
+            packages = [(e['name'], e['format'], maybe_path(args, e['url'])) for e in idx.list()
+                        if args.format is None or args.format == e['format']]
+
+            print(tabulate(packages, headers='Name Format Url'.split()))
 
     elif args.one:
 
@@ -68,7 +93,7 @@ def run_search(args):
         try:
             u = parse_app_url(url_s)
 
-            prt(str(u.get_resource()))
+            prt(str(maybe_path(args,u.get_resource())))
 
         except AppUrlError as e:
             err(f"Failed to resolve: {str(u)}; {str(e)}")

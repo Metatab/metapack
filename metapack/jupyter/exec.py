@@ -25,7 +25,7 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=Non
     from os.path import dirname, join, splitext, basename
     from nbconvert.preprocessors.execute import CellExecutionError
 
-    with open(nb_path) as f:
+    with open(nb_path, encoding='utf8') as f:
         nb = nbformat.read(f, as_version=4)
 
     root, ext = splitext(basename(nb_path))

@@ -278,7 +278,8 @@ def send_to_ckan(m):
                 resources.append(d)
                 prt("Adding {} resource {}".format(d['format'], d['name']))
 
-
+        elif dist.type == 'fs':
+            pass
 
         else:
             warn("Unknown distribution type '{}' for '{}'  ".format(dist.type, dist.value))
