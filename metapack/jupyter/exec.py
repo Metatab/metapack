@@ -45,7 +45,7 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=Non
             else:
                 exec_nb_path = write_notebook
 
-            with open(exec_nb_path, 'wt') as f:
+            with open(exec_nb_path, 'w', encoding='utf8') as f:
                 nbformat.write(nb, f)
 
     _write_notebook(nb_path, root, ext, write_notebook)
