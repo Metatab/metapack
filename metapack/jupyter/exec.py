@@ -58,7 +58,7 @@ def execute_notebook(nb_path, pkg_dir, dataframes, write_notebook=False, env=Non
         nb, _ = ep.preprocess(nb, {'metadata': {'path': dirname(nb_path)}})
     except (CellExecutionError, TimeoutError) as e:
         err_nb_path = join(dirname(nb_path), root + '-errors' + ext)
-        with open(err_nb_path, 'wt') as f:
+        with open(err_nb_path, 'w', encoding='utf8') as f:
             nbformat.write(nb, f)
 
         raise CellExecutionError("Errors executing noteboook. See notebook at {} for details.\n{}"
