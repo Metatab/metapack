@@ -27,8 +27,6 @@ def notebook(subparsers):
 
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
 
-    parser.add_argument('--exceptions', default=False, action='store_true',
-                        help='Show full stack tract for some unhandled exceptions')
 
     parser.set_defaults(handler=None)
 

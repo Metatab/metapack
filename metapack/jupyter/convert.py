@@ -125,6 +125,7 @@ def doc_metadata(doc):
 
 def convert_hugo(nb_path, hugo_path):
     from os import environ
+    from os.path import abspath
 
     # Total hack. Would like the -H to be allowed to have no arg, and then use the env var,
     # but I don't know how to do that. This is the case where the user types
@@ -140,7 +141,7 @@ def convert_hugo(nb_path, hugo_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
 
     c = Config()
-    c.HugoExporter.hugo_dir = hugo_path
+    c.HugoExporter.hugo_dir = abspath(hugo_path) # Exports assume rel path is rel to notebook
     he = HugoExporter(config=c,log=logger)
 
     output, resources = he.from_filename(nb_path)
@@ -153,6 +154,7 @@ def convert_hugo(nb_path, hugo_path):
 
     fw = FilesWriter()
     fw.write(output, resources, notebook_name=resources['unique_key'])
+
 
 def convert_wordpress(nb_path, hugo_path):
     from os import environ

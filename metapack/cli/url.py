@@ -51,13 +51,26 @@ def run_url(args):
 
     if m.args.enumerate:
 
-        from metatab.util import enumerate_contents
+        enumerate(m)
 
-        specs = list(enumerate_contents(m.args.enumerate, m.cache, callback=prt))
+def enumerate(m):
 
-        for s in specs:
-            prt(classify_url(s.url), s.target_format, s.url, s.target_segment)
+    u = parse_app_url(m.args.enumerate)
 
+    if u.proto == 'file':
+        entries = u.list()
+    else:
+        entries = [ssu for su in u.list() for ssu in su.list()]
+
+    for e in entries:
+        print(e)
+
+    return
+
+
+
+    for s in specs:
+        prt(classify_url(s.url), s.target_format, s.url, s.target_segment)
 
 def classify_url(url):
     ss = parse_app_url(url)
@@ -103,7 +116,6 @@ def add_resource(mt_file, ref, cache):
     for e in entries:
         if not add_single_resource(doc, e, cache=cache, seen_names=seen_names):
             errors.append(e)
-
 
     if errors:
         prt()

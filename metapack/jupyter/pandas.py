@@ -59,6 +59,8 @@ class MetatabDataFrame(DataFrame):
         first = next(gdf.iterrows())[1].geometry
 
         if isinstance(first, str):
+            # We have a GeoDataframe, but the geometry column is still strings, so
+            # it must be converted
             shapes = [ loads(row['geometry']) for i, row in gdf.iterrows()]
 
         elif not isinstance(first, BaseGeometry):

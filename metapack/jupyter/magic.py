@@ -37,6 +37,27 @@ debug_logger = logging.getLogger('debug_logger')
 
 MT_DOC_VAR = 'mt_pkg' # Namespace name for the metatab document.
 
+
+def fill_categorical_na(df, nan_cat='NA'):
+    """Fill categoricals with 'NA', possibly creating a new category,
+    and fill other NaNa with blanks """
+    for col in df.columns[df.isna().any()].tolist():
+
+        if df[col].dtype.name != 'category':
+            # If not categorical, fill with a blank, which creates and
+            # empty cell in CSV.
+            df[col] = df[col].fillna('')
+        else:
+
+            try:
+                df[col].cat.add_categories([nan_cat], inplace=True)
+            except ValueError:
+                pass
+
+            df[col] = df[col].fillna(nan_cat)
+
+    return df
+
 @magics_class
 class MetatabMagic(Magics):
 
@@ -246,7 +267,7 @@ class MetatabMagic(Magics):
             if not exists(dirname(path)):
                 makedirs(dirname(path))
 
-            df = self.shell.user_ns[df_name].fillna('')
+            df = fill_categorical_na(self.shell.user_ns[args.df_name].copy())
 
             if args.feather:
                 path = path.replace('.csv','.feather')
@@ -287,13 +308,20 @@ class MetatabMagic(Magics):
 
         ensure_dir(dr)
 
+
         try:
             cache = self.mt_doc._cache
         except KeyError:
             cache = get_cache()
 
         path = join(dr, args.df_name + ".csv")
-        df = self.shell.user_ns[args.df_name].fillna('')
+        try:
+            df = fill_categorical_na(self.shell.user_ns[args.df_name].copy())
+        except ValueError:
+            # For categorical columns, the fill value must be one of the categories, and ''
+            # probably isn't.
+            pass
+
         gen = PandasDataframeSource(parse_app_url(path), df, cache=cache)
 
         with open(path, 'w') as f:
