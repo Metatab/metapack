@@ -7,6 +7,7 @@ before_install:
   - sudo rm -f /etc/boto.cfg # Solves https://github.com/travis-ci/travis-ci/issues/7940
 install:
   - pip install -r requirements.txt
+  - python setup.py install
 before_script:
   - mp info -V
 script: python setup.py test
