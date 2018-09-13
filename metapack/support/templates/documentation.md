@@ -19,7 +19,7 @@ _{{root.description}}_
 
 {{image.description}}
 {%- endfor -%}
-{% endif %}
+{% endif -%}
 
 
 {% if notes -%} 
@@ -27,7 +27,7 @@ _{{root.description}}_
 {% for note in notes %}
 * {{note | replace('\n', '')}}
 {%- endfor -%}
-{% endif %}
+{% endif -%}
 
 {% if contacts -%} 
 ## Contacts
@@ -37,8 +37,7 @@ _{{root.description}}_
 {%- endfor %}
 {%- endfor -%}
 {% endif %}
-
-{% if resources -%} 
+{% if resources %} 
 ## Resources
 {% for term_name, terms in resources.items() -%}
     {% for resource in terms %}
@@ -46,12 +45,11 @@ _{{root.description}}_
 {%- endfor %}
 {%- endfor -%}
 {% endif %}
-
-{% if references -%} 
+{% if references %} 
 ## References
 {% for term_name, terms in references.items() -%}
     {% for reference in terms %}
-* **{{term_name|title}}** [{{reference.name}}]({{resource.url}}) {{reference.description}}
+* **{{term_name|title}}** [{{reference.name}}]({{reference.url}}) {{reference.description}}
 {%- endfor %}
 {%- endfor -%}
 {% endif %}
