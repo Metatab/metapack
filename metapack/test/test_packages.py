@@ -12,6 +12,7 @@ from metatab.generate import TextRowGenerator
 from rowgenerators import get_generator,  parse_app_url
 from rowgenerators.exceptions import RowGeneratorError
 import platform
+import os
 
 downloader = Downloader()
 
@@ -203,6 +204,8 @@ class TestPackages(unittest.TestCase):
 
         print(fs_url)
 
+
+    @unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "Skipping this test on Travis CI.")
     def test_read_geo_packages(self):
 
         import warnings
