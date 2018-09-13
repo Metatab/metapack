@@ -79,13 +79,13 @@ class TestBasic(unittest.TestCase):
         doc.load_terms(tp)
 
         self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
-        self.assertEqual(148, len(doc.terms))
+        self.assertEqual(150, len(doc.terms))
 
-        self.assertEqual(5, len(list(doc['References'])))
+        self.assertEqual(6, len(list(doc['References'])))
 
-        self.assertEqual(5, len(list(doc['References'].find('Root.Reference'))))
+        self.assertEqual(6, len(list(doc['References'].find('Root.Reference'))))
 
-        self.assertEqual(5, len(list(doc['References'].find('Root.Resource'))))  # References are Resources
+        self.assertEqual(6, len(list(doc['References'].find('Root.Resource'))))  # References are Resources
 
         rt = list(doc['References'].find('Root.Resource'))[0]
 
@@ -110,7 +110,7 @@ class TestBasic(unittest.TestCase):
             doc.load_terms(tp)
 
         self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
-        self.assertEqual(153, len(doc.terms))
+        self.assertEqual(154, len(doc.terms))
 
         self.assertEqual(5, len(list(doc['References'])))
 

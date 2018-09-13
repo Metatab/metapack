@@ -54,7 +54,7 @@ class TestIPython(unittest.TestCase):
 
         p = open_package(test_data('packages/example.com/example.com-full-2017-us/metadata.csv'))
 
-        self.assertTrue(len(p._repr_html_()) >5000, len(p._repr_html_()) )
+        self.assertTrue(len(p._repr_html_()) >4800, len(p._repr_html_()) )
 
         print ( list(e.name for e in p.find('Root.Resource')))
 
