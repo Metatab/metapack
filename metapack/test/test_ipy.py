@@ -219,6 +219,7 @@ class TestIPython(unittest.TestCase):
 
         convert_notebook(m.mt_file.path)
 
+
     @unittest.skip("Broken")
     def x_test_pandas(self):
 

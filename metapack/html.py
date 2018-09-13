@@ -121,44 +121,6 @@ def contact(r):
     pass
 
 
-def contacts_block(doc):
-    out = ''
-
-    def mklink(url, desc):
-        return '[{desc}]({url})'.format(url=url, desc=desc)
-
-    def ctb(url, desc):
-
-        if url and desc:
-            return mklink(url, desc)
-
-        elif url:
-            return url
-
-        elif desc:
-            return desc
-
-        else:
-            return ''
-
-    try:
-
-        for t in doc['Contacts']:
-
-            name = t.get_value('name')
-            email = "mailto:" + t.get_value('email') if t.get_value('email') else None
-
-            web = t.get_value('url')
-            org = t.get_value('organization', web)
-
-            out += (dl_templ.format(t.record_term.title(),
-                                    ', '.join(e for e in (ctb(email, name), ctb(web, org)) if e)))
-
-    except KeyError:
-        pass
-
-    return out
-
 
 def documentation_block(doc):
     doc_links = ''
@@ -315,16 +277,16 @@ def make_citation_dict(td):
 
     if isinstance(td, dict):
         d = td
-        name = d['name']
+        name = d['name_link']
     else:
 
         d = td.as_dict()
         d['_term'] = td
 
         try:
-            d['name'] = td.name
+            d['name_link'] = td.name
         except AttributeError:
-            d['name'] = td['name'].value
+            d['name_link'] = td['name_link'].value
 
     if 'author' in d and isinstance(d['author'], str):
         authors = []
@@ -414,7 +376,7 @@ def make_metatab_citation_dict(t):
 
             d = {
                 'type': 'dataset',
-                'name': t.name,
+                'name_link': t.name,
                 author_key: [HumanName(creator.value).as_dict(include_empty=False)],
                 'publisher': creator.properties.get('organization'),
                 'origin': origin,
@@ -467,7 +429,7 @@ def _bibliography(doc, terms, converters=[], format='html'):
 
         d = [mk_cite(t) for t in terms]
 
-        cd = {e['name']: e for e in d}
+        cd = {e['name_link']: e for e in d}
 
     else:
 
@@ -533,33 +495,185 @@ def modtime_str(doc):
     return modtime_str
 
 
-def markdown(doc):
+
+def process_contact(d):
+
+    email = d.get('email',None)
+    org = d.get('organization', None)
+    url = d.get('url',None)
+    name = d.get('name', None)
+
+
+    if name and email and org and url:
+        return {
+            'name_link': "[{}]({})".format(name,'mailto:'+email),
+            'org_link':  "[{}]({})".format(org,url),
+        }
+
+    elif name and email and org:
+        return {
+            'name_link': "[{}]({})".format(name, 'mailto:' + email),
+            'org_link': "{}".format(org),
+        }
+    elif name and email and url:
+        return {
+            'name_link': "[{}]({})".format(name, 'mailto:' + email),
+            'org_link': "{}".format(url),
+        }
+
+    elif name and org and url:
+        return {
+            'name_link': "{}".format(name),
+            'org_link': "[{}]({})".format(org, url),
+        }
+
+    elif name and org:
+        return {
+            'name_link': "{}".format(name),
+            'org_link': "{}".format(org),
+        }
+    elif name and url:
+        return {
+            'name_link': "{}".format(name),
+            'org_link': "[{}]({})".format(url, url),
+        }
+    elif name:
+        return {
+            'name_link': "{}".format(name),
+            'org_link': None
+        }
+    elif org and email and url:
+        return {
+            'name_link': "[{}]({})".format(org,url),
+            'org_link':  "[{}]({})".format(email,'mailto:'+email),
+        }
+    elif org and email:
+        return {
+            'name_link': "{}".format(org),
+            'org_link': "[{}]({})".format(email, 'mailto:' + email),
+        }
+    elif org and url:
+        return {
+            'name_link': "{}".format(org),
+            'org_link': "[{}]({})".format(url, url),
+        }
+    elif org:
+        return {
+            'name_link': "{}".format(org),
+            'org_link': None
+        }
+    else:
+        return {
+            'name_link': None,
+            'org_link': None
+        }
+
+def display_context(doc):
+    """Create a Jinja context for display"""
+
+    context = {s.name.lower(): s.as_dict() for s in doc if s.name.lower() != 'schema'}
+
+    mandatory_sections = ['documentation', 'contacts']
+
+
+    # Remove section names
+    deletes = []
+    for k,v in context.items():
+        try:
+            del v['@value']
+        except KeyError:
+            pass # Doesn't have the value
+        except TypeError:
+            # Is actually completely empty, and has a scalar value. Delete and re-create
+            deletes.append(k)
+
+    for d in deletes:
+        del context[d]
+
+
+    for ms in mandatory_sections:
+        if not ms in context:
+            context[ms] = {}
+
+
+    # Load inline documentation
+    inline = ''
+    for d in context.get('documentation',{}).get('documentation',[]):
+        u = parse_app_url(d['url'])
+
+        if u.target_format == 'md':  # The README.md file
+            inline = ''
+            if u.proto == 'file':
+                # File really ought to be relative
+                t = doc.package_url.join_target(u).get_resource().get_target()
+            else:
+                t = u.get_resource().get_target()
+
+            try:
+                with open(t.fspath) as f:
+                    inline += f.read()
+
+            except FileNotFoundError:
+                pass
+
+            del d['title'] # Will cause it to be ignored in next section
+
+    # Strip off the leading title, if it exists, because it will be re-applied
+    # by the templates
+    import re
+
+    context['inline_doc'] = re.sub(r'\s*#\s.*$', '', inline, flags=re.MULTILINE)
+
+    # Convert doc section
+    doc_links = {}
+    images = {}
+    for term_name, terms in context['documentation'].items():
+        if term_name == 'note':
+            context['notes'] = terms
+        else:
+            for i, term in enumerate(terms):
+                try:
+                    if term_name == 'image':
+                        images[term['title']] = term
+                    else:
+                        doc_links[term['title']] = term
+                except AttributeError: # A scalar
+                    pass # There should not be any scalars in the documentation section
+                except KeyError:
+                    pass # ignore entries without titles
+                except TypeError:
+                    pass # Also probably a ascalar
+
+    context['doc_links'] = doc_links
+    context['images'] = images
+
+    del context['documentation']
+
+    #
+    # Update contacts
+    for term_name, terms in context['contacts'].items():
+        for t in terms:
+            t.update(process_contact(t))
+
+    return context
+
+
+
+
+def markdown(doc, title=True):
     """Markdown, specifically for the Notes field in a CKAN dataset"""
 
-    name = doc.find_first('Root.Name')
-
-    text = """
-
-`{name}` {modtime}
-
-_{description}_
-
-{doc_block}
-
-## Contacts
-
-{contacts_block}
-
-""".format(
-        title=doc.find_first_value('Root.Title'),
-        modtime=modtime_str(doc),
-        description=doc.description,
-        name=doc.find_first_value('Root.Name'),
-        doc_block=documentation_block(doc),
-        contacts_block=contacts_block(doc)
+    from jinja2 import Environment, PackageLoader, select_autoescape
+    env = Environment(
+        loader=PackageLoader('metapack', 'support/templates')
+        #autoescape=select_autoescape(['html', 'xml'])
     )
 
-    return text
+    context = display_context(doc)
+
+    #import json
+    #print(json.dumps(context, indent=4))
+    return env.get_template('documentation.md').render(**context)
 
 
 def html(doc):
@@ -567,9 +681,6 @@ def html(doc):
         'markdown.extensions.extra',
         'markdown.extensions.admonition'
     ]
-
-    def mdc(text):
-        return convert_markdown(text, extensions)
 
     return """
 <html>
@@ -587,6 +698,8 @@ def html(doc):
     .narrow-dl .dl-horizontal dd {{
         margin-left: 100px;
     }}
+    
+    img[alt=doc_img] {{ width: 300px; }}
 
     .narrow-dl .dl-horizontal dt {{
         width: 80px;
@@ -598,42 +711,12 @@ def html(doc):
 <body>
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
-                <h1>{title}</h1>
-                <p>{modtime}</p>
-                <p>{description}</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-7">
-                <h2>Documentation</h2>
-                {doc_block}
-                <h2>Resources</h2>
-                {resource_refs}
-            </div>
-            <div class="col-md-5 narrow-dl">
-                <h2>Identity</h2>
-                {identity_block}
-                <h2>Contacts</h2>
-                {contacts_block}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-            {resource_block}
-            </div>
+            {body}
         </div>
     </div>
-
 </body>
 </html>
     """.format(
         title=doc.find_first_value('Root.Title'),
-        modtime=modtime_str(doc),
-        description=doc.description,
-        identity_block=mdc(identity_block(doc)).replace('<dl>', "<dl class=\"dl-horizontal\">"),
-        doc_block=mdc(documentation_block(doc)),
-        contacts_block=mdc(contacts_block(doc)).replace('<dl>', "<dl class=\"dl-horizontal\">"),
-        resource_refs=mdc(resource_ref_block(doc)).replace('<dl>', "<dl class=\"dl-horizontal\">"),
-        resource_block=mdc(resource_block(doc))
+        body=convert_markdown(doc.markdown, extensions)
     )

@@ -52,7 +52,8 @@ setup_d = dict(
         'tableintuit>=0.0.6',
         'geoid>=1.0.4',
         'terminaltables',
-        'docopt'
+        'docopt',
+        'jinja2'
 
 
         # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress

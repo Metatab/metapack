@@ -12,10 +12,9 @@ Wrangler.Organization: Civic Knowledge
 
 Section: References
 
-Reference: censusreporter:B09020/140/05000US06073
+Reference: censusreporter://05000US06073/140/B09020
 Reference.Name: B09020
 Reference.Description: Relationship by Household Type (Including Living Alone) for Population 65 Years and Over
-
 
 #
 # Tract crosswalk
@@ -37,6 +36,16 @@ Reference.Description: Geographics Boundaries for Tracts
 Reference: metapack+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#sra
 Reference.Name: sra_geo
 Reference.Description: Geographics Boundaries for SRAs
+
+
+
+#
+# Tracts
+#
+Reference: censusgeo://2016/5/RI/140
+Reference.Name: ri_tracts
+Reference.Description: Geographics Boundaries for SRAs
+
 
 #
 # IPUMS Housing and Income Data

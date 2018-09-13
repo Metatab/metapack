@@ -523,16 +523,17 @@ class Resource(Term):
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
 
-    def dataframe(self, limit=None):
+
+    def dataframe(self,  *args, **kwargs):
         """Return a pandas datafrome from the resource"""
 
-        from metapack.jupyter.pandas import MetatabDataFrame
+        import pandas as pd
 
         rg = self.row_generator
 
         # Maybe generator has it's own Dataframe method()
         try:
-            return rg.dataframe()
+            return rg.dataframe( *args, **kwargs)
         except AttributeError:
             pass
 
@@ -540,16 +541,66 @@ class Resource(Term):
         headers = next(islice(self, 0, 1))
         data = islice(self, 1, None)
 
-        df = MetatabDataFrame(list(data), columns=headers, metatab_resource=self)
+        df = pd.DataFrame(list(data), columns=headers,  *args, **kwargs)
 
         self.errors = df.metatab_errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
         return df
 
-    def geoframe(self):
+    def geoframe(self, *args, **kwargs):
         """Return a Geo dataframe"""
 
-        return self.dataframe().geo
+        from geopandas import GeoDataFrame
+        import geopandas as gpd
+        from shapely.geometry.polygon import BaseGeometry
+        from shapely.wkt import loads
+
+        try:
+            return self.resolved_url.geoframe(*args, **kwargs)
+        except AttributeError:
+            pass
+
+        try:
+            return self.resolved_url.geo_generator.geoframe(*args, **kwargs)
+        except AttributeError:
+            pass
+
+        try:
+            return self.row_generator.geoframe(*args, **kwargs)
+        except AttributeError:
+            pass
+
+        try:
+
+            gdf = GeoDataFrame(self.dataframe(*args, **kwargs))
+
+            first = next(gdf.iterrows())[1]['geometry']
+
+            if isinstance(first, str):
+                # We have a GeoDataframe, but the geometry column is still strings, so
+                # it must be converted
+                shapes = [loads(row['geometry']) for i, row in gdf.iterrows()]
+
+            elif not isinstance(first, BaseGeometry):
+                # If we are reading a metatab package, the geometry column's type should be
+                # 'geometry' which will give the geometry values class type of
+                # rowpipe.valuetype.geo.ShapeValue. However, there are other
+                # types of objects that have a 'shape' property.
+
+                shapes = [row['geometry'].shape for i, row in gdf.iterrows()]
+
+            else:
+                shapes = gdf['geometry']
+
+            gdf['geometry'] = gpd.GeoSeries(shapes)
+            gdf.set_geometry('geometry')
+            return gdf
+
+        except KeyError as e:
+            raise ResourceError("Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
+        except (KeyError,TypeError) as e:
+            raise ResourceError("Failed to create GeoDataFrame for resource '{}': {}".format(self.name, str(e)))
+
 
     def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_csv

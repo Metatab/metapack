@@ -80,6 +80,18 @@ def doc_args(subparsers):
                       help="Add a column from the schema to the output table. If specified, only the"
                            "'name' column is included by default")
 
+    ##
+    ##
+    cmdp = cmdsp.add_parser('markdown', help='Output the package markdown documentation')
+    cmdp.set_defaults(run_command=dump_markdown)
+
+    cmdp.add_argument('metatabfile', nargs='?',
+                        help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+
+
+    cmdp = cmdsp.add_parser('html', help='Output the package html documentation')
+    cmdp.set_defaults(run_command=dump_html)
+
     cmdp.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
@@ -358,7 +370,6 @@ def graph(m):
 
 
 
-
 def dump_schemas(args):
     from .run import get_resource
 
@@ -421,3 +432,15 @@ def dump_schema(m, r):
             rows_about_columns.append((c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description')))
 
     prt(tabulate(rows_about_columns, headers=headers, tablefmt=m.args.format))
+
+def dump_markdown(args):
+
+    m = MetapackCliMemo(args, downloader)
+
+    print(m.doc.markdown)
+
+def dump_html(args):
+
+    m = MetapackCliMemo(args, downloader)
+
+    print(m.doc.html)

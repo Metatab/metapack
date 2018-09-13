@@ -178,10 +178,21 @@ def dump_schemas(m):
 
     st = r.schema_term
     rows_about_columns = []
-    for c in st.find('Table.Column'):
-        rows_about_columns.append((c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description')))
 
-    prt(tabulate(rows_about_columns, headers='Name AltName DataType Description'.split()))
+    has_vt = any(c.get_value('valuetype') for c in st.find('Table.Column'))
+
+    if has_vt:
+        headers = 'Name AltName DataType ValueType Description'.split()
+        cols = lambda c: (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('valuetype'),
+                                   c.get_value('description'))
+    else:
+        headers = 'Name AltName DataType Description'.split()
+        cols = lambda c: (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description'))
+
+    for c in st.find('Table.Column'):
+        rows_about_columns.append(cols(c))
+
+    prt(tabulate(rows_about_columns, headers=headers))
 
 
 def dump_rptable(m):

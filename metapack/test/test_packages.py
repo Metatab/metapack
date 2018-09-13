@@ -204,16 +204,15 @@ class TestPackages(unittest.TestCase):
         print(fs_url)
 
     def test_read_geo_packages(self):
-        try:
-            from publicdata.censusreporter.dataframe import CensusDataFrame
-        except ImportError:
-            unittest.skip("Public data isn't installed")
-            return
 
-        from metapack.jupyter.pandas import MetatabDataFrame
-        from metapack.jupyter.pandas import MetatabSeries
-        from geopandas.geoseries import GeoSeries
-        from rowgenerators.valuetype import ShapeValue
+        import warnings
+        warnings.simplefilter("ignore")
+
+        try:
+            from publicdata.census.dataframe import CensusDataFrame
+        except ImportError:
+            return unittest.skip("Public data isn't installed")
+
 
         with open(test_data('line', 'line-oriented-doc.txt')) as f:
             text = f.read()
@@ -226,17 +225,25 @@ class TestPackages(unittest.TestCase):
         self.assertIsInstance(df, CensusDataFrame)
 
         r = doc.reference('sra_geo')
-        df = r.dataframe()
 
-        self.assertIsInstance(df, MetatabDataFrame)
+        gf = r.geoframe()
 
-        self.assertIsInstance(df.geometry, MetatabSeries)
+        self.assertEqual(41, len(gf.geometry.geom_type))
 
-        self.assertIsInstance(df.geo.geometry, GeoSeries)
+        self.assertEqual({'Polygon'}, set(gf.geometry.geom_type))
 
-        row = next(r.iterdict)
+        r = doc.reference('ri_tracts')
 
-        self.assertIsInstance(row['geometry'], ShapeValue, type(row['geometry']))
+        gf = r.geoframe()
+
+        self.assertEqual(244, len(gf.geometry.geom_type))
+
+        print(sorted(list(set(gf.geometry.geom_type))))
+
+        self.assertEqual(['MultiPolygon', 'Polygon'], sorted(list(set(gf.geometry.geom_type))))
+
+
+        print(gf.head())
 
 
     @unittest.skipIf(platform.system() == 'Windows','Program generators do not work on windows')
