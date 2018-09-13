@@ -651,7 +651,9 @@ def display_context(doc):
 
     #
     # Update contacts
+    print("XXXXX", context['contacts'])
     for term_name, terms in context['contacts'].items():
+        print("!!!!!", t)
         for t in terms:
             t.update(process_contact(t))
 
