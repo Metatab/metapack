@@ -15,7 +15,7 @@ from tabulate import tabulate
 import sys
 from itertools import islice
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 class MetapackCliMemo(_MetapackCliMemo):
 

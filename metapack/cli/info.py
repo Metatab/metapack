@@ -15,7 +15,7 @@ from tabulate import tabulate
 import sys
 from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 class MetapackCliMemo(_MetapackCliMemo):
 

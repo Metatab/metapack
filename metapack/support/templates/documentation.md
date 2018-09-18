@@ -21,7 +21,6 @@ _{{root.description}}_
 {%- endfor -%}
 {% endif -%}
 
-
 {% if notes -%} 
 ## Notes
 {% for note in notes %}
@@ -29,11 +28,11 @@ _{{root.description}}_
 {%- endfor -%}
 {% endif -%}
 
-{% if contacts -%} 
+{% if contacts %} 
 ## Contacts
 {% for term_name, terms in contacts.items() -%}
     {% for contact in terms %}
-* **{{term_name|title}}** {{contact.name_link}} {{contact.org_link}} 
+* **{{term_name|title}}** {{ contact.parts|join(', ')}} 
 {%- endfor %}
 {%- endfor -%}
 {% endif %}
@@ -41,7 +40,7 @@ _{{root.description}}_
 ## Resources
 {% for term_name, terms in resources.items() -%}
     {% for resource in terms %}
-* **{{term_name|title}}** [{{resource.name}}]({{resource.url}}) {{resource.description}}
+* ** [{{resource.name}}]({{resource.url}})**. {{resource.description}}
 {%- endfor %}
 {%- endfor -%}
 {% endif %}
@@ -49,7 +48,7 @@ _{{root.description}}_
 ## References
 {% for term_name, terms in references.items() -%}
     {% for reference in terms %}
-* **{{term_name|title}}** [{{reference.name}}]({{reference.url}}) {{reference.description}}
+* **[{{reference.name}}]({{reference.url}})**. {{reference.description}}
 {%- endfor %}
 {%- endfor -%}
 {% endif %}

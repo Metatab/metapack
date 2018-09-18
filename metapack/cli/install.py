@@ -7,7 +7,7 @@ from .metakan import metakan
 from .install_file import  install_file
 from .install_git import  install_git
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 def install(subparsers):
 

@@ -441,7 +441,7 @@ class SearchUrl(Url):
         if SearchUrl._search_initialized is False:
             from metapack.package.core import Downloader
             try:
-                search_func = cls.search_json_indexed_directory(Downloader().cache.getsyspath('/'))
+                search_func = cls.search_json_indexed_directory(Downloader.get_instance().cache.getsyspath('/'))
                 SearchUrl.register_search(search_func)
             except AppUrlError as e:
                 pass

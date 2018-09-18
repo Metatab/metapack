@@ -424,6 +424,9 @@ class PackageBuilder(object):
                     else:
                         raise e
 
+
+
+
     def _load_resource(self, source_r, abs_path):
         raise NotImplementedError()
 
@@ -468,6 +471,7 @@ class PackageBuilder(object):
             rate = round((float(i) / (dt)),2) if dt != 0 else 'undef'
             self.prt(f'Processed {i} rows in {round(dt,0)} sec, rate = {rate} rows/sec')
             f.close()
+
 
     def _get_ref_contents(self, t, working_dir=None):
 

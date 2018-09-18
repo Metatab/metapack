@@ -503,69 +503,70 @@ def process_contact(d):
     url = d.get('url',None)
     name = d.get('name', None)
 
-
     if name and email and org and url:
         return {
-            'name_link': "[{}]({})".format(name,'mailto:'+email),
-            'org_link':  "[{}]({})".format(org,url),
+            'parts':["[{}]({})".format(name,'mailto:'+email),"[{}]({})".format(org,url)]
         }
 
     elif name and email and org:
         return {
-            'name_link': "[{}]({})".format(name, 'mailto:' + email),
-            'org_link': "{}".format(org),
+            'parts':["[{}]({})".format(name, 'mailto:' + email),"{}".format(org)]
         }
     elif name and email and url:
         return {
-            'name_link': "[{}]({})".format(name, 'mailto:' + email),
-            'org_link': "{}".format(url),
+            'parts': ["[{}]({})".format(name, 'mailto:' + email), "{}".format(url)]
         }
 
     elif name and org and url:
         return {
-            'name_link': "{}".format(name),
-            'org_link': "[{}]({})".format(org, url),
+            'parts':["{}".format(name),"[{}]({})".format(org, url)]
         }
 
     elif name and org:
         return {
-            'name_link': "{}".format(name),
-            'org_link': "{}".format(org),
+            'parts': ["{}".format(name),"{}".format(org)]
         }
     elif name and url:
         return {
-            'name_link': "{}".format(name),
-            'org_link': "[{}]({})".format(url, url),
+            'parts': ["{}".format(name),"[{}]({})".format(url, url)]
         }
     elif name:
         return {
-            'name_link': "{}".format(name),
-            'org_link': None
+            'parts': ["{}".format(name)]
         }
     elif org and email and url:
         return {
-            'name_link': "[{}]({})".format(org,url),
-            'org_link':  "[{}]({})".format(email,'mailto:'+email),
+            'parts': ["[{}]({})".format(org,url),"[{}]({})".format(email,'mailto:'+email)]
         }
     elif org and email:
         return {
-            'name_link': "{}".format(org),
-            'org_link': "[{}]({})".format(email, 'mailto:' + email),
+            'parts':["{}".format(org),"[{}]({})".format(email, 'mailto:' + email)]
         }
     elif org and url:
         return {
-            'name_link': "{}".format(org),
-            'org_link': "[{}]({})".format(url, url),
+            'parts':[ "[{}]({})".format(org, url)]
         }
+    elif url and email:
+        return {
+            'parts':["[{}]({})".format(url, url), "[{}]({})".format(email, 'mailto:' + email)]
+        }
+
     elif org:
         return {
-            'name_link': "{}".format(org),
-            'org_link': None
+            'parts': ["{}".format(org)]
+        }
+    elif url:
+        return {
+            'parts': ["[{}]({})".format(url, url)]
+        }
+    elif email:
+        return {
+            'parts': ["[{}]({})".format(email, 'mailto:' + email)]
         }
     else:
+
         return {
-            'name_link': None,
-            'org_link': None
+            'parts': []
         }
 
 def display_context(doc):
@@ -587,17 +588,19 @@ def display_context(doc):
             # Is actually completely empty, and has a scalar value. Delete and re-create
             deletes.append(k)
 
+        if isinstance(v, str): # Shouldn't ever happen, but who knows ?
+            deletes.append(k)
+
     for d in deletes:
         del context[d]
-
 
     for ms in mandatory_sections:
         if not ms in context:
             context[ms] = {}
 
-
     # Load inline documentation
     inline = ''
+
     for d in context.get('documentation',{}).get('documentation',[]):
         u = parse_app_url(d['url'])
 
@@ -651,17 +654,22 @@ def display_context(doc):
 
     #
     # Update contacts
+
+    origin = None
     for term_name, terms in context['contacts'].items():
-        for t in terms:
-            try:
-                t.update(process_contact(t))
-            except AttributeError:
-                pass # Probably got a scalar
+        if isinstance(terms, dict):
+            origin = terms # Origin is a scalar in roort, must be converted to sequence here
+        else:
+            for t in terms:
+                try:
+                    t.update(process_contact(t))
+                except AttributeError:
+                    pass # Probably got a scalar
+    if origin:
+        origin.update(process_contact(origin))
+        context['contacts']['origin'] = [origin]
 
     return context
-
-
-
 
 def markdown(doc, title=True):
     """Markdown, specifically for the Notes field in a CKAN dataset"""

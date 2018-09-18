@@ -14,7 +14,8 @@ from rowgenerators import parse_app_url
 from rowgenerators.exceptions import SourceError, RowGeneratorError
 from tableintuit import RowIntuitError
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
+
 
 
 def url(subparsers):

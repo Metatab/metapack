@@ -19,8 +19,19 @@ import argparse
 from pathlib import Path
 
 
+from time import time
 
-downloader = Downloader()
+last_dl_message = time()
+
+def build_downloader_callback(msg_type, message, read_len, total_len):
+    global last_dl_message
+    if time() > last_dl_message+5:
+        print("\rDownloading {} {} {} bytes ".format(msg_type, message, total_len), end='')
+        last_dl_message = time()
+
+downloader = Downloader.get_instance()
+downloader.set_callback((build_downloader_callback))
+
 
 def build(subparsers):
     """

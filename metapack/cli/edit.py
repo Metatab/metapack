@@ -9,7 +9,7 @@ from metapack.package import *
 
 from .core import MetapackCliMemo as _MetapackCliMemo, err, prt, warn
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 
 class MetapackCliMemo(_MetapackCliMemo):

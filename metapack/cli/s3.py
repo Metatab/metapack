@@ -31,7 +31,7 @@ class MetapackCliMemo(object):
 
         self.args = args
 
-        self.downloader = Downloader()
+        self.downloader = Downloader.get_instance()
 
         self.cache = self.downloader.cache
 

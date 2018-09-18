@@ -14,7 +14,7 @@ from .core import MetapackCliMemo as _MetapackCliMemo
 from tabulate import tabulate
 import sys
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 class MetapackCliMemo(_MetapackCliMemo):
 

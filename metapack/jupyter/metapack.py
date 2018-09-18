@@ -34,6 +34,8 @@ class MetapackExporter(TemplateExporter):
 
     @property
     def default_config(self):
+        from .markdown import MarkdownExporter
+
         c = Config({
             'ExtractOutputPreprocessor': {'enabled': True},
             'NbConvertBase': {

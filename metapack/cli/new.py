@@ -10,7 +10,7 @@ from metapack.package import *
 from .core import MetapackCliMemo as _MetapackCliMemo
 import argparse
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 
 class MetapackCliMemo(_MetapackCliMemo):
@@ -59,7 +59,8 @@ def new_args(subparsers):
 
     parser.add_argument('-T', '--title', help="Set the title")
 
-    parser.add_argument('-L', '--pylib', help="Configure a pylib directory for Python code extensions", action='store_true')
+    #parser.add_argument('-L', '--pylib', help="Configure a pylib directory for Python code extensions",
+    # action='store_true')
 
     parser.add_argument('-E', '--example', help="Add examples of resources",
                         action='store_true')
@@ -143,7 +144,7 @@ def new_cmd(args):
 
         doc['Documentation'].new_term('Root.Homepage', 'http://metatab.org', title='Metatab Home Page')
 
-    if args.pylib:
+    if True: # args.pylib:
         from metapack.support import pylib
         pylib_dir = join(nv_name,'pylib')
         ensure_dir(pylib_dir)

@@ -16,4 +16,4 @@ from  . import jupyter
 
 import rowgenerators.appurl.url
 
-rowgenerators.appurl.url.default_downloader = Downloader(get_cache('metapack'))
+rowgenerators.appurl.url.default_downloader = Downloader.get_instance()

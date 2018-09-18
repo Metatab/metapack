@@ -11,7 +11,7 @@ from metapack.index import SearchIndex, search_index_file
 from textwrap import dedent
 import json
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 def search(subparsers):
 

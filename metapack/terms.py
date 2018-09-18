@@ -7,7 +7,7 @@ from metatab import Term
 from rowgenerators import parse_app_url
 from rowgenerators.exceptions import  DownloadError
 from rowgenerators.rowpipe import RowProcessor
-
+from rowgenerators.rowproxy import RowProxy
 class Resource(Term):
     # These property names should return null if they aren't actually set.
     _common_properties = 'url name description schema'.split()
@@ -379,7 +379,7 @@ class Resource(Term):
         source_url = parse_app_url(self.url)
 
         # source_url will be None for Sql terms.
-        ut.encoding = source_url.encoding if source_url else self.get_value('encoding')
+        ut.encoding = source_url.encoding if source_url and source_url.encoding else self.get_value('encoding')
 
         table = self.row_processor_table()
 
@@ -448,6 +448,7 @@ class Resource(Term):
         except AttributeError:
             self.errors = {}
 
+
         self.post_iter_meta = base_row_gen.meta
 
     @property
@@ -469,7 +470,7 @@ class Resource(Term):
     def iterrows(self):
         """Iterate over the resource as row proxy objects, which allow acessing colums as attributes"""
 
-        from rowgenerators.rowproxy import RowProxy
+
 
         row_proxy = None
 
@@ -480,6 +481,23 @@ class Resource(Term):
             if not headers:
                 headers = row
                 row_proxy = RowProxy(headers)
+                continue
+
+            yield row_proxy.set_row(row)
+
+    def iterrowproxy(self, cls=RowProxy):
+        """Iterate over the resource as row proxy objects, which allow acessing colums as attributes. Like iterrows,
+        but allows for setting a specific RowProxy class. """
+
+        row_proxy = None
+
+        headers = None
+
+        for row in self:
+
+            if not headers:
+                headers = row
+                row_proxy = cls(headers)
                 continue
 
             yield row_proxy.set_row(row)
@@ -556,17 +574,17 @@ class Resource(Term):
         from shapely.wkt import loads
 
         try:
-            return self.resolved_url.geoframe(*args, **kwargs)
+            gdf = self.resolved_url.geoframe(*args, **kwargs)
         except AttributeError:
             pass
 
         try:
-            return self.resolved_url.geo_generator.geoframe(*args, **kwargs)
+            gdf = self.resolved_url.geo_generator.geoframe(*args, **kwargs)
         except AttributeError:
             pass
 
         try:
-            return self.row_generator.geoframe(*args, **kwargs)
+            gdf = self.row_generator.geoframe(*args, **kwargs)
         except AttributeError:
             pass
 
@@ -594,12 +612,14 @@ class Resource(Term):
 
             gdf['geometry'] = gpd.GeoSeries(shapes)
             gdf.set_geometry('geometry')
-            return gdf
 
         except KeyError as e:
             raise ResourceError("Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
         except (KeyError,TypeError) as e:
             raise ResourceError("Failed to create GeoDataFrame for resource '{}': {}".format(self.name, str(e)))
+
+
+        return gdf
 
 
     def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):

@@ -144,6 +144,7 @@ class FileSystemPackageBuilder(PackageBuilder):
     def _write_html(self):
 
         with open(join(self.package_path.path, 'index.html'), 'w', encoding="utf-8") as f:
+
             f.write(self._doc.html)
 
     def _load_resource(self, source_r, abs_path=False):
@@ -196,6 +197,24 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         for k, v in source_r.post_iter_meta.items():
             r[k] = v
+
+        try:
+            if source_r.errors:
+                for col_name, errors in source_r.errors.items():
+                    self.warn("ERRORS for column '{}' ".format(col_name))
+                    for e in islice(errors,5):
+                        self.warn('   {}'.format(e))
+                    if len(errors) > 5:
+                        self.warn("... and {} more ".format(len(errors)-5))
+        except AttributeError:
+            pass # Maybe generator does not track errors
+
+        if source_r.errors:
+            self.err("Resource processing generated conversion errors")
+
+
+
+
 
         # Writing between resources so row-generating programs and notebooks can
         # access previously created resources. We have to clean the doc before writing it

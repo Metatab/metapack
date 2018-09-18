@@ -19,7 +19,7 @@ from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import prt
 import json
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 class MetapackCliMemo(_MetapackCliMemo):
 

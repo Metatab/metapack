@@ -353,3 +353,15 @@ def get_materialized_data_cache(doc=None):
         ensure_dir(dr)
 
         return dr
+
+def dump_stack(n=4):
+    import traceback
+    import os
+
+    lines = []
+    for filename, line, function, text in traceback.extract_stack()[-n:-1]:
+        fn_parts = filename.split(os.sep)
+        sub_path = '/'.join(fn_parts[-3:])
+        lines.append('{}:{} {} {} '.format(sub_path, line, function, text))
+
+    return '\n'.join(lines)

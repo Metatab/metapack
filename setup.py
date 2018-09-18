@@ -26,7 +26,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.20',
+    version='0.8.21',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -55,7 +55,6 @@ setup_d = dict(
         'docopt',
         'jinja2'
 
-
         # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
 
@@ -68,7 +67,7 @@ setup_d = dict(
 
         ],
         'nbconvert.exporters': [
-            'metapack = metapack.jupyter:MetapackExporter',
+            #'metapack = metapack.jupyter:MetapackExporter',
             'hugo = metapack.jupyter:HugoExporter',
         ],
 
@@ -100,9 +99,8 @@ setup_d = dict(
             'doc=metapack.cli.doc:doc_args',
             'stats=metapack.cli.stats:stats_args',
             'edit=metapack.cli.edit:edit_args',
-
+            'open=metapack.cli.open:open_args',
         ]
-
     },
 
     include_package_data=True,

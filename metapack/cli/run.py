@@ -17,7 +17,7 @@ from metapack.util import get_materialized_data_cache
 from tabulate import tabulate
 from terminaltables import SingleTable, GithubFlavoredMarkdownTable
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 Downloader.context.update(environ)
 
@@ -184,7 +184,7 @@ def run_run(args):
         else:
             table_class = SingleTable
 
-        at = table_class([row[:display_cols] for row in rows])
+        at = table_class([list(row)[:display_cols] for row in rows])
         at.inner_row_border = True
         print (at.table)
 

@@ -18,7 +18,7 @@ def search_index_file():
     from os import environ
 
     return environ.get('METAPACK_SEARCH_INDEX',
-                       Downloader().cache.getsyspath('index.json'))
+                       Downloader.get_instance().cache.getsyspath('index.json'))
 
 class SearchIndex(object):
 
@@ -44,6 +44,8 @@ class SearchIndex(object):
             except FileNotFoundError:
                 self._db = {}
 
+        assert self._db is not None
+
     def clear(self):
 
         self._db = {}
@@ -54,6 +56,9 @@ class SearchIndex(object):
         index_file = self.path
         new_index_file = index_file + '.new'
         bak_index_file = index_file + '.bak'
+
+        if not self._db:
+            return
 
         with open(new_index_file, 'w') as f:
             json.dump(self._db, f, indent=4)
@@ -77,6 +82,7 @@ class SearchIndex(object):
 
         if format is None:
             format = 'unk'
+
 
         self._db[ident] = {'t':'ident', 'ref':nvname } # these should always be equivalent
 

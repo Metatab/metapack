@@ -76,7 +76,7 @@ class MetatabMagic(Magics):
 
         if MT_DOC_VAR not in self.shell.user_ns:
 
-            package_url = MetapackPackageUrl("metapack+file:" + os.getcwd() + '/', downloader=Downloader())
+            package_url = MetapackPackageUrl("metapack+file:" + os.getcwd() + '/', downloader=Downloader.get_instance())
 
             self.shell.user_ns[MT_DOC_VAR] = \
                 MetapackDoc(TextRowGenerator("Declare: metatab-latest\n"), package_url=package_url)
@@ -256,7 +256,7 @@ class MetatabMagic(Magics):
         try:
             cache = self.mt_doc._cache
         except KeyError:
-            cache = Downloader().cache
+            cache = Downloader.get_instance().cache
 
         for df_name, ref in self.shell.user_ns.get('_material_dataframes',{}).items():
 

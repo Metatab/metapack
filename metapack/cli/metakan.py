@@ -21,7 +21,7 @@ from .core import MetapackCliMemo as _MetapackCliMemo
 from .core import prt, warn, write_doc
 from textwrap import dedent
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 class MetapackCliMemo(_MetapackCliMemo):
 
@@ -64,6 +64,11 @@ def metakan(subparsers):
 
     parser.add_argument('-a', '--api', help="CKAN API Key")
 
+    parser.add_argument('-g', '--group', nargs='?', action='append', help="Assign an additional group. Can be used "
+                                                                          "multiple times")
+
+    parser.add_argument('-t', '--tag', nargs='?', action='append', help="Assign an additional tag. Can be used multiple times")
+
     parser.add_argument('-p', '--packages', action='store_true',
                         help="The file argument is a text file with a list of package URLs to load")
 
@@ -80,6 +85,7 @@ def metakan(subparsers):
 def run_ckan(args):
 
     m = MetapackCliMemo(args, downloader=downloader)
+
 
     if m.mtfile_url.scheme == 's3':
         # Find all of the top level CSV files in a bucket and use them to create CKan entries
@@ -169,7 +175,17 @@ def send_to_ckan(m):
 
     pkg['groups'] = [ {'name': g.value } for g in doc['Root'].find('Root.Group')]
 
+    if m.args.group:
+        for g in m.args.group:
+            pkg['groups'].append({'name': g })
+
     pkg['tags'] = [{'name': g.value} for g in doc['Root'].find('Root.Tag')]
+
+
+    if m.args.tag:
+        for g in m.args.tag:
+            pkg['tags'].append({'name': g })
+
 
     org_name = doc.get_value('Root.Origin', doc.get_value('Root.CkanOrg'))
 

@@ -23,7 +23,7 @@ from os.path import join
 
 from tabulate import tabulate
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 from textwrap import dedent
 

@@ -11,7 +11,7 @@ from os import environ
 from os.path import basename
 import re
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 
 def notebook(subparsers):

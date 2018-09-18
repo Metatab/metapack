@@ -20,7 +20,7 @@ from .core import prt, err
 import json
 from .install_file import update_index
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 class MetapackCliMemo(_MetapackCliMemo):
 

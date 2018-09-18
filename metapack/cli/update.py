@@ -12,7 +12,7 @@ import sys
 import requests
 from os.path import dirname, basename, exists, splitext
 
-downloader = Downloader()
+downloader = Downloader.get_instance()
 
 
 def update(subparsers):
