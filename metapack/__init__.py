@@ -14,6 +14,10 @@ from  . import jupyter
 
 #from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
 
+from rowgenerators import set_default_cache_name
+
+set_default_cache_name('metapack')
+
 import rowgenerators.appurl.url
 
 rowgenerators.appurl.url.default_downloader = Downloader.get_instance()

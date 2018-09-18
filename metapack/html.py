@@ -592,7 +592,11 @@ def display_context(doc):
             deletes.append(k)
 
     for d in deletes:
-        del context[d]
+        try:
+            del context[d]
+        except KeyError:
+            # Fails in TravisCI, no idea why.
+    pass
 
     for ms in mandatory_sections:
         if not ms in context:
