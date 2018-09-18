@@ -45,7 +45,7 @@ setup_d = dict(
         'nbconvert',
         'IPython',
         'ipykernel',
-        'jupyter'
+        'jupyter',
         'nameparser',
         'pybtex',
         'rowgenerators>=0.7.16',
