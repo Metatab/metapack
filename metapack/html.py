@@ -596,7 +596,7 @@ def display_context(doc):
             del context[d]
         except KeyError:
             # Fails in TravisCI, no idea why.
-    pass
+            pass
 
     for ms in mandatory_sections:
         if not ms in context:
