@@ -121,101 +121,6 @@ def contact(r):
     pass
 
 
-
-def documentation_block(doc):
-    doc_links = ''
-
-    inline = ''
-
-    notes = []
-
-
-    try:
-        doc['Documentation']
-    except KeyError:
-
-        return ''
-
-    try:
-
-        # Local Markdown files are loaded into the block, others are
-        # shown as links
-
-        for t in doc['Documentation'].find(['Root.Documentation', 'Root.Includedocumentation']):
-
-            u = parse_app_url(t.value)
-
-            # Local Markdown files are loaded into the block, others are
-            # shown as links
-
-            if u.target_format == 'md': # The README.md file
-                if u.proto == 'file':
-                    # File really ought to be relative
-                    t = doc.package_url.join_target(u).get_resource().get_target()
-
-                else:
-                    t = u.get_resource().get_target()
-
-                try:
-                    with open(t.fspath) as f:
-                        inline += f.read()
-
-                except FileNotFoundError:
-                    pass
-
-        for t in doc['Documentation'].find('Root.Documentation'):
-
-            u = parse_app_url(t.value)
-
-            if u.target_format != 'md':
-
-                title = t.get_value('title')
-                desc = t.get_value('description')
-
-                if title and desc:
-                    dl_templ = "{}\n:   {}\n\n"
-                elif title:
-                    dl_templ = "{}\n\n"
-                elif desc:
-                    title = desc
-                    dl_templ = "{}\n\n"
-                else:
-                    title = t.value
-                    dl_templ = "{}\n\n"
-
-                doc_links += (dl_templ.format(linkify(t.resolved_url, title), desc))
-
-        # The doc_img alt text is so we can set a class for CSS to resize the image.
-        # img[alt=doc_img] { width: 100 px; }
-
-        images = ''
-
-        for t in doc['Documentation'].find('Root.Image'):
-
-            image_url = t.resolved_url
-
-            images += ('[![{}]({} "{}")]({})'
-                          .format('doc_img', image_url, t.get_value('title'), image_url))
-
-
-        if images:
-            doc_links += "\n\n## Images\n"+ images
-
-        for t in doc['Documentation'].find('Root.Note'):
-            notes.append(t.value)
-
-
-    except KeyError:
-        raise
-        pass
-
-    return inline + \
-           (("\n\n## Notes \n\n" + "\n".join('* ' + n for n in notes if n)) if notes else '') + \
-           ("\n\n## Documentation Links\n" + doc_links if doc_links else '')
-
-
-
-
 class MetatabStyle(Style):
     # Minnesota Population Center. IPUMS Higher Ed: Version 1.0 [dataset]
     # Minneapolis, MN: University of Minnesota, 2016. http://doi.org/10.18128/D100.V1.0.
@@ -576,7 +481,6 @@ def display_context(doc):
 
     mandatory_sections = ['documentation', 'contacts']
 
-
     # Remove section names
     deletes = []
     for k,v in context.items():
@@ -606,6 +510,7 @@ def display_context(doc):
     inline = ''
 
     for d in context.get('documentation',{}).get('documentation',[]):
+
         u = parse_app_url(d['url'])
 
         if u.target_format == 'md':  # The README.md file
@@ -672,6 +577,7 @@ def display_context(doc):
     if origin:
         origin.update(process_contact(origin))
         context['contacts']['origin'] = [origin]
+
 
     return context
 

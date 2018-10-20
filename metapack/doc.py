@@ -158,9 +158,11 @@ class MetapackDoc(MetatabDoc):
         """Return the module associated with a package's python library"""
 
         try:
-            return self.get_lib_module_dict()
+            r = self.get_lib_module_dict()
         except ImportError:
-            return {}
+            r = {}
+
+        return r
 
     def set_sys_path(self):
         from os.path import join, isdir, dirname, abspath
@@ -187,6 +189,7 @@ class MetapackDoc(MetatabDoc):
 
         from importlib import import_module
 
+
         if not self.ref:
             return {}
 
@@ -202,7 +205,12 @@ class MetapackDoc(MetatabDoc):
                 try:
                     m = import_module(module_name)
                     return {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
-                except ImportError as e:
+                except ModuleNotFoundError as e:
+                    # We need to know if it is the datapackage's module that is missing
+                    # or if it is a module that it imported
+                    if not module_name in str(e):
+                        raise # If not our module, it's a real error.
+
                     continue
 
                 raise ImportError(f"Failed to import python module from lib directory; tried: {lib_dir_names}; ",

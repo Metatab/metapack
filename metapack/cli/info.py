@@ -102,6 +102,13 @@ def info(args):
         elif args.versions:
             print_versions(m)
 
+        elif m.resource:
+            r = m.get_resource()
+            prt('Resolved:     ', r.resolved_url)
+            prt('URL Resource: ', r.resolved_url.get_resource())
+            prt('URL path    : ', r.resolved_url.get_resource().get_target())
+            prt('Target Path:  ', r.resolved_url.get_resource().get_target().fspath)
+
         else:
             try:
                 prt(m.doc.name)

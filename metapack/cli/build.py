@@ -30,8 +30,6 @@ def build_downloader_callback(msg_type, message, read_len, total_len):
         last_dl_message = time()
 
 downloader = Downloader.get_instance()
-downloader.set_callback((build_downloader_callback))
-
 
 def build(subparsers):
     """
@@ -130,6 +128,9 @@ def build(subparsers):
 
 def run_metapack(args):
     from rowgenerators.rowpipe.exceptions import TooManyCastingErrors
+
+    downloader.set_callback((build_downloader_callback))
+
 
     m = MetapackCliMemo(args, downloader)
 

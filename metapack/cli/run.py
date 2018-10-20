@@ -90,10 +90,10 @@ def run(subparsers):
     output_group = parser.add_argument_group("General output options")
 
     output_group.add_argument('-S', '--sample', type=str, help="Sample values from a column")
-
-    output_group.add_argument('-L', '--limit', type=int,
-                       help="Limit the number of output rows ")
+    output_group.add_argument('-L', '--limit', type=int,  help="Limit the number of output rows ")
     output_group.add_argument('-N', '--number', action='store_true', help="Add line numbers as the first column")
+    output_group.add_argument('-n', '--no-schema', action='store_true', help="Don't use the schema to tansform the "
+                                                                             "data ")
 
     parser.set_defaults(handler=None)
 
@@ -104,12 +104,16 @@ def run_run(args):
 
     r = m.get_resource()
 
+    if m.args.no_schema:
+        r = r.row_generator
+
     doc = m.doc
 
     # Remove any data that may have been cached , for instance, from Jupyter notebooks
     shutil.rmtree(get_materialized_data_cache(doc), ignore_errors=True)
 
     if not r:
+        prt('Select a resource to run:')
         list_rr(doc)
         sys.exit(0)
 
@@ -123,7 +127,6 @@ def run_run(args):
         from collections import Counter
 
         limit = m.args.limit if m.args.limit else 5000
-
 
         c = Counter( r[m.args.sample] for r in islice(r.iterrows, None, limit))
 

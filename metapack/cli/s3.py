@@ -5,23 +5,23 @@
 CLI program for storing pacakges in CKAN
 """
 
-from os import getcwd, getenv
-from os.path import basename
-
-from botocore.exceptions import  NoCredentialsError
-
-
+import os
+from botocore.exceptions import NoCredentialsError
 from metapack import MetapackDoc, MetapackUrl
-from metapack.constants import PACKAGE_PREFIX
 from metapack import MetapackPackageUrl
-from metapack.cli.core import prt, err, make_s3_package
+from metapack.cli.core import prt, err
+from metapack.constants import PACKAGE_PREFIX
+from metapack.index import SearchIndex, search_index_file
 from metapack.package import *
 from metapack.package.s3 import S3Bucket
 from metapack.util import datetime_now
 from metatab import DEFAULT_METATAB_FILE
+from os import getcwd, getenv
+from os.path import basename
 from rowgenerators import parse_app_url
-from rowgenerators.util import clean_cache
 from rowgenerators.util import fs_join as join
+from tabulate import tabulate
+
 
 class MetapackCliMemo(object):
 
@@ -102,11 +102,31 @@ def run_s3(args):
         show_credentials(m.args.profile)
         exit(0)
 
-
-    dist_urls = upload(m)
+    dist_urls, fs_p = upload_packages(m)
 
     if dist_urls:
-        prt("Synchronized these Package Urls")
+
+        # Create the CSV package, with links into the
+        if fs_p:
+            create_s3_csv_package(m, dist_urls, fs_p)
+        else:
+            # If this happens, then no packages were created, because an FS package
+            # is always built first
+            prt("Not creating CSV package; no FS package was uploaded")
+
+    if dist_urls:
+
+        rows = [ [path,url, reason] for  what, reason, url, path in fs_p.files_processed if what != 'skip']
+        if rows:
+            prt("\nWrote these files:")
+            prt(tabulate(rows, headers='path url reason'.split()))
+
+        rows = [[path,url, reason] for  what, reason, url, path in fs_p.files_processed if what == 'skip']
+        if rows:
+            prt("\nSkipped these files:")
+            prt(tabulate(rows, headers='path url reason'.split()))
+
+        prt("\nSynchronized these Package Urls")
         prt("-------------------------------")
         for au in dist_urls:
             prt(au)
@@ -115,37 +135,70 @@ def run_s3(args):
     else:
         prt("Did not find any packages to upload")
 
+    m.doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
 
-    set_distributions(m, dist_urls)
 
-def set_distributions(m, dist_urls):
+def add_to_index(p):
 
-    for t in m.doc.find('Root.Distribution'):
-        m.doc.remove_term(t)
+    idx = SearchIndex(search_index_file())
+
+    idx.add_package(p, format='web')
+
+    idx.write()
+
+def set_distributions(doc, dist_urls):
+
+    for t in doc.find('Root.Distribution'):
+        doc.remove_term(t)
 
     for au in dist_urls:
-        m.doc['Root'].new_term('Root.Distribution', au)
+        doc['Root'].new_term('Root.Distribution', au)
 
-    m.doc.write_csv()
+    path = doc.write_csv()
 
 
-def upload(m):
+def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-read'):
+    from metapack import MetapackUrl
+    from metapack.package import S3PackageBuilder
 
+    assert package_root
+
+    p = S3PackageBuilder(file, package_root, callback=prt, env=env, acl=acl)
+
+    if not p.exists() or not skip_if_exists:
+        url = p.save()
+        prt("Packaged saved to: {}".format(url))
+        created = True
+    elif p.exists():
+        prt("S3 Filesystem Package already exists")
+        created = False
+        url = p.access_url
+
+    return p, MetapackUrl(url, downloader=file.downloader), created
+
+def upload_packages(m):
+    """"""
     dist_urls = []
-
     fs_p = None
 
+    files_processed = []
+
+    # For each package in _packages with the same name as this document...
     for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
         au = m.bucket.access_url(cache_path)
 
         # Just copy the Excel and Zip files directly to S3
         if ptype in ('xlsx', 'zip'):
             with open(purl.path, mode='rb') as f:
-                m.bucket.write(f.read(), basename(purl.path), m.acl)
+                access_url = m.bucket.write(f.read(), basename(purl.path), m.acl)
+
+                if m.bucket.last_reason:
+                    files_processed.append([*m.bucket.last_reason, access_url, '/'.join(purl.path.split(os.sep)[-2:])])
+
                 prt("Added {} distribution: {} ".format(ptype, au))
                 dist_urls.append(au)
 
-        elif ptype == 'fs': # Make the S3 package from the filesystem package
+        elif ptype == 'fs':  # Make the S3 package from the filesystem package
 
             env = {}
             skip_if_exist = False
@@ -153,7 +206,8 @@ def upload(m):
             try:
                 s3_package_root = MetapackPackageUrl(str(m.s3_url), downloader=m.downloader)
 
-                fs_p, fs_url, created = make_s3_package(purl.metadata_url, s3_package_root, m.cache, env, skip_if_exist, m.acl)
+                fs_p, fs_url, created = make_s3_package(purl.metadata_url, s3_package_root, m.cache, env, skip_if_exist,
+                                                        m.acl)
             except NoCredentialsError:
                 print(getenv('AWS_SECRET_ACCESS_KEY'))
                 err("Failed to find boto credentials for S3. "
@@ -168,44 +222,47 @@ def upload(m):
 
                 dist_urls.append(au)
 
-    m.doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
+    fs_p.files_processed += files_processed # Ugly encapsulating-breaking hack.
 
-    if dist_urls:
+    return dist_urls, fs_p
 
-        # Create the CSV package, with links into the
-        if fs_p:
-            u = MetapackUrl(fs_p.access_url, downloader=m.downloader)
+def create_s3_csv_package(m, dist_urls, fs_p):
 
-            resource_root = u.dirname().as_type(MetapackPackageUrl)
+    u = MetapackUrl(fs_p.access_url, downloader=m.downloader)
 
-            p = CsvPackageBuilder(u, m.package_root, resource_root)
+    resource_root = u.dirname().as_type(MetapackPackageUrl)
 
-            for au in dist_urls:
-                p.doc['Root'].new_term('Root.Distribution', au)
+    p = CsvPackageBuilder(u, m.package_root, resource_root)
 
-            # Re-write the URLS for the datafiles
-            for r in p.datafiles:
-                r.url = fs_p.bucket.access_url(r.url)
+    for au in dist_urls:
+        if not p.doc.find_first('Root.Distribution', str(au)):
+            p.doc['Root'].new_term('Root.Distribution', au)
 
-            # Rewrite Documentation urls:
-            for r in p.doc.find(['Root.Documentation', 'Root.Image']):
+    # Re-write the URLS for the datafiles
+    for r in p.datafiles:
+        r.url = fs_p.bucket.access_url(r.url)
 
-                url = parse_app_url(r.url)
-                if url.proto == 'file':
-                    r.url = fs_p.bucket.access_url(url.path)
+    # Rewrite Documentation urls:
+    for r in p.doc.find(['Root.Documentation', 'Root.Image']):
 
-            csv_url = p.save()
+        url = parse_app_url(r.url)
+        if url.proto == 'file':
+            r.url = fs_p.bucket.access_url(url.path)
 
-            with open(csv_url.path, mode='rb') as f:
-                m.bucket.write(f.read(), csv_url.target_file, m.acl)
+    csv_url = p.save()
 
-            dist_urls.append(m.bucket.access_url(p.cache_path))
-        else:
-            # If this happens, then no packages were created, because an FS package
-            # is always built first
-            prt("Not creating CSV package; no FS package was uploaded")
 
-    return dist_urls
+    with open(csv_url.path, mode='rb') as f:
+        m.bucket.write(f.read(), csv_url.target_file, m.acl)
+
+    access_url = m.bucket.access_url(p.cache_path)
+    dist_urls.append(access_url)
+
+    add_to_index(open_package(access_url))
+
+    if m.bucket.last_reason:
+        # Ugly encapsulation-breaking hack.
+        fs_p.files_processed += [ [*m.bucket.last_reason, access_url, '/'.join(csv_url.path.split(os.sep)[-2:])] ]
 
 
 
@@ -223,15 +280,8 @@ def show_credentials(profile):
     prt("export AWS_SECRET_ACCESS_KEY={}".format(session.get_credentials().secret_key))
     prt("# Run {} to configure credentials in a shell".format(cred_line))
 
-
-
-
-
 def run_docker(m):
     """Re-run the metasync command in docker. """
-
-    import botocore.session
-    from subprocess import Popen, PIPE, STDOUT
 
     raise NotImplementedError("No longer have access to raw_args")
 
@@ -264,5 +314,4 @@ def run_docker(m):
     exitcode = process.wait()  # 0 means success
 
     exit(exitcode)
-
 

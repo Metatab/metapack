@@ -4,7 +4,7 @@ from csv import DictReader
 from metapack import MetapackDoc
 from metapack.constants import PACKAGE_PREFIX
 from metapack import MetapackPackageUrl, MetapackUrl, ResourceError, Downloader
-from metapack.cli.core import (make_filesystem_package, make_s3_package, make_excel_package, make_zip_package,
+from metapack.cli.core import (make_filesystem_package,  make_excel_package, make_zip_package,
                                make_csv_package,
                                cli_init)
 from metapack.test.support import test_data

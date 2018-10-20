@@ -36,13 +36,14 @@ class S3PackageBuilder(PackageBuilder):
 
         self.bucket = S3Bucket(self.package_path, acl=self._acl)
 
+        self.files_processed = []
+
+
     @property
     def access_url(self):
         from metapack import MetapackPackageUrl
         return MetapackPackageUrl(self.bucket.access_url(DEFAULT_METATAB_FILE),
                                   downloader=self._source_ref.downloader)
-
-
     @property
     def private_access_url(self):
         from metapack import MetapackPackageUrl
@@ -72,7 +73,7 @@ class S3PackageBuilder(PackageBuilder):
         # Resets the ref so that resource.resolved_url link to the resources as written in S3
         self._doc._ref = self.access_url.join('metatab.csv')
 
-        self.prt("Preparing S3 package '{}' from '{}'".format(self.package_name, self.source_dir))
+        #self.prt("Preparing S3 package '{}' from '{}'".format(self.package_name, self.source_dir))
 
         # Copy all of the files from the Filesystem package
         for root, dirs, files in walk(self.source_dir):
@@ -94,10 +95,6 @@ class S3PackageBuilder(PackageBuilder):
             if url.proto == 'file':
                 r.url = self.bucket.access_url(url.path)
 
-
-        # re-write the metatab with the new URLs
-        #self._write_doc()
-
         # Re-write the HTML index file.
         self._write_html()
 
@@ -106,10 +103,15 @@ class S3PackageBuilder(PackageBuilder):
     def close(self):
         pass
 
-    def write_to_s3(self, path, body):
+    def write_to_s3(self, path, body, reason=''):
 
-        self.prt("Writing '{}' to S3".format(path))
-        self.bucket.write(body, path, acl=self._acl, force=self.force)
+        access_url = self.bucket.write(body, path, acl=self._acl, force=self.force)
+
+        if self.bucket.error:
+            err(self.bucket.last_reason[1])
+
+        if self.bucket.last_reason:
+            self.files_processed.append((*self.bucket.last_reason, access_url, path))
 
         return
 
@@ -146,10 +148,11 @@ class S3PackageBuilder(PackageBuilder):
 
         title = term['title'].value
 
-        self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
+        #self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
 
         term['url'].value = 'docs/' + file_name
 
+        self.wrote_files[file_name]
         self.write_to_s3(term['url'].value, contents)
 
 
@@ -180,7 +183,13 @@ class S3Bucket(object):
         if acl == 'public':
             acl = 'public-read'
 
+        # Reason that the last written file was either written or skipped
+        self.last_reason = None
+
+        self.error = False # Flag for error condition
+
         self._acl = acl
+
 
         self._bucket = self._s3.Bucket(self.bucket_name)
 
@@ -283,6 +292,8 @@ class S3Bucket(object):
 
         key = join(self.prefix, path).strip('/')
 
+        self.last_reason = ('wrote','Normal write')
+
         try:
             file_size = getsize(body.name) # Maybe it's an open file
         except AttributeError:
@@ -296,7 +307,7 @@ class S3Bucket(object):
 
             if o.content_length == file_size:
                 if force:
-                    prt("File '{}' already in bucket, but forcing overwrite".format(key))
+                    self.last_reason =('wrote',"File already in bucket, but forcing overwrite")
                 else:
 
                     try:
@@ -305,19 +316,27 @@ class S3Bucket(object):
                         local_md5 = md5
 
                     if(local_md5 != md5):
-                        prt("File '{}' already in bucket, but md5 sums differ".format(key))
+
+                        self.last_reason = ('wrote',"File already in bucket, but md5 sums differ")
                     else:
-                        prt("File '{}' already in bucket; skipping".format(key))
+                        self.last_reason = ('skip',"File already in bucket; skipping")
+
                         return self.access_url(path)
             else:
-                prt("File '{}' already in bucket, but length is different; re-wirtting".format(key))
+                self.last_reason = ('wrote',"File already in bucket, but length is different; re-writting")
 
         except ClientError as e:
             if int(e.response['Error']['Code']) in (403, 405):
-                err("S3 Access failed for '{}:{}': {}\nNOTE: With Docker, this error is often the result of container clock drift. Check your container clock. "
+                self.last_reason = ('error',"S3 Access failed for '{}:{}': {}\nNOTE: With Docker, this error is often "
+                                    "the result of container clock drift. Check your container clock. "
                     .format(self.bucket_name, key, e))
+                self.error = True
+                return
+
             elif int(e.response['Error']['Code']) != 404:
-                err("S3 Access failed for '{}:{}': {}".format(self.bucket_name, key, e))
+                self.last_reason = ('error',"S3 Access failed for '{}:{}': {}".format(self.bucket_name, key, e))
+                self.error = True
+                return
 
         ct = mimetypes.guess_type(key)[0]
 
@@ -327,6 +346,7 @@ class S3Bucket(object):
                                     ACL=acl,
                                     ContentType=ct if ct else 'binary/octet-stream')
         except Exception as e:
-            err("Failed to write '{}' to '{}': {}".format(key, self.bucket_name, e))
+            self.last_reason = ('error',"Failed to write '{}' to '{}': {}".format(key, self.bucket_name, e))
+            self.error = True
 
         return self.access_url(path)

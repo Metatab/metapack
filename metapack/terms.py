@@ -55,6 +55,8 @@ class Resource(Term):
 
         env = copy(self.doc.env)
 
+        assert env is not None, 'Got a null execution context'
+
         env.update(self._envvar_env)
 
         env.update(self.all_props)
@@ -819,6 +821,15 @@ class SqlQuery(Resource):
 
 
 class Distribution(Term):
+
+
+
+    def __init__(self, term, value, term_args=False, row=None, col=None, file_name=None, file_type=None, parent=None,
+                 doc=None, section=None):
+        super().__init__(term, value, term_args, row, col, file_name, file_type, parent, doc, section)
+
+        from metapack.util import dump_stack
+
     @property
     def type(self):
 
@@ -838,6 +849,7 @@ class Distribution(Term):
     @property
     def package_url(self):
         from metapack import MetapackPackageUrl
+       
         return MetapackPackageUrl(self.value, downloader=self.doc.downloader)
 
     @property

@@ -14,7 +14,7 @@ from os import getenv
 from os.path import join, basename
 
 from metapack import MetapackDoc, Downloader, open_package
-from metapack.cli.core import err
+from metapack.cli.core import err, prt
 from metatab import  DEFAULT_METATAB_FILE, MetatabError
 from metapack.package.s3 import S3Bucket
 from .core import MetapackCliMemo as _MetapackCliMemo
@@ -217,82 +217,79 @@ def send_to_ckan(m):
 
     inst_distributions = []
     csv_package = None
-    for dist in doc.find('Root.Distribution'):
 
-        prt("Processing {} package: {}".format(dist.type, dist.value))
+
+    def add_package(format, resources):
 
         package_url = dist.package_url
-        metadata_url = dist.metadata_url
 
-        if dist.type == 'zip':
-            d = dict(
-                url=str(package_url.inner),
-                name=basename(package_url.path),
-                format='ZIP',
-                mimetype=mimetypes.guess_type(package_url.path)[0],
-                description = load_instructions_description('ZIP version of package, in Metatab format.',
-                                                        str(package_url.inner))
-            )
-            resources.append(d)
-            inst_distributions.append(dist)
-            prt("Adding {} package {}".format(d['format'], d['name']))
+        d = dict(
+            url=str(package_url.inner),
+            name=basename(package_url.path),
+            format=format,
+            mimetype=mimetypes.guess_type(package_url.path)[0],
+            description=load_instructions_description('{} version of package, in Metatab format.'.format(format),
+                                                      str(package_url.inner))
+        )
+        resources.append(d)
+        prt("Adding {} package {}".format(d['format'], d['name']))
 
 
-        elif dist.type == 'xlsx':
-            d = dict(
-                url=str(package_url.inner),
-                name=basename(package_url.path),
-                format='XLSX',
-                mimetype=mimetypes.guess_type(package_url.path)[0],
-                description = load_instructions_description('Excel version of package, in Metatab format.',
-                                                        str(package_url.inner))
-            )
-            resources.append(d)
-            prt("Adding {} package {}".format(d['format'], d['name']))
+    def load_resources(dist_url, package_url, metadata_url):
 
-        elif dist.type == 'csv':
+        try:
+            p = open_package(metadata_url)
+        except (IOError, MetatabError) as e:
+            err("Failed to open package '{}' from reference '{}': {}".format(package_url, dist_url, e))
 
-            d=dict(
-                url=str(package_url.inner),
-                name=basename(package_url.path),
-                format='CSV',
-                mimetype=mimetypes.guess_type(metadata_url.path)[0],
-                description=load_instructions_description('CSV version of package, in Metatab format.',
-                                                          str(package_url.inner))
-            )
+        for r in p.resources():
 
-            resources.append(d)
-            inst_distributions.append(dist)
-            prt("Adding {} package {}".format(d['format'], d['name']))
+            mimetype = mimetypes.guess_type(r.resolved_url.path)[0]
 
             try:
-                p = open_package(metadata_url)
-            except (IOError, MetatabError) as e:
-                err("Failed to open package '{}' from reference '{}': {}".format(package_url, dist.url, e))
+                ext = mimetypes.guess_extension(mimetype)[1:]
+            except:
+                ext = None
+
+            d = dict(
+                name=r.name,
+                format=ext,
+                url=str(r.resolved_url),
+                mimetype=mimetype,
+                description=r.markdown
+            )
+
+            resources.append(d)
+            prt("  Adding resource {}".format(d['name']))
+
+        return p
+
+
+    if doc.find('Root.Distribution'):
+
+        prt("Distributions:")
+        for dist in doc.find('Root.Distribution'):
+            prt("    {}".format(dist.value))
+
+    else:
+        err("No distributions found. Giving up")
+
+
+    for dist in doc.find('Root.Distribution'):
+
+        if dist.type == 'zip':
+            add_package('ZIP', resources)
+            inst_distributions.append(dist)
+
+        elif dist.type == 'xlsx':
+            add_package('XLSX', resources)
+
+        elif dist.type == 'csv':
+            add_package('CSV', resources)
+            inst_distributions.append(dist)
 
             # Resources are always created from the CSV package.
-
-            csv_package = p
-
-            for r in p.resources():
-
-                mimetype = mimetypes.guess_type(r.resolved_url.path)[0]
-
-                try:
-                    ext = mimetypes.guess_extension(mimetype)[1:]
-                except:
-                    ext = None
-
-                d = dict(
-                    name=r.name,
-                    format = ext,
-                    url=str(r.resolved_url),
-                    mimetype=mimetype,
-                    description=r.markdown
-                )
-
-                resources.append(d)
-                prt("Adding {} resource {}".format(d['format'], d['name']))
+            csv_package = load_resources(dist.url, dist.package_url, dist.metadata_url)
 
         elif dist.type == 'fs':
             pass
@@ -300,8 +297,19 @@ def send_to_ckan(m):
         else:
             warn("Unknown distribution type '{}' for '{}'  ".format(dist.type, dist.value))
 
+    from rowgenerators.appurl.web import WebUrl
+    if isinstance( m.mt_file.inner, WebUrl) and  m.mt_file.inner.target_format == 'csv':
 
-    markdown = csv_package.markdown + package_load_instructions(inst_distributions)
+        from metapack.terms import Distribution
+        dist = m.doc['Root'].new_term('Root.Distribution', m.mt_file)
+        inst_distributions.append(dist)
+        csv_package = load_resources(dist.url, dist.package_url, dist.metadata_url)
+
+
+    if not csv_package:
+        err("Didn't find a CSV package. Giving up")
+
+    markdown = csv_package.markdown + "\n\n"+ package_load_instructions(inst_distributions)
 
     try:
         pkg['notes'] = markdown or doc.markdown #doc.find_first_value('Root.Description')

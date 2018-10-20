@@ -48,6 +48,9 @@ def update(subparsers):
     parser.add_argument('-E', '--eda', action='store_true', default=False,
                         help='Create an EDA notebook for a resource')
 
+    parser.add_argument('-N', '--notebook', action='store_true', default=False,
+                        help='Create a new notebook')
+
     parser.add_argument('-D', '--descriptions', action='store_true', default=False,
                         help='Import descriptions for package references')
 
@@ -65,8 +68,33 @@ def run_update(args):
     elif m.args.eda:
         write_eda_notebook(m)
 
+    elif m.args.notebook:
+        write_notebook(m)
+
     elif m.args.descriptions:
         update_descriptions(m)
+
+
+def write_notebook(m):
+    # Get the EDA notebook file from Github
+    import nbformat
+
+    url = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/package-notebook.ipynb"
+
+    r = requests.get(url, allow_redirects=True)
+    r.raise_for_status()
+
+    nb_path = 'notebooks/new-notebook.ipynb'
+
+    ensure_dir(dirname(nb_path))
+
+    if exists(nb_path):
+        err("Notebook {} already exists".format(nb_path))
+
+    with open(nb_path, 'wb') as f:
+        f.write(r.content)
+
+    prt('Wrote {}'.format(nb_path))
 
 
 def write_eda_notebook(m):
@@ -104,9 +132,10 @@ def write_eda_notebook(m):
         if 'resource_name' in cell.get('metadata',{}).get('tags',[]):
             cell.source = "resource_name='{}'".format(resource.name)
 
-
     with open(nb_path, 'wt') as f:
         nbformat.write(nb, f)
+
+
 
 def update_descriptions(m):
 

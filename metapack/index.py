@@ -23,10 +23,11 @@ def search_index_file():
 class SearchIndex(object):
 
     pkg_format_priority = {
-        'fs': 5,
-        'zip': 4,
-        'xlsx': 3,
-        'csv': 2,
+        'fs': 6,
+        'zip': 5,
+        'xlsx': 4,
+        'csv': 3,
+        'web': 2,
         'source': 1,
         'unk': 0
     }
@@ -77,8 +78,10 @@ class SearchIndex(object):
 
         try:
             version = 'V'+str(int(version)).zfill(10)
-        except ValueError:
-            pass
+        except (ValueError, TypeError):
+            # No version, skip it.
+            return
+
 
         if format is None:
             format = 'unk'
@@ -105,10 +108,9 @@ class SearchIndex(object):
             'url': url
         }
 
-    def add_package(self, pkg):
+    def add_package(self, pkg, format=None):
         from os.path import abspath
 
-        from metapack.package import open_package
         ref_url = pkg.package_url.clone()
         ref_url.path = abspath(ref_url.path)
 
@@ -121,13 +123,14 @@ class SearchIndex(object):
 
         target_ref = ref_url.get_resource().get_target()
 
-        if target_ref.fspath.is_dir() and target_ref.fspath.joinpath('metadata.csv').exists():
-            if not pkg.get_value('Root.Issued') or target_ref.fspath.joinpath('_packages').exists():
-                format = 'source'
+        if format is None:
+            if target_ref.fspath.is_dir() and target_ref.fspath.joinpath('metadata.csv').exists():
+                if not pkg.get_value('Root.Issued') or target_ref.fspath.joinpath('_packages').exists():
+                    format = 'source'
+                else:
+                    format = 'fs'
             else:
-                format = 'fs'
-        else:
-            format = target_ref.target_format
+                format = target_ref.target_format
 
         self._make_package_entry(identifier, name, nv_name, version, format, ref)
 
@@ -176,8 +179,8 @@ class SearchIndex(object):
 
         if format == 'all':
             format = None
-        elif format == 'issued':
-            format = ['zip','csv','xlsx','fs']
+        elif format == 'issued': # 'iisued' means  'not source'
+            format = ['zip','csv','xlsx','fs','web']
 
         if format and not isinstance(format, (list, tuple)):
             format = [format]

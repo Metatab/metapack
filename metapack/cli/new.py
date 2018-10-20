@@ -59,8 +59,8 @@ def new_args(subparsers):
 
     parser.add_argument('-T', '--title', help="Set the title")
 
-    #parser.add_argument('-L', '--pylib', help="Configure a pylib directory for Python code extensions",
-    # action='store_true')
+    parser.add_argument('-L', '--pylib', help="Configure a pylib directory for Python code extensions",
+                        action='store_true')
 
     parser.add_argument('-E', '--example', help="Add examples of resources",
                         action='store_true')

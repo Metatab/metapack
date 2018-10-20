@@ -27,7 +27,7 @@ def row_generator(resource, doc, env, *args, **kwargs):
     * METATAB_WORKING_DIR
     * METATAB_PACKAGE
 
-    It also contains key/valu pairs for all of the properties of the resource.
+    It also contains key/value pairs for all of the properties of the resource.
 
     """
 

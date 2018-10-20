@@ -240,7 +240,7 @@ class FileSystemPackageBuilder(PackageBuilder):
         try:
             for term in list(self.doc['Documentation'].find('Root.Documentation')):
                 u = parse_app_url(term.value)
-                if u.target_format == 'ipynb':
+                if u.target_format == 'ipynb' and u.proto == 'file':
                     notebook_docs.append(term)
                     self.doc.remove_term(term)
         except KeyError:

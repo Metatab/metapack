@@ -270,24 +270,6 @@ def make_csv_package(file, package_root, cache, env, force, nv_name=None, nv_lin
                        lambda: p.create_nv_link() if nv_link else None)
 
 
-def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-read'):
-    from metapack import MetapackUrl
-    from metapack.package import S3PackageBuilder
-
-    assert package_root
-
-    p = S3PackageBuilder(file, package_root, callback=prt, env=env, acl=acl)
-
-    if not p.exists() or not skip_if_exists:
-        url = p.save()
-        prt("Packaged saved to: {}".format(url))
-        created = True
-    elif p.exists():
-        prt("S3 Filesystem Package already exists")
-        created = False
-        url = p.access_url
-
-    return p, MetapackUrl(url, downloader=file.downloader), created
 
 
 def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False):
@@ -560,8 +542,6 @@ class MetapackCliMemo(object):
 
 def get_resource(m):
 
-
-
     if m.resource:
         r = m.doc.resource(m.resource)
         return r if r else m.doc.reference(m.resource)
@@ -641,9 +621,9 @@ def new_search_index():
 def list_rr(doc):
     d = []
     for r in doc.resources():
-        d.append(('Resource', r.name, r.url))
+        d.append(('Resource', '#'+r.name, r.url))
 
     for r in doc.references():
-        d.append(('Reference', r.name, r.url))
+        d.append(('Reference', '#'+r.name, r.url))
 
-    prt(tabulate(d, 'Type Name Url'.split()))
+    prt(tabulate(d, 'Type Ref Url'.split()))
