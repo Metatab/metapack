@@ -26,7 +26,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.24',
+    version='0.8.26',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -34,7 +34,8 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
-        'python-dateutil<2.7.0', # To keep botocore happy.
+        'urllib3<1.24,>=1.20' # To keep botocore happy.
+        'python-dateutil<2.7.0', # Stupid botocode
         'boto3',
         'openpyxl<2.5', # Required by tabulator
         'unicodecsv',
@@ -57,6 +58,7 @@ setup_d = dict(
         'docopt',
         'jinja2'
 
+
         # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
 
@@ -70,7 +72,7 @@ setup_d = dict(
         ],
         'nbconvert.exporters': [
             #'metapack = metapack.jupyter:MetapackExporter',
-            'hugo = metapack.jupyter:HugoExporter',
+            #'hugo = metapack.jupyter:HugoExporter',
         ],
 
         'appurl.urls': [

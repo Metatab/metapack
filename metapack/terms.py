@@ -660,7 +660,6 @@ class Resource(Term):
 
         kwargs['low_memory'] = False
 
-
         return pandas.read_csv(t.fspath, *args, **kwargs)
 
     def read_fwf(self, *args, **kwargs):
@@ -751,8 +750,8 @@ class Reference(Resource):
     def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
         try:
             return self.resource.read_csv(dtype, parse_dates, *args, **kwargs)
-        except AttributeError:
-            return super()._repr_html_()
+        except AttributeError as e:
+            return super().read_csv(dtype=dtype, parse_dates=parse_dates, *args, **kwargs)
 
     def dataframe(self, limit=None):
         try:
