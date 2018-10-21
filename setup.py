@@ -34,7 +34,7 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
-        'urllib3<1.24,>=1.20' # To keep botocore happy.
+        'urllib3<1.24,>=1.20', # To keep botocore happy.
         'click<7.0,>=3.3', # For jsontableschema
         'python-dateutil<2.7.0', # Stupid botocode
         'boto3',
