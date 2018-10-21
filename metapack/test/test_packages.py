@@ -194,6 +194,7 @@ class TestPackages(unittest.TestCase):
 
         self.assertIsInstance(rows[1]['geometry'], ShapeValue)
 
+    @unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "Skipping this test on Travis CI.")
     def test_build_transform_package(self):
 
         m = MetapackUrl(test_data('packages/example.com/example.com-transforms/metadata.csv'), downloader=downloader)
