@@ -26,7 +26,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.26',
+    version='0.8.27',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -43,7 +43,7 @@ setup_d = dict(
         'pyyaml',
         'datapackage<1.0',
         'bs4',
-        'markdown',
+        'markdown==2.6.11',
         'nbconvert',
         'IPython',
         'ipykernel',
