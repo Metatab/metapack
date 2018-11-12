@@ -82,18 +82,18 @@ def doc_args(subparsers):
 
     ##
     ##
-    cmdp = cmdsp.add_parser('markdown', help='Output the package markdown documentation')
-    cmdp.set_defaults(run_command=dump_markdown)
+    for arg, help, cmd in [
+        ('markdown', 'Output the package markdown documentation', dump_markdown),
+        ('html', 'Output the package html documentation', dump_html),
+        ('json', 'Output the package html documentation', dump_json),
+        ('yaml', 'Output the package html documentation', dump_yaml)
+    ]:
+        cmdp = cmdsp.add_parser(arg,help=help)
+        cmdp.set_defaults(run_command=cmd)
 
-    cmdp.add_argument('metatabfile', nargs='?',
-                        help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+        cmdp.add_argument('metatabfile', nargs='?',
+                          help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
-
-    cmdp = cmdsp.add_parser('html', help='Output the package html documentation')
-    cmdp.set_defaults(run_command=dump_html)
-
-    cmdp.add_argument('metatabfile', nargs='?',
-                        help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
 def graph_cmd(args):
 
@@ -444,3 +444,56 @@ def dump_html(args):
     m = MetapackCliMemo(args, downloader)
 
     print(m.doc.html)
+
+
+def dump_json(args):
+    from metapack.html import display_context
+    import json
+
+    m = MetapackCliMemo(args, downloader)
+
+    print(json.dumps(display_context(m.doc), indent=4))
+
+
+
+def dump_yaml(args):
+    from metapack.html import display_context
+    from collections import OrderedDict
+    import yaml
+
+    def represent_odict(dump, tag, mapping, flow_style=None):
+        """Like BaseRepresenter.represent_mapping, but does not issue the sort().
+        """
+        value = []
+        node = yaml.MappingNode(tag, value, flow_style=flow_style)
+        if dump.alias_key is not None:
+            dump.represented_objects[dump.alias_key] = node
+        best_style = True
+        if hasattr(mapping, 'items'):
+            mapping = mapping.items()
+        for item_key, item_value in mapping:
+            node_key = dump.represent_data(item_key)
+            node_value = dump.represent_data(item_value)
+            if not (isinstance(node_key, yaml.ScalarNode) and not node_key.style):
+                best_style = False
+            if not (isinstance(node_value, yaml.ScalarNode) and not node_value.style):
+                best_style = False
+            value.append((node_key, node_value))
+        if flow_style is None:
+            if dump.default_flow_style is not None:
+                node.flow_style = dump.default_flow_style
+            else:
+                node.flow_style = best_style
+        return node
+
+    yaml.SafeDumper.add_representer(OrderedDict,
+                                    lambda dumper, value: represent_odict(dumper, u'tag:yaml.org,2002:map', value))
+
+    m = MetapackCliMemo(args, downloader)
+
+    print(yaml.safe_dump(display_context(m.doc), default_flow_style=False))
+
+
+
+
+

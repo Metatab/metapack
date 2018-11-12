@@ -279,6 +279,7 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
         else:
             jt = self.join_target(resource_name)
+
             try:
                 rs = jt.get_resource()
             except DownloadError:

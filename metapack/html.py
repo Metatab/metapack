@@ -479,6 +479,9 @@ def display_context(doc):
 
     context = {s.name.lower(): s.as_dict() for s in doc if s.name.lower() != 'schema'}
 
+    #import json
+    #print(json.dumps(context, indent=4))
+
     mandatory_sections = ['documentation', 'contacts']
 
     # Remove section names

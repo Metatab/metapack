@@ -94,12 +94,6 @@ class Resource(Term):
 
         ru = self._resolved_url()
 
-        try:
-            ru._target_format = self.target_format
-        except AttributeError:
-            # No target_format is defined
-            pass
-
         return ru
 
 
@@ -135,14 +129,17 @@ class Resource(Term):
 
             return u.resource.resolved_url.get_resource().get_target()
 
+        if u.scheme == 'file' and u.fspath.is_absolute():
+
+            return u
 
         else:
 
-            assert isinstance(self.doc.package_url, MetapackPackageUrl), (
-                type(self.doc.package_url), self.doc.package_url)
+
+            assert isinstance(self.doc.package_url, MetapackPackageUrl), (type(self.doc.package_url), self.doc.package_url)
 
             try:
-                t = self.doc.package_url.resolve_url(self.url)
+                t = self.doc.package_url.resolve_url(self.url) # Why are we doing this?
 
                 # Also a hack
                 t.scheme_extension = parse_app_url(self.url).scheme_extension
@@ -155,6 +152,7 @@ class Resource(Term):
                     if not t.fragment and u.fragment:
                         t.fragment = u.fragment
 
+
                 # Yet more hack!
                 t = parse_app_url(str(t))
 
@@ -164,8 +162,6 @@ class Resource(Term):
                 # This case happens when a filesystem packages has a non-standard metadata name
                 # Total hack
                 raise
-
-
 
     @property
     def inner(self):
