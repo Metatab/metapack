@@ -77,6 +77,9 @@ def s3(subparsers):
 
     parser.add_argument('-s', '--s3', help="URL to S3 where packages will be stored", required=False)
 
+    parser.add_argument('-F', '--force', default=False, action='store_true',
+                       help='Force write for all files')
+
     parser.add_argument('-C', '--credentials', help="Show S3 Credentials and exit. "
                                                     "Eval this string to setup credentials in other shells.",
                         action='store_true', default=False)
@@ -101,6 +104,8 @@ def run_s3(args):
     if m.args.credentials:
         show_credentials(m.args.profile)
         exit(0)
+
+
 
     dist_urls, fs_p = upload_packages(m)
 
@@ -136,6 +141,15 @@ def run_s3(args):
         prt("Did not find any packages to upload")
 
     m.doc['Root'].get_or_new_term('Root.Issued').value = datetime_now()
+
+    clear_cache(m, fs_p.files_processed)
+
+def clear_cache(m, files_processed):
+
+    for what, reason, url, path in files_processed:
+        cp = m.doc.downloader.cache_path(url)
+        print("!!!!", m.doc.cache.getsyspath(cp))
+
 
 
 def add_to_index(p):
@@ -176,6 +190,11 @@ def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-
 
     return p, MetapackUrl(url, downloader=file.downloader), created
 
+def generate_packages(m):
+
+    for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
+        yield ptype, purl, cache_path
+
 def upload_packages(m):
     """"""
     dist_urls = []
@@ -184,7 +203,8 @@ def upload_packages(m):
     files_processed = []
 
     # For each package in _packages with the same name as this document...
-    for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
+    for ptype, purl, cache_path in generate_packages(m):
+
         au = m.bucket.access_url(cache_path)
 
         # Just copy the Excel and Zip files directly to S3
