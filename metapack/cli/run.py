@@ -221,6 +221,7 @@ def run_run(args):
                 w.writerow(j)
 
         else: # m.args.csv:
+
             w = csv.writer(sys.stdout)
             for i,j in enumerate(gen_wrap(r)):
                 w.writerow(j)
