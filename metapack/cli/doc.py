@@ -85,8 +85,8 @@ def doc_args(subparsers):
     for arg, help, cmd in [
         ('markdown', 'Output the package markdown documentation', dump_markdown),
         ('html', 'Output the package html documentation', dump_html),
-        ('json', 'Output the package html documentation', dump_json),
-        ('yaml', 'Output the package html documentation', dump_yaml)
+        ('json', 'Output the package documentation context in json format', dump_json),
+        ('yaml', 'Output the package documentation context in yaml format', dump_yaml)
     ]:
         cmdp = cmdsp.add_parser(arg,help=help)
         cmdp.set_defaults(run_command=cmd)

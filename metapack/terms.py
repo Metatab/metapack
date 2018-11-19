@@ -571,52 +571,62 @@ class Resource(Term):
         from shapely.geometry.polygon import BaseGeometry
         from shapely.wkt import loads
 
+        gdf = None
         try:
             gdf = self.resolved_url.geoframe(*args, **kwargs)
         except AttributeError:
             pass
 
-        try:
-            gdf = self.resolved_url.geo_generator.geoframe(*args, **kwargs)
-        except AttributeError:
-            pass
+        if gdf is None:
+            try:
+                gdf = self.resolved_url.geo_generator.geoframe(*args, **kwargs)
+            except AttributeError:
+                pass
 
-        try:
-            gdf = self.row_generator.geoframe(*args, **kwargs)
-        except AttributeError:
-            pass
+        if gdf is None:
+            try:
+                gdf = self.row_generator.geoframe(*args, **kwargs)
+            except AttributeError:
+                pass
 
-        try:
+        if gdf is None:
+            try:
 
-            gdf = GeoDataFrame(self.dataframe(*args, **kwargs))
+                gdf = GeoDataFrame(self.dataframe(*args, **kwargs))
 
-            first = next(gdf.iterrows())[1]['geometry']
+                first = next(gdf.iterrows())[1]['geometry']
 
-            if isinstance(first, str):
-                # We have a GeoDataframe, but the geometry column is still strings, so
-                # it must be converted
-                shapes = [loads(row['geometry']) for i, row in gdf.iterrows()]
+                if isinstance(first, str):
+                    # We have a GeoDataframe, but the geometry column is still strings, so
+                    # it must be converted
+                    shapes = [loads(row['geometry']) for i, row in gdf.iterrows()]
 
-            elif not isinstance(first, BaseGeometry):
-                # If we are reading a metatab package, the geometry column's type should be
-                # 'geometry' which will give the geometry values class type of
-                # rowpipe.valuetype.geo.ShapeValue. However, there are other
-                # types of objects that have a 'shape' property.
+                elif not isinstance(first, BaseGeometry):
+                    # If we are reading a metatab package, the geometry column's type should be
+                    # 'geometry' which will give the geometry values class type of
+                    # rowpipe.valuetype.geo.ShapeValue. However, there are other
+                    # types of objects that have a 'shape' property.
 
-                shapes = [row['geometry'].shape for i, row in gdf.iterrows()]
+                    shapes = [row['geometry'].shape for i, row in gdf.iterrows()]
 
-            else:
-                shapes = gdf['geometry']
+                else:
+                    shapes = gdf['geometry']
 
-            gdf['geometry'] = gpd.GeoSeries(shapes)
-            gdf.set_geometry('geometry')
+                gdf['geometry'] = gpd.GeoSeries(shapes)
+                gdf.set_geometry('geometry')
 
-        except KeyError as e:
-            raise ResourceError("Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
-        except (KeyError,TypeError) as e:
-            raise ResourceError("Failed to create GeoDataFrame for resource '{}': {}".format(self.name, str(e)))
+                # Wild guess. This case should be most often for Metatab processed geo files,
+                # which are all 4269
+                if gdf.crs is None:
+                    gdf.crs = {'init': 'epsg:4269'}
 
 
+            except KeyError as e:
+                raise ResourceError("Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
+            except (KeyError,TypeError) as e:
+                raise ResourceError("Failed to create GeoDataFrame for resource '{}': {}".format(self.name, str(e)))
+
+        assert gdf.crs is not None
         return gdf
 
 

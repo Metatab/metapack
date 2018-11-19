@@ -582,6 +582,25 @@ def display_context(doc):
         context['contacts']['origin'] = [origin]
 
 
+    # For resources and references, convert scalars into lists of dicts, which are the
+    # default for Datafiles and References.
+
+    for section in ('references', 'resources'):
+        for term_key, term_vals in context[section].items():
+            if isinstance(term_vals, dict):
+                if '@value' in term_vals:
+                    term_vals['url'] = term_vals['@value']
+                    del term_vals['@value']
+                new_term_vals = [term_vals]
+            elif isinstance(term_vals, list):
+                new_term_vals = None
+            else:
+                new_term_vals = [ {'url': term_vals, 'name': term_vals}]
+
+            if new_term_vals:
+                context[section][term_key] = new_term_vals
+
+
     return context
 
 def markdown(doc, title=True):
