@@ -58,6 +58,9 @@ def info_args(subparsers):
     parser.add_argument('-C', '--cache', default=False, action='store_true',
                         help='Print the location of the cache')
 
+    parser.add_argument('-D', '--declare', default=False, action='store_true',
+                        help='Print the location of the default declarition document')
+
     parser.add_argument('-M', '--materialized', default=False, action='store_true',
                         help='Print the location of the materialized data cache')
 
@@ -101,6 +104,9 @@ def info(args):
 
         elif args.versions:
             print_versions(m)
+
+        elif args.declare:
+            print_declare(m)
 
         elif m.resource:
             r = m.get_resource()
@@ -207,3 +213,9 @@ def dump_rptable(m):
     r = get_resource(m)
 
     print(r.row_processor_table())
+
+def print_declare(m):
+
+    from metatab.util import declaration_path
+
+    prt(declaration_path('metatab-latest'))
