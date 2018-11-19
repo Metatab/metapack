@@ -375,14 +375,16 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
         schemas_processed += 1
 
         try:
-            slice = islice(r.row_generator, 500)
+            slice = islice(r.row_generator, 5000)
         except SchemaError:
             warn("Failed to build row processor table, using raw row generator")
-            slice = islice(r.raw_row_generator, 500)
+            slice = islice(r.raw_row_generator, 5000)
 
         si = SelectiveRowGenerator(slice,
                                    headers=[int(i) for i in r.get_value('headerlines', '0').split(',')],
                                    start=int(r.get_value('startline', 1)))
+
+        #print("!!!!", type(r.row_generator))
 
         try:
             ti = TypeIntuiter().run(si)
