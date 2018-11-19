@@ -282,6 +282,18 @@ class TestIPython(unittest.TestCase):
 
         print(len(rows))
 
+    @unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "Skipping this test on Travis CI.")
+    def test_categorical(self):
+
+        import metapack as mp
+
+        fn = '/Users/eric/proj/virt-proj/data-project/chis/healthpolicy.ucla.edu-chis_food/'
+
+        pkg = mp.open_package(fn)
+
+        print(pkg.resource)
+
+
 
 if __name__ == '__main__':
     unittest.main()

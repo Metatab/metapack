@@ -4,6 +4,10 @@ import unittest
 class TestIssues(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
 
+    def setUp(self):
+        import warnings
+        warnings.simplefilter('ignore')
+
     def test_ref_resource_confusion(self):
         from metapack import open_package
         u = 'http://library.metatab.org/ffiec.gov-cra_disclosure_smb_orig-2010_2015-2.csv'
@@ -135,6 +139,18 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             t = pkg.package_url.join_target(u).get_resource().get_target()
             self.assertTrue(t.exists())
             self.assertTrue(t.path.endswith('README.md'))
+
+    def test_multi_load_geoframe(self):
+
+        import metapack as mp
+
+        pkg = mp.open_package('/Users/eric/proj/virt-proj/data-project/gis-projects/sandiegodata.org-stormdrains/')
+
+        comm = pkg.reference('communities').geoframe()
+
+        dc = pkg.reference('drain_conveyance_file').geoframe().dropna(subset=['geometry'])
+
+        dc.to_crs(comm.crs)
 
 if __name__ == '__main__':
     unittest.main()
