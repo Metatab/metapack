@@ -160,6 +160,8 @@ def new_cmd(args):
 
     with open(join(nv_name,'.gitignore'), 'w') as f:
         f.write("_packages\n")
+        f.write("*-errors.ipynb\n")
+        f.write("*-executed.ipynb\n")
 
     if args.title:
         readme = '# {}\n'.format(args.title)

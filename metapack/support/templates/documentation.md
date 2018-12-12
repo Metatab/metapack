@@ -1,5 +1,5 @@
-# {{root.title}}
-`{{root.name}}` Last Update: {{root.modified}}
+{% if root.title -%}# {{root.title}}{%-endif%}
+{% if root.name -%}`{{root.name}}`{%-else-%}`{{root.identifier}}`{%-endif%} Last Update: {{root.modified}}
 
 _{{root.description}}_
 

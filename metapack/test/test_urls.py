@@ -13,6 +13,10 @@ from rowgenerators.appurl.web import WebUrl
 class TestUrls(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
 
+    def setUp(self):
+        import warnings
+        warnings.simplefilter('ignore')
+
     def test_metapack_urls(self):
 
         groups = {}
@@ -190,16 +194,16 @@ class TestUrls(unittest.TestCase):
         self.assertEqual('random-names', u.fragment[0])
         self.assertEqual('random-names', u.target_file)
 
-        doc = u.doc
+        r = u.doc.resource(u.target_file)
+        self.assertEqual('random-names',r.value)
 
-        r = doc.resource(u.target_file)
         ru = r.resolved_url
-        # print(r.value)
-        # print (ru)
+        print('a', r.value)
+        print ('b', ru)
         rur = ru.get_resource()
-        # print (rur)
+        print ('c', rur)
         rurt = rur.get_target()
-        # print (rurt)
+        print ('d', rurt)
 
         self.assertEqual(101, len(list(r)))
 
@@ -228,6 +232,11 @@ class TestUrls(unittest.TestCase):
         # print(ru.get_resource())
 
         return
+
+    def test_shape_resource(self):
+        us = 'http://library.metatab.org/sandiegodata.org-geography-2018-1/data/tract_boundaries.csv'
+        u = parse_app_url(us)
+
 
     def test_metatab_resource_zip(self):
         from metapack.appurl import MetapackResourceUrl
@@ -269,6 +278,42 @@ class TestUrls(unittest.TestCase):
         self.assertEqual('metapack+file:/Volumes/Storage/Data/metapack/bc.edu-creations-comments-3.zip#comments',
                           str(u.get_resource()))
 
+    def x_test_stata(self):
+
+        from itertools import islice, chain
+        from metapack import MetapackDoc
+        from os import getcwd
+        from os.path import dirname, join, relpath
+        from rowgenerators.appurl.test import test_data as rg_test_data
+
+        def chained(g):
+            return list(chain(*islice(g, 10)))
+
+        doc = MetapackDoc(test_data('empty_resources.csv'))
+
+        # The main problem is with handling of relative paths
+        base_path = relpath(dirname(rg_test_data.__file__) )
+
+        u = parse_app_url(join(base_path, 'stata.dta'))
+        self.assertTrue(140, len(chained(u.generator)))
+
+        u = parse_app_url(join(base_path, 'stata_package.zip')+'#stata.dta', downloader=doc.downloader)
+        self.assertTrue(140, len(chained(u.generator)))
+
+        base_path = relpath(dirname(rg_test_data.__file__), dirname(test_data('empty_resources.csv')))
+
+        doc['Resources'].new_term('Root.Datafile', join(base_path,
+                                                        'stata.dta#&target_format=dta&values=codes'),
+                                  name='stata_file')
+        doc['Resources'].new_term('Root.Datafile', join(base_path, 'stata_package.zip')+'#stata.dta', \
+                                                                                     name='stata_package')
+
+        self.assertTrue( 140, len(chained(doc.resource('stata_file'))))
+        self.assertTrue(140, len(chained(doc.resource('stata_package'))))
+
+        g = doc.resource('stata_package').row_generator
+
+        print(type(g))
 
 
 if __name__ == '__main__':

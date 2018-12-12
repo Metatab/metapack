@@ -125,7 +125,7 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         doc_file = self._write_doc()
 
-        self._write_html()
+        self._write_html() # Why does this happen after _write_doc?
 
         return doc_file
 
@@ -153,11 +153,13 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         from itertools import islice
         from metapack.exc import MetapackError
+        from os.path import splitext
 
-        # Refetch the resource ... IIRC b/c the source_r resource may actuall be from
+        # Refetch the resource ... IIRC b/c the source_r resource may actually be from
         # a different package. So r is the resource we want to possibly modify in this package,
         # while source_r is from a different souce package, whose data is being loaded into this
         # one.
+
         r = self.datafile(source_r.name)
 
         if self.reuse_resources:
@@ -168,6 +170,7 @@ class FileSystemPackageBuilder(PackageBuilder):
         if not r.name:
             raise MetapackError(f"Resource/reference term has no name: {str(r)}")
 
+        # Special handing for SQL should not be done here; it should be done in Rowgenerators, probably.
         if r.term_is('root.sql'):
             new_r = self.doc['Resources'].new_term('Root.Datafile', '')
             new_r.name = r.name
@@ -176,15 +179,14 @@ class FileSystemPackageBuilder(PackageBuilder):
 
             r = new_r
 
-        r.url = 'data/' + r.name + '.csv'
+        r.url = 'data/' + r.name + '.csv' # Re-writing the URL for the resource.
 
         path = join(self.package_path.path, r.url)
 
         makedirs(dirname(path), exist_ok=True)
 
-        if self.reuse_resources and exists(path):
-            self.prt("Re-using {}".format(path))
-        else:
+        if not self.reuse_resources or not exists(path):
+
             if self.reuse_resources:
                 self.prt("Resource {} doesn't exist, rebuilding".format(path))
 
@@ -211,9 +213,6 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         if source_r.errors:
             self.err("Resource processing generated conversion errors")
-
-
-
 
 
         # Writing between resources so row-generating programs and notebooks can
@@ -281,18 +280,21 @@ class FileSystemPackageBuilder(PackageBuilder):
 
         try:
             eu = term.expanded_url
+            parsed_url = term.parsed_url
         except AttributeError:
-            eu = parse_app_url(term.value)
+            parsed_url = eu = parse_app_url(term.value)
 
-        if eu.proto == 'file' and not eu.path_is_absolute:
-            package_sub_dir = eu.fspath.parent
+        # Can't used expanded_url here because expansion makes file system URLS absolute.
+        if eu.proto == 'file' and not parsed_url.path_is_absolute:
+            package_sub_dir = parsed_url.fspath.parent
         else:
+
             package_sub_dir = 'docs'
 
 
         path = join(self.package_path.path,  package_sub_dir, file_name)
 
-        self.prt("Loading documentation for '{}', '{}'  ".format(title, file_name))
+        self.prt("Loading documentation for '{}', '{}' to '{}'  ".format(title, file_name, path))
 
         makedirs(dirname(path), exist_ok=True)
 

@@ -66,10 +66,6 @@ setup_d = dict(
     entry_points={
         'console_scripts': [
             'mp=metapack.cli.mp:mp',
-            'metaworld=metapack.cli.metaworld:metaworld',
-            'metaaws=metapack.cli.metaaws:metaaws',
-            'metasql=metapack.cli.metasql:metasql'
-
         ],
         'nbconvert.exporters': [
             #'metapack = metapack.jupyter:MetapackExporter',
@@ -78,7 +74,6 @@ setup_d = dict(
 
         'appurl.urls': [
             "metapack+ = metapack.appurl:MetapackUrl",
-            "metatab+ = metapack.appurl:MetapackUrl",
             ".ipynb = metapack.appurl:JupyterNotebookUrl",
             "index: = metapack.appurl:SearchUrl"
 

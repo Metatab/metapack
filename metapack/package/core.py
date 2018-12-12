@@ -163,7 +163,7 @@ class PackageBuilder(object):
             @property
             def schema(self):
                 if not 'Schema' in self.doc:
-                    self.doc.get_or_new_section('Schema', 'DataType AltName Description'.split())
+                    self.doc.get_or_new_section('Schema', 'DataType Description'.split())
 
                 return self.doc['schema']
 
@@ -377,6 +377,8 @@ class PackageBuilder(object):
 
         for r in self.datafiles:
 
+            # Special handling for SQL is probably a really bad idea. It should be handled as
+            # a Rowgenerator.
             if r.term_is('root.sql'):
 
                 if not r.value:
@@ -544,7 +546,7 @@ class PackageBuilder(object):
 
             else:
                 # Load it as a URL
-                real_name, f = self._get_ref_contents(term)
+                f = self._get_ref_contents(term)
                 self._load_file(term.value,f.read() )
 
         nb_dir = join(self.source_dir, 'notebooks')

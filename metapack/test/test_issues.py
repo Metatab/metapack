@@ -1,5 +1,6 @@
 import unittest
-
+import metapack as mp
+from rowgenerators import parse_app_url
 
 class TestIssues(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
@@ -86,7 +87,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
     def x_test_csv_join(self):
 
 
-        from rowgenerators import parse_app_url
+
         import metapack as mp
 
         pkg = mp.open_package('http://library.metatab.org/noaa.gov-localclimate-200808_201807-san-3.csv')
@@ -140,9 +141,9 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             self.assertTrue(t.exists())
             self.assertTrue(t.path.endswith('README.md'))
 
-    def test_multi_load_geoframe(self):
+    def x_test_multi_load_geoframe(self):
 
-        import metapack as mp
+
 
         pkg = mp.open_package('/Users/eric/proj/virt-proj/data-project/gis-projects/sandiegodata.org-stormdrains/')
 
@@ -151,6 +152,16 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         dc = pkg.reference('drain_conveyance_file').geoframe().dropna(subset=['geometry'])
 
         dc.to_crs(comm.crs)
+
+    def test_package_url_joins(self):
+
+        us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.xlsx'
+
+        u = parse_app_url(us)
+
+        print(type(u), u)
+
+        print(u.join_target('foobar'))
 
 if __name__ == '__main__':
     unittest.main()

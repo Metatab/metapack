@@ -181,7 +181,6 @@ def get_table(doc, name):
 def _exec_build(p, package_root, force, nv_name, extant_url_f, post_f):
     from metapack import MetapackUrl
 
-
     if force:
         reason = 'Forcing build'
         should_build = True
@@ -270,8 +269,6 @@ def make_csv_package(file, package_root, cache, env, force, nv_name=None, nv_lin
                        lambda: p.create_nv_link() if nv_link else None)
 
 
-
-
 def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False):
     from metapack import MetapackDoc
 
@@ -328,7 +325,7 @@ def write_doc(doc, mt_file):
         # warn("Not writing back to url ", mt_file)
 
 
-def process_schemas(mt_file, cache=None, clean=False, report_found=True):
+def process_schemas(mt_file, resource=None, cache=None, clean=False, report_found=True, force=False):
     from rowgenerators.exceptions import SourceError, SchemaError
     from requests.exceptions import ConnectionError
     from itertools import islice
@@ -357,12 +354,15 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
 
     for r in doc['Resources'].find('Root.Resource'):
 
+        if resource and r.name != resource:
+            continue
+
         schema_term = r.schema_term
 
         col_count = len(list(r.columns()))
         datatype_count = sum(1 for c in r.columns() if c['datatype'])
 
-        if schema_term and col_count == datatype_count:
+        if schema_term and col_count == datatype_count and force == False:
             if report_found:
                 prt("Found table for '{}'; skipping".format(r.schema_name))
             continue
@@ -372,19 +372,19 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
                 .format(r.schema_name, col_count - datatype_count))
 
         prt("Processing {}".format(r.name))
+
         schemas_processed += 1
 
         try:
-            slice = islice(r.row_generator, 5000)
+            rg = r.row_generator
         except SchemaError:
+            rg = r.raw_row_generator
             warn("Failed to build row processor table, using raw row generator")
-            slice = islice(r.raw_row_generator, 5000)
 
+        slice = islice(rg, 5000)
         si = SelectiveRowGenerator(slice,
                                    headers=[int(i) for i in r.get_value('headerlines', '0').split(',')],
                                    start=int(r.get_value('startline', 1)))
-
-        #print("!!!!", type(r.row_generator))
 
         try:
             ti = TypeIntuiter().run(si)
@@ -395,32 +395,111 @@ def process_schemas(mt_file, cache=None, clean=False, report_found=True):
             warn("Failed to download resource '{}'; {}".format(r.name, e))
             continue
 
+        new_columns = []
+
         if schema_term:
-            table = schema_term
+
             prt("Updating table '{}' ".format(r.schema_name))
 
-            col_map = {c.name.lower(): c for c in table.children if c.term_is('Table.Column')}
+            # Existing columns
+            col_map = {c.name.lower(): c for c in schema_term.children if c.term_is('Table.Column')}
 
             for i, c in enumerate(ti.to_rows()):
-                extant = col_map.get(c['header'])
+
+                extant = col_map.get(c['header'].lower())
+
                 if extant:
                     extant.datatype = type_map.get(c['resolved_type'], c['resolved_type'])
+                    # extant.description = get_col_value(c['header'].lower(), 'description')
+
+
+                else:
+                    new_columns.append(c)
 
         else:
 
-            table = doc['Schema'].new_term('Table', r.schema_name)
+            schema_term = table = doc['Schema'].new_term('Table', r.schema_name)
             prt("Adding table '{}' ".format(r.schema_name))
 
             for i, c in enumerate(ti.to_rows()):
                 raw_alt_name = alt_col_name(c['header'], i)
                 alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
 
+                kwargs = {}
+
+                if alt_name:
+                    kwargs['altname'] = alt_name
+
                 t = table.new_child('Column', c['header'],
                                     datatype=type_map.get(c['resolved_type'], c['resolved_type']),
-                                    altname=alt_name)
+                                    # description = get_col_value(c['header'].lower(),'description'),
+                                    **kwargs)
+
+    update_schema_properties(doc, force=force)
 
     if write_doc_to_file and schemas_processed:
         write_doc(doc, mt_file)
+
+
+def update_schema_properties(doc, force=False):
+    """Get descriptions and other properties from this, or upstream, packages, and add them to the schema. """
+
+    for r in doc['Resources'].find('Root.Resource'):
+
+        added = []
+
+        schema_term = r.schema_term
+        rg = r.row_generator
+
+        # Get columns information from the schema, or, if it is a package reference,
+        # from the upstream schema
+        upstream_columns = {e['name'].lower(): e for e in r.columns() or {}}
+
+        # Just from the local schema
+        schema_columns = {e['name'].lower(): e for e in r.schema_columns or {}}
+
+        # Ask the generator if it can provide column descriptions and types
+        generator_columns = {e['name'].lower(): e for e in rg.columns or {}}
+
+
+        def get_col_value(col_name, value_name):
+
+            v = None
+
+            if not col_name:
+                return None
+
+            for d in [generator_columns, upstream_columns, schema_columns]:
+                v_ = d.get(col_name.lower(), {}).get(value_name)
+                if v_:
+                    v = v_
+
+            return v
+
+        # Look for new properties
+        extra_properties = set()
+        for d in [generator_columns, upstream_columns, schema_columns]:
+            for k, v in d.items():
+                for kk, vv in v.items():
+                    extra_properties.add(kk)
+
+        # Remove the properies that are already accounted for
+        extra_properties = extra_properties - {'pos', 'datatype',  'header', 'name', ''}
+
+        # Add any extra properties, such as from upstream packages, to the schema.
+
+        for ep in extra_properties:
+            doc['Schema'].add_arg(ep)
+
+        for c in schema_term.find('Table.Column'):
+            for ep in extra_properties:
+                t = c.get_or_new_child(ep)
+                v = get_col_value(c.name, ep)
+                if v:
+                    t.value = v
+                    added.append((c.name, ep, v))
+
+        prt('Updates schema for {}. Set {} properties'.format(r.name, len(added)))
 
 
 def extract_path_name(ref):
@@ -543,17 +622,15 @@ class MetapackCliMemo(object):
 
 
 def get_resource(m):
-
     if m.resource:
         r = m.doc.resource(m.resource)
         return r if r else m.doc.reference(m.resource)
-    elif hasattr(m.args,'resource') and m.args.resource:
+    elif hasattr(m.args, 'resource') and m.args.resource:
         return m.doc.resource(m.args.resource)
-    elif hasattr(m.args,'reference') and m.args.reference:
+    elif hasattr(m.args, 'reference') and m.args.reference:
         return m.doc.reference(m.args.reference)
     else:
         return None
-
 
 
 def get_config():
@@ -623,9 +700,9 @@ def new_search_index():
 def list_rr(doc):
     d = []
     for r in doc.resources():
-        d.append(('Resource', '#'+r.name, r.url))
+        d.append(('Resource', '#' + r.name, r.url))
 
     for r in doc.references():
-        d.append(('Reference', '#'+r.name, r.url))
+        d.append(('Reference', '#' + r.name, r.url))
 
     prt(tabulate(d, 'Type Ref Url'.split()))

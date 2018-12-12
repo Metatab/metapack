@@ -7,7 +7,8 @@ CLI program for managing packages
 
 from metapack import Downloader
 from metapack.util import  ensure_dir
-from metapack.cli.core import update_name, process_schemas, MetapackCliMemo, list_rr, warn, prt, err
+from metapack.cli.core import update_name, process_schemas, MetapackCliMemo, list_rr, warn, prt, \
+    err, update_schema_properties
 import sys
 import requests
 from os.path import dirname, basename, exists, splitext
@@ -36,31 +37,48 @@ def update(subparsers):
     group.add_argument('-s', '--schemas', default=False, action='store_true',
                        help='Rebuild the schemas for files referenced in the resource section')
 
+    group.add_argument('-P', '--schema-properties', default=False, action='store_true',
+                       help='Load schema properties from generators and upstream sources')
+
+    group.add_argument('--clean-properties', default=False, action='store_true',
+                       help='Remove unused columns in the schema, like AltName')
+
+    group.add_argument('-c', '--categories', default=False, action='store_true',
+                       help='Update categories, creating a new categories.csv metadata file')
+
     group.add_argument('-n', '--name', action='store_true', default=False,
                        help="Update the Name from the Datasetname, Origin and Version terms")
 
-    parser.add_argument('-C', '--clean', action='store_true', default=False,
-                        help='When building a schema, rebuild completely')
+    group.add_argument('-E', '--eda', action='store_true', default=False,
+                        help='Create an EDA notebook for a resource')
+
+    group.add_argument('-N', '--notebook', action='store_true', default=False,
+                        help='Create a new notebook')
+
+    group.add_argument('-D', '--descriptions', action='store_true', default=False,
+                        help='Import descriptions for package references')
+
+    parser.add_argument('-C', '--clean', default=False, action='store_true',
+                       help='Clean schema before processing')
+
 
     parser.add_argument('-F', '--force', action='store_true', default=False,
                         help='Force the operation')
-
-    parser.add_argument('-E', '--eda', action='store_true', default=False,
-                        help='Create an EDA notebook for a resource')
-
-    parser.add_argument('-N', '--notebook', action='store_true', default=False,
-                        help='Create a new notebook')
-
-    parser.add_argument('-D', '--descriptions', action='store_true', default=False,
-                        help='Import descriptions for package references')
 
 def run_update(args):
     m = MetapackCliMemo(args, downloader)
 
     if m.args.schemas:
-        update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
+        update_schemas(m)
 
-        process_schemas(m.mt_file, cache=m.cache, clean=m.args.clean)
+    if m.args.schema_properties:
+        update_schema_props(m)
+
+    if m.args.clean_properties:
+        clean_properties(m)
+
+    if m.args.categories:
+        update_categories(m)
 
     elif m.mtfile_url.scheme == 'file' and m.args.name:
         update_name(m.mt_file, fail_on_missing=True, force=m.args.force)
@@ -73,6 +91,38 @@ def run_update(args):
 
     elif m.args.descriptions:
         update_descriptions(m)
+
+
+def update_schemas(m):
+    update_name(m.mt_file, fail_on_missing=False, report_unchanged=False)
+
+    resource = m.get_resource()
+
+    force = m.args.force
+
+    if m.resource:
+        if not resource:
+            warn("Resource {} is not in metadata".format(m.resource))
+        else:
+            force = True
+
+    process_schemas(m.mt_file, resource=m.resource, cache=m.cache, clean=m.args.clean, force=force)
+
+def update_schema_props(m):
+
+    doc = m.doc
+
+    update_schema_properties(doc, force=m.args.force)
+
+    doc.write_csv()
+
+def clean_properties(m):
+
+    doc = m.doc
+
+    doc.clean_unused_schema_terms()
+
+    doc.write_csv()
 
 
 def write_notebook(m):
@@ -136,7 +186,6 @@ def write_eda_notebook(m):
         nbformat.write(nb, f)
 
 
-
 def update_descriptions(m):
 
     doc = m.doc
@@ -160,3 +209,36 @@ def update_descriptions(m):
     doc.write_csv()
 
 
+def update_categories(m):
+
+    import metapack as mp
+
+    doc = mp.MetapackDoc()
+    doc['Root'].get_or_new_term('Root.Title', 'Schema and Value Categories')
+    doc.new_section('Schema', ['Description', 'Ordered'])
+
+    update_resource_categories(m, m.get_resource(), doc )
+
+    doc.write_csv('categories.csv')
+
+
+def update_resource_categories(m, resource, doc):
+
+    import json
+    columns = resource.row_generator.columns
+
+    tab = doc['Schema'].new_term('Root.Table', m.get_resource().name)
+
+    for col in columns:
+
+        doc_col = tab.new_child('Column', col.get('name'), description=col.get('description'))
+
+        if col.get('ordered'):
+            doc_col.new_child('Column.Ordered', 'true')
+
+        for k, v in col.get('values',{}).items():
+            doc_col.new_child('Column.Value', k, description=v)
+
+    doc.cleanse() # Creates Modified and Identifier
+
+    return doc

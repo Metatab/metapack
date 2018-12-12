@@ -172,8 +172,6 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
 
     def join_target(self, tf):
 
-        print("Type=", type(self))
-
         if self.target_file == DEFAULT_METATAB_FILE:
             return self.inner.join_dir(tf)
         else:

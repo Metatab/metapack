@@ -1,5 +1,6 @@
 from itertools import islice
 
+from os.path import join
 from metapack.appurl import MetapackPackageUrl
 from metapack.doc import EMPTY_SOURCE_HEADER
 from metapack.exc import MetapackError, ResourceError
@@ -8,6 +9,7 @@ from rowgenerators import parse_app_url
 from rowgenerators.exceptions import  DownloadError
 from rowgenerators.rowpipe import RowProcessor
 from rowgenerators.rowproxy import RowProxy
+
 class Resource(Term):
     # These property names should return null if they aren't actually set.
     _common_properties = 'url name description schema'.split()
@@ -77,18 +79,31 @@ class Resource(Term):
         return self.doc.cache.opendir(sub_dir).getsyspath(slugify(self.name) + '.py')
 
     @property
+    def parsed_url(self):
+        return parse_app_url(self.url)
+
+    @property
     def expanded_url(self):
+
+        from os.path import normpath
 
         if not self.url:
             return None
 
-        u = parse_app_url(self.url)
+        u = self.parsed_url
 
         if u.scheme == 'index':
             u = u.resolve()
 
-        return u
+        if u.scheme == 'file' and not u.path_is_absolute:
 
+            if self.doc.package_url.isdir():
+                u.path = normpath(join(self.doc.package_url.path, u.path))
+            else:
+                u = self.doc.package_url.join_target(u.path)
+
+        return u
+            
     @property
     def resolved_url(self):
 
@@ -122,18 +137,26 @@ class Resource(Term):
 
             return t
 
+        elif u.proto == 'metatab':
+
+            u = self.expanded_url
+
+            return u.get_resource().get_target()
+
         elif u.proto == 'metapack':
 
-            if not u.resource:
-                raise ResourceError(f"Metapack url '{u}' doesn't have a resource")
+            u = self.expanded_url
 
-            return u.resource.resolved_url.get_resource().get_target()
+            if u.resource:
+                return u.resource.resolved_url.get_resource().get_target()
+            else:
+                return u
 
-        if u.scheme == 'file' and u.fspath.is_absolute():
+        if u.scheme == 'file':
 
-            return u
+            return self.expanded_url
 
-        else:
+        elif False:
 
 
             assert isinstance(self.doc.package_url, MetapackPackageUrl), (type(self.doc.package_url), self.doc.package_url)
@@ -162,6 +185,9 @@ class Resource(Term):
                 # This case happens when a filesystem packages has a non-standard metadata name
                 # Total hack
                 raise
+
+        else:
+            raise ResourceError('Unknown case for url {} '.format(self.url))
 
     @property
     def inner(self):
@@ -245,18 +271,25 @@ class Resource(Term):
 
 
     def columns(self):
-
+        """Return column information from the schema or from an upstreram package"""
 
         try:
             # For resources that are metapack packages.
-            r = self.resolved_url.resource.columns()
+            r = self.expanded_url.resource.columns()
             return list(r)
-        except AttributeError:
+        except AttributeError as e:
+
             pass
 
+        return self.schema_columns
+
+    @property
+    def schema_columns(self):
+        """Return column informatino only from this schema"""
         t = self.schema_term
 
         columns = []
+
 
         if t:
             for i, c in enumerate(t.children):
@@ -266,6 +299,7 @@ class Resource(Term):
                     p['pos'] = i
                     p['name'] = c.value
                     p['header'] = self._name_for_col_term(c, i)
+                    
 
                     columns.append(p)
 
@@ -383,7 +417,7 @@ class Resource(Term):
 
         g = get_generator(ut, table=table, resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
-                          env=self.env)
+                          env=self.env, source_url=self.expanded_url)
 
         assert g, ut
 

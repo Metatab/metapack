@@ -105,8 +105,6 @@ def run_s3(args):
         show_credentials(m.args.profile)
         exit(0)
 
-
-
     dist_urls, fs_p = upload_packages(m)
 
     if dist_urls:
@@ -145,12 +143,13 @@ def run_s3(args):
     clear_cache(m, fs_p.files_processed)
 
 def clear_cache(m, files_processed):
+    """Remove any files we may have uploaded from the cache. """
 
     for what, reason, url, path in files_processed:
         cp = m.doc.downloader.cache_path(url)
-        print("!!!!", m.doc.cache.getsyspath(cp))
 
-
+        if m.cache.exists(cp):
+            m.cache.remove(cp)
 
 def add_to_index(p):
 

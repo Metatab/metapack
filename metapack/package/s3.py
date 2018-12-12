@@ -73,8 +73,6 @@ class S3PackageBuilder(PackageBuilder):
         # Resets the ref so that resource.resolved_url link to the resources as written in S3
         self._doc._ref = self.access_url.join('metatab.csv')
 
-        #self.prt("Preparing S3 package '{}' from '{}'".format(self.package_name, self.source_dir))
-
         # Copy all of the files from the Filesystem package
         for root, dirs, files in walk(self.source_dir):
             for f in files:
@@ -88,6 +86,9 @@ class S3PackageBuilder(PackageBuilder):
         for r in self.datafiles:
             r.url = self.bucket.access_url(r.url)
 
+        # Re-write the HTML index file.
+        self._write_html()
+
         # Rewrite Documentation urls:
         for r in self.doc.find(['Root.Documentation', 'Root.Image']):
 
@@ -95,8 +96,6 @@ class S3PackageBuilder(PackageBuilder):
             if url.proto == 'file':
                 r.url = self.bucket.access_url(url.path)
 
-        # Re-write the HTML index file.
-        self._write_html()
 
         return self.access_url
 
@@ -124,9 +123,10 @@ class S3PackageBuilder(PackageBuilder):
         self.write_to_s3('metadata.csv', bio.getvalue())
 
     def _write_html(self):
+
         old_ref = self._doc._ref
         self._doc._ref = self.access_url.join('metatab.csv')
-        self.write_to_s3('index.html', self._doc.html)
+        self.write_to_s3('index.html',  self._doc.html)
         self._doc._ref = old_ref
 
     def _load_resource(self, r, abs_path=False):
@@ -147,8 +147,6 @@ class S3PackageBuilder(PackageBuilder):
     def _load_documentation(self, term, contents, file_name):
 
         title = term['title'].value
-
-        #self.prt("Loading documentation for '{}', '{}' ".format(title, file_name))
 
         term['url'].value = 'docs/' + file_name
 

@@ -476,6 +476,7 @@ def process_contact(d):
 
 def display_context(doc):
     """Create a Jinja context for display"""
+    from rowgenerators.exceptions import DownloadError
 
     context = {s.name.lower(): s.as_dict() for s in doc if s.name.lower() != 'schema'}
 
@@ -522,7 +523,11 @@ def display_context(doc):
                 # File really ought to be relative
                 t = doc.package_url.join_target(u).get_resource().get_target()
             else:
-                t = u.get_resource().get_target()
+                try:
+                    t = u.get_resource().get_target()
+                except DownloadError as e:
+                    raise e
+
 
             try:
                 with open(t.fspath) as f:
@@ -586,7 +591,7 @@ def display_context(doc):
     # default for Datafiles and References.
 
     for section in ('references', 'resources'):
-        for term_key, term_vals in context[section].items():
+        for term_key, term_vals in context.get(section,{}).items():
             if isinstance(term_vals, dict):
                 if '@value' in term_vals:
                     term_vals['url'] = term_vals['@value']
