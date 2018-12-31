@@ -246,7 +246,7 @@ class MetatabMagic(Magics):
 
         from json import dumps
 
-        from metapack.rowgenerator import PandasDataframeSource
+        from rowgenerators.generator.python import PandasDataframeSource
         import csv
 
         materialized = []
@@ -297,7 +297,7 @@ class MetatabMagic(Magics):
 
         from json import dumps
         from rowgenerators import get_cache
-        from metapack.rowgenerator import PandasDataframeSource
+        from rowgenerators.generator.python import PandasDataframeSource
         from metapack.util import ensure_dir
         import csv
         from os.path import join
@@ -663,7 +663,7 @@ class MetapackMagic(Magics):
         from metapack.util import get_materialized_data_cache
         from .ipython import add_dataframe, open_source_package
         from json import dumps
-        from metapack.rowgenerator import PandasDataframeSource
+        from rowgenerators.generator.python import PandasDataframeSource
         import csv
         from os.path import join
 

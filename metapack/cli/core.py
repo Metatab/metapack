@@ -440,7 +440,6 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
     if write_doc_to_file and schemas_processed:
         write_doc(doc, mt_file)
 
-
 def update_schema_properties(doc, force=False):
     """Get descriptions and other properties from this, or upstream, packages, and add them to the schema. """
 
@@ -449,6 +448,11 @@ def update_schema_properties(doc, force=False):
         added = []
 
         schema_term = r.schema_term
+
+        if not schema_term:
+            warn("No schema term for ", r.name)
+            continue
+
         rg = r.row_generator
 
         # Get columns information from the schema, or, if it is a package reference,

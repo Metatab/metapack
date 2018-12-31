@@ -3,12 +3,12 @@ import unittest
 from metapack import MetapackDoc
 from metapack import MetapackUrl, Downloader
 from metapack.terms import Reference, Resource
-from metapack.test.support import test_data
+from metapack.test.support import test_data, MetapackTest
 from metatab import TermParser
 from metatab.generate import TextRowGenerator
 
 
-class TestBasic(unittest.TestCase):
+class TestBasic(MetapackTeste):
 
     def test_resolve_packages(self):
 

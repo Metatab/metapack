@@ -97,7 +97,7 @@ def process_schema(doc, resource, df):
 
     from metapack.cli.core import extract_path_name, alt_col_name, type_map
     from tableintuit import TypeIntuiter
-    from metapack.rowgenerator import PandasDataframeSource
+    from rowgenerators.generator.python import PandasDataframeSource
     from appurl import parse_app_url
 
     try:

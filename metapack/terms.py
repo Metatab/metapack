@@ -452,6 +452,12 @@ class Resource(Term):
         except ValueError as e:
             start = 1
 
+        try:
+            end = int(self.get_value('endline', self.parsed_url.end))
+        except (ValueError, TypeError) as e:
+            end = None
+
+
         base_row_gen = self.row_generator
         assert base_row_gen is not None
 
@@ -460,7 +466,7 @@ class Resource(Term):
 
             assert type(self.env) == dict
 
-            rg = RowProcessor(islice(base_row_gen, start, None),
+            rg = RowProcessor(islice(base_row_gen, start, end),
                               self.row_processor_table(),
                               source_headers=self.source_headers,
                               manager = self,
@@ -574,15 +580,23 @@ class Resource(Term):
             yield (yaml.safe_dump(s))
 
 
-    def dataframe(self,  *args, **kwargs):
+
+
+    def dataframe(self, dtype=False, parse_dates=True,  *args, **kwargs):
         """Return a pandas datafrome from the resource"""
 
         import pandas as pd
 
         rg = self.row_generator
 
+        t = self.resolved_url.get_resource().get_target()
+
+        if t.target_format == 'csv':
+            return self.read_csv(dtype, parse_dates, *args, **kwargs)
+
         # Maybe generator has it's own Dataframe method()
         try:
+
             return rg.dataframe( *args, **kwargs)
         except AttributeError:
             pass
@@ -664,17 +678,15 @@ class Resource(Term):
         return gdf
 
 
-    def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
-        """Fetch the target and pass through to pandas.read_csv
-
-        Don't provide the first argument of read_csv(); it is supplied internally.
+    def _update_pandas_kwargs(self,  dtype=False, parse_dates=True, kwargs= {}):
+        """ Construct args suitable for pandas read_csv
+        :param dtype: If true, create a dtype type map. Otherwise, pass argument value to read_csv
+        :param parse_dates: If true, create a list of date/time columns for the parse_dates argument of read_csv
+        :param kwargs:
+        :return:
         """
 
-        import pandas
-        import numpy as np
         from datetime import datetime, time, date
-
-        t = self.resolved_url.get_resource().get_target()
 
         type_map = {
             None: None,
@@ -694,11 +706,26 @@ class Resource(Term):
             kwargs['dtype'] = dtype
 
         if parse_dates is True:
-            kwargs['parse_dates'] = [ c['name'] for c in self.columns() if c['datatype'] in ('date','datetime','time') ]
+             date_cols = [ c['name'] for c in self.columns() if c['datatype'] in ('date','datetime','time') ]
+             kwargs['parse_dates'] = date_cols or True
         elif parse_dates:
             kwargs['parse_dates'] = parse_dates
 
         kwargs['low_memory'] = False
+
+        return kwargs
+
+    def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
+        """Fetch the target and pass through to pandas.read_csv
+
+        Don't provide the first argument of read_csv(); it is supplied internally.
+        """
+
+        import pandas
+
+        t = self.resolved_url.get_resource().get_target()
+
+        kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
         return pandas.read_csv(t.fspath, *args, **kwargs)
 

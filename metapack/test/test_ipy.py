@@ -9,7 +9,7 @@ from metatab.util import flatten
 from metatab.generate import TextRowGenerator
 from itertools import islice
 from rowgenerators import get_generator
-from metapack.test.support import test_data, get_cache
+from metapack.test.support import test_data, get_cache, MetapackTest
 
 
 import logging
@@ -22,7 +22,7 @@ debug_logger = logging.getLogger('debug')
 
 downloader = Downloader()
 
-class TestIPython(unittest.TestCase):
+class TestIPython(MetapackTest):
     def compare_dict(self, a, b):
 
         fa = set('{}={}'.format(k, v) for k, v in flatten(a));
@@ -76,7 +76,31 @@ class TestIPython(unittest.TestCase):
 
         df = r.dataframe()
 
-        print (df.describe())
+        self.assertTrue(df.describe().loc['count','Size'] == 100)
+        self.assertTrue(df.describe().loc['mean', 'Size'].round(4) == 49.8032)
+
+        df = r.read_csv()
+
+        self.assertTrue(df.describe().loc['count','Size'] == 100)
+        self.assertTrue(df.describe().loc['mean', 'Size'].round(4) == 49.8032)
+
+
+    def test_build_dataframe(self):
+
+        p = open_package(test_data('packages/example.com/example.com-python/metadata.csv'))
+
+        df = p.resource('simple').dataframe()
+
+        self.assertEqual(270,df.sum().sum())
+
+        df = p.resource('explicit_dataframe_source').dataframe()
+
+        self.assertEqual(435, df.sum().sum())
+
+        df = p.resource('implicit_dataframe_source').dataframe()
+
+        self.assertEqual(435, df.sum().sum())
+
 
     @unittest.skip("Requires Publicdata module")
     def test_line_doc(self):

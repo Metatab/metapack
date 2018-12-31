@@ -360,7 +360,12 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     def resource(self):
 
         r = self.doc.resource(self.fragment[0])
+
+        if not r:
+            r = self.doc.reference(self.fragment[0])
+
         return r
+
 
 
 # Would have made this a function, but it needs to be a class to have the match() method

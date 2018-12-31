@@ -12,8 +12,10 @@ from itertools import islice
 from os import environ
 
 from metapack import Downloader
-from metapack.cli.core import prt, MetapackCliMemo, list_rr
+from metapack.cli.core import prt, err, MetapackCliMemo, list_rr
 from metapack.util import get_materialized_data_cache
+from metapack.exc import MetatabFileNotFound
+
 from tabulate import tabulate
 from terminaltables import SingleTable, GithubFlavoredMarkdownTable
 
@@ -107,7 +109,10 @@ def run_run(args):
     if m.args.no_schema:
         r = r.row_generator
 
-    doc = m.doc
+    try:
+        doc = m.doc
+    except MetatabFileNotFound as e:
+        err(str(e) +'\nPerhaps you meant .#{}?'.format(m.args.metatabfile))
 
     # Remove any data that may have been cached , for instance, from Jupyter notebooks
     shutil.rmtree(get_materialized_data_cache(doc), ignore_errors=True)

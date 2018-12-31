@@ -608,7 +608,7 @@ def display_context(doc):
 
     return context
 
-def markdown(doc, title=True):
+def markdown(doc, title=True, template='short'):
     """Markdown, specifically for the Notes field in a CKAN dataset"""
 
     from jinja2 import Environment, PackageLoader, select_autoescape
@@ -619,12 +619,10 @@ def markdown(doc, title=True):
 
     context = display_context(doc)
 
-    #import json
-    #print(json.dumps(context, indent=4))
-    return env.get_template('documentation.md').render(**context)
+    return env.get_template(template+'_documentation.md').render(**context)
 
 
-def html(doc):
+def html(doc, template='short'):
     extensions = [
         'markdown.extensions.extra',
         'markdown.extensions.admonition'
@@ -666,5 +664,5 @@ def html(doc):
 </html>
     """.format(
         title=doc.find_first_value('Root.Title'),
-        body=convert_markdown(doc.markdown, extensions)
+        body=convert_markdown(markdown(doc, template=template), extensions)
     )

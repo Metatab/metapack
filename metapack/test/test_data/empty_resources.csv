@@ -1,0 +1,21 @@
+Declare,metatab-latest,,,
+Title,Empty Resources,,,
+Description,"A test package with empty resources, for filling in in tests.",,,
+Identifier,bbc92462-293c-4e42-8af4-6c2afc761b73,,,
+Name,civicknowledge.com-empty_resources-1,,,
+Dataset,empty_resources,,,
+Origin,civicknowledge.com,,,
+Version,1,,,
+Created,2018-11-19T03:35:26,,,
+Modified,2018-11-20T17:19:43,,,
+,,,,
+Section,Contacts,Email,Organization,Url
+Wrangler,Eric Busboom,eric@civicknowledge.com,Civic Knowledge,http://civicknowledge.com
+,,,,
+Section,Documentation,Title,Description,
+,,,,
+Section,References,Name,Description,
+,,,,
+Section,Resources,Name,Description,Source
+,,,,
+Section,Schema,DataType,AltName,Description

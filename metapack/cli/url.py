@@ -42,6 +42,9 @@ def url(subparsers):
                        help='Enumerate the resources referenced from a URL. Does not alter the Metatab file')
 
 
+    group.add_argument('-S', '--scrape', help='Scrape data and documentation URLs from a web page')
+
+
 def run_url(args):
     m = MetapackCliMemo(args, downloader)
 
@@ -51,8 +54,10 @@ def run_url(args):
         add_resource(m.mt_file, m.args.add, cache=m.cache)
 
     if m.args.enumerate:
-
         enumerate(m)
+
+    if m.args.scrape:
+        scrape_page(m)
 
 def enumerate(m):
 
@@ -209,6 +214,32 @@ def run_row_intuit(path, cache):
 
     raise RowIntuitError('Failed to convert with any encoding')
 
-
 DATA_FORMATS = ('xls', 'xlsx', 'tsv', 'csv')
 DOC_FORMATS = ('pdf', 'doc', 'docx', 'html')
+
+
+def scrape_page(m):
+    from metapack.util import scrape_urls_from_web_page
+
+    doc = m.doc
+    url = m.args.scrape
+
+    doc['resources'].new_term('DownloadPage', url)
+
+    d = scrape_urls_from_web_page(url)
+
+    new_resources = 0
+    new_documentation = 0
+
+    for k, v in d['sources'].items():
+        doc['Resources'].new_term('DataFile', v['url'], description=v.get('description'))
+        new_resources += 1
+
+    for k, v in d['external_documentation'].items():
+        term_name = classify_url(v['url'])
+        doc['Documentation'].new_term(term_name, v['url'], description=v.get('description'))
+        new_documentation += 1
+
+    prt("Added {} resource and {} documentation terms".format(new_resources, new_documentation))
+
+    doc.write_csv()

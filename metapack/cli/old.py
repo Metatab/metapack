@@ -30,23 +30,7 @@ def init_metatab(mt_file, alt_mt_file):
         prt("Doing nothing; file '{}' already exists".format(mt_file))
 
 
-def scrape_page(mt_file, url):
-    from .util import scrape_urls_from_web_page
 
-    doc = MetatabDoc(mt_file)
-
-    doc['resources'].new_term('DownloadPage', url)
-
-    d = scrape_urls_from_web_page(url)
-
-    for k, v in d['sources'].items():
-        doc['Resources'].new_term('DataFile', v['url'], description=v.get('description'))
-
-    for k, v in d['external_documentation'].items():
-        term_name = classify_url(v['url'])
-        doc['Documentation'].new_term(term_name, v['url'], description=v.get('description'))
-
-    doc.write_csv(mt_file)
 
 
 def rewrite_resource_format(mt_file):

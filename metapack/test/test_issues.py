@@ -153,15 +153,22 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         dc.to_crs(comm.crs)
 
-    def test_package_url_joins(self):
+    def test_something_about_package_references(self):
 
-        us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.xlsx'
+        us = '/Users/eric/proj/virt-proj/planning/planning-database/datasets/sangis.org-business_sites/metadata.csv'
 
-        u = parse_app_url(us)
+        pkg = mp.open_package(us)
 
-        print(type(u), u)
+        r = pkg.reference('tracts_boundaries')
 
-        print(u.join_target('foobar'))
+        rr = r.resolved_url
+
+        self.assertEqual('metapack+http://library.metatab.org/sandiegodata.org-geography-2018-1.csv#tract_boundaries', str(rr))
+
+        print(rr.resource)
+
+        df = r.dataframe()
+
 
 if __name__ == '__main__':
     unittest.main()

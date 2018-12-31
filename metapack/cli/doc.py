@@ -91,6 +91,10 @@ def doc_args(subparsers):
         cmdp = cmdsp.add_parser(arg,help=help)
         cmdp.set_defaults(run_command=cmd)
 
+        if arg in ('html', 'markdown'):
+            cmdp.add_argument('-t', '--template', default='short',
+                          help="Set the template.")
+
         cmdp.add_argument('metatabfile', nargs='?',
                           help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
@@ -440,10 +444,10 @@ def dump_markdown(args):
     print(m.doc.markdown)
 
 def dump_html(args):
-
+    from metapack.html import html
     m = MetapackCliMemo(args, downloader)
 
-    print(m.doc.html)
+    print(html(m.doc, template=m.args.template))
 
 
 def dump_json(args):
