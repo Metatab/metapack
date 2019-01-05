@@ -9,7 +9,7 @@ import os
 from botocore.exceptions import NoCredentialsError
 from metapack import MetapackDoc, MetapackUrl
 from metapack import MetapackPackageUrl
-from metapack.cli.core import prt, err
+from metapack.cli.core import prt, err, generate_packages
 from metapack.constants import PACKAGE_PREFIX
 from metapack.index import SearchIndex, search_index_file
 from metapack.package import *
@@ -87,16 +87,6 @@ def s3(subparsers):
     parser.add_argument('metatabfile', nargs='?', help='Path to a Metatab file')
 
 
-def find_packages(name, pkg_dir):
-    """Locate pre-built packages in the _packages directory"""
-    for c in (FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder):
-
-        package_path, cache_path = c.make_package_path(pkg_dir, name)
-
-        if package_path.exists():
-
-            yield c.type_code, package_path, cache_path #c(package_path, pkg_dir)
-
 def run_s3(args):
 
     m = MetapackCliMemo(args)
@@ -109,7 +99,7 @@ def run_s3(args):
 
     if dist_urls:
 
-        # Create the CSV package, with links into the
+        # Create the CSV package, with links into the filesystem package
         if fs_p:
             create_s3_csv_package(m, dist_urls, fs_p)
         else:
@@ -189,10 +179,6 @@ def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-
 
     return p, MetapackUrl(url, downloader=file.downloader), created
 
-def generate_packages(m):
-
-    for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
-        yield ptype, purl, cache_path
 
 def upload_packages(m):
     """"""
@@ -253,6 +239,9 @@ def create_s3_csv_package(m, dist_urls, fs_p):
 
     p = CsvPackageBuilder(u, m.package_root, resource_root)
 
+    access_url = m.bucket.access_url(p.cache_path)
+    dist_urls.append(access_url)
+
     for au in dist_urls:
         if not p.doc.find_first('Root.Distribution', str(au)):
             p.doc['Root'].new_term('Root.Distribution', au)
@@ -270,18 +259,32 @@ def create_s3_csv_package(m, dist_urls, fs_p):
 
     csv_url = p.save()
 
-
     with open(csv_url.path, mode='rb') as f:
         m.bucket.write(f.read(), csv_url.target_file, m.acl)
 
-    access_url = m.bucket.access_url(p.cache_path)
-    dist_urls.append(access_url)
 
     add_to_index(open_package(access_url))
 
     if m.bucket.last_reason:
         # Ugly encapsulation-breaking hack.
         fs_p.files_processed += [ [*m.bucket.last_reason, access_url, '/'.join(csv_url.path.split(os.sep)[-2:])] ]
+
+    # Create an alternative url with no version number, so users can get the
+    # most recent version
+    csv_non_ver_url = csv_url.join_dir("{}.{}".format(m.doc.nonver_name, csv_url.target_format))
+
+    with open(csv_url.path, mode='rb') as f:
+        m.bucket.write(f.read(), csv_non_ver_url.target_file, m.acl)
+
+    s3_path = csv_non_ver_url.path.split(os.sep)[-1]
+
+    access_url = m.bucket.access_url(s3_path)
+
+    dist_urls.append(access_url)
+
+    if m.bucket.last_reason:
+        # Ugly encapsulation-breaking hack.
+        fs_p.files_processed += [ [*m.bucket.last_reason, access_url, s3_path] ]
 
 
 
@@ -299,38 +302,4 @@ def show_credentials(profile):
     prt("export AWS_SECRET_ACCESS_KEY={}".format(session.get_credentials().secret_key))
     prt("# Run {} to configure credentials in a shell".format(cred_line))
 
-def run_docker(m):
-    """Re-run the metasync command in docker. """
-
-    raise NotImplementedError("No longer have access to raw_args")
-
-    session = botocore.session.get_session()
-
-    args = ['docker', 'run', '--rm', '-t', '-i',
-            '-eAWS_ACCESS_KEY_ID={}'.format(session.get_credentials().access_key),
-            '-eAWS_SECRET_ACCESS_KEY={}'.format(session.get_credentials().secret_key),
-            'civicknowledge/metatab',
-            'metasync']
-
-    for a in ('-D', '--docker'):
-        try:
-            m.raw_args.remove(a)
-        except ValueError:
-            pass
-
-    args.extend(m.raw_args[1:])
-
-    if m.args.verbose:
-        prt("Running Docker Command: ", ' '.join(args))
-    else:
-        prt("Running In Docker")
-
-    process = Popen(args, stdout=PIPE, stderr=STDOUT)
-    with process.stdout:
-        for line in iter(process.stdout.readline, b''):
-            prt(line.decode('ascii'), end='')
-
-    exitcode = process.wait()  # 0 means success
-
-    exit(exitcode)
 

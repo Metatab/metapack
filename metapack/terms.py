@@ -800,6 +800,12 @@ class Reference(Resource):
 
         try:
             # For Metapack references
+
+            if self.resolved_url.resource is None:
+                raise ResourceError("Reference '{}' doesn't specify a valid resource in the URL. ".format(self.name)+
+                                    "\n Maybe need to add '#<resource_name>' to the end of the url '{}'".format(
+                                        self.url) )
+
             yield from self.resolved_url.resource
         except AttributeError:
             yield from self.row_generator

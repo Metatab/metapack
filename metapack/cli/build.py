@@ -229,6 +229,8 @@ def metatab_derived_handler(m):
     except PackageError as e:
         err("Failed to generate package: {}".format(e))
 
+    index_packages(m)
+
     return create_list
 
 
@@ -352,6 +354,20 @@ def run_row_intuit(path, cache):
 
     raise RowIntuitError('Failed to convert with any encoding')
 
+def index_packages(m):
+    from .index import walk_packages
+    from metapack.index import SearchIndex, search_index_file
+
+    idx = SearchIndex(search_index_file())
+
+    entries = []
+    for p in walk_packages(None, parse_app_url(str(m.package_root.fspath))):
+        prt(p.ref)
+        idx.add_package(p)
+        entries.append(p.name)
+
+    idx.write()
+    prt("Indexed ", len(entries), 'entries')
 
 DATA_FORMATS = ('xls', 'xlsx', 'tsv', 'csv')
 DOC_FORMATS = ('pdf', 'doc', 'docx', 'html')

@@ -18,7 +18,7 @@ from metapack.cli.core import err, prt
 from metatab import  DEFAULT_METATAB_FILE, MetatabError
 from metapack.package.s3 import S3Bucket
 from .core import MetapackCliMemo as _MetapackCliMemo
-from .core import prt, warn, write_doc
+from .core import prt, warn, write_doc, generate_packages
 from textwrap import dedent
 
 downloader = Downloader.get_instance()
@@ -78,7 +78,7 @@ def metakan(subparsers):
     parser.add_argument('-D', '--dump', action='store_true',
                         help="Dump groups and organizations to a metatab file")
 
-    parser.add_argument('metatabfile', nargs='?', default=DEFAULT_METATAB_FILE,
+    parser.add_argument('metatabfile', nargs='?',
                         help='Path to a Metatab file, or an s3 link to a bucket with Metatab files. ')
 
 
@@ -129,6 +129,18 @@ def send_to_ckan(m):
 
     except (IOError, MetatabError) as e:
         err("Failed to open metatab '{}': {}".format(m.mt_file, e))
+
+
+    # Check for distributions, if there aren't any, try to find a CSV package,
+    # which may be an S3 package with distributions.
+
+    if not doc.find('Root.Distribution'):
+        doc = find_csv_packages(m)
+
+
+    if not doc or not doc.find('Root.Distribution'):
+        err("No distributions found. Giving up")
+
 
     c = RemoteCKAN(m.ckan_url, apikey=m.api_key)
 
@@ -265,14 +277,9 @@ def send_to_ckan(m):
         return p
 
 
-    if doc.find('Root.Distribution'):
-
-        prt("Distributions:")
-        for dist in doc.find('Root.Distribution'):
-            prt("    {}".format(dist.value))
-
-    else:
-        err("No distributions found. Giving up")
+    prt("Distributions:")
+    for dist in doc.find('Root.Distribution'):
+        prt("    {}".format(dist.value))
 
 
     for dist in doc.find('Root.Distribution'):
@@ -338,6 +345,20 @@ def send_to_ckan(m):
         doc['Root'].new_term('Group', group['name'])
 
     write_doc(doc, m.mt_file)
+
+
+def find_csv_packages(m):
+    """Locate the build CSV package, which will have distributions if it was generated  as
+    and S3 package"""
+    from metapack.package import CsvPackageBuilder
+
+    pkg_dir = m.package_root
+    name = m.doc.get_value('Root.Name')
+
+    package_path, cache_path = CsvPackageBuilder.make_package_path(pkg_dir, name)
+
+    if package_path.exists():
+        return open_package(package_path, downloader=downloader)
 
 
 def configure_ckan(m):

@@ -46,7 +46,7 @@ def info_args(subparsers):
     group.add_argument('-s', '--schema', default=False, action='store_true',
                        help="Print a table of the common schema for all resources, or if the metatab file ref has a resource, only that one")
 
-    group.add_argument('-T', '--row-table', default=False, action='store_true',
+    group.add_argument('-R', '--row-table', default=False, action='store_true',
                        help="Print the row-processor table, including transforms and valuetypes")
 
     parser.add_argument('-v', '--version', default=False, action='store_true',
@@ -64,6 +64,11 @@ def info_args(subparsers):
     parser.add_argument('-M', '--materialized', default=False, action='store_true',
                         help='Print the location of the materialized data cache')
 
+    parser.add_argument('-T', '--value-types', default=False, action='store_true',
+                        help='Print a list of available value types')
+
+    parser.add_argument('-t', '--transforms', default=False, action='store_true',
+                        help='Print a list of available transform functions')
 
 
     parser.add_argument('metatabfile', nargs='?',
@@ -114,6 +119,12 @@ def info(args):
             prt('URL Resource: ', r.resolved_url.get_resource())
             prt('URL path    : ', r.resolved_url.get_resource().get_target())
             prt('Target Path:  ', r.resolved_url.get_resource().get_target().fspath)
+
+        elif args.value_types:
+            print_value_types(m)
+
+        elif args.transforms:
+            print_transforms(m)
 
         else:
             try:
@@ -179,7 +190,7 @@ def get_resource(m):
         list_rr(m.doc)
         prt('')
         prt("Specify the resource as a fragment, escaping it if the '#' is the first character. For instance: ")
-        prt("  mp info -s \#resource_name")
+        prt("  mp info -s .#resource_name")
         prt('')
         sys.exit(0)
 
@@ -219,3 +230,26 @@ def print_declare(m):
     from metatab.util import declaration_path
 
     prt(declaration_path('metatab-latest'))
+
+def print_value_types(m):
+
+    from rowgenerators.valuetype import value_types
+
+    rows = [ (k,v.__name__, v.__doc__) for k,v in value_types.items() ]
+
+    print(tabulate(sorted(rows), headers='Code Class Description'.split()))
+
+
+def print_transforms(m):
+    from rowgenerators.valuetype import value_types
+
+    env = m.doc.env
+
+    print(env)
+    return
+
+    rows = [ (k,v.__name__, v.__doc__) for k,v in value_types.items() ]
+
+    print(tabulate(sorted(rows), headers='Code Class Description'.split()))
+
+

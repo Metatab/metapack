@@ -213,8 +213,6 @@ class MetapackDoc(MetatabDoc):
 
                     continue
 
-                raise ImportError(f"Failed to import python module from lib directory; tried: {lib_dir_names}; ",
-                                  str(e))
 
         else:
             return {}

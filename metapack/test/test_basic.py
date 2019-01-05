@@ -8,7 +8,7 @@ from metatab import TermParser
 from metatab.generate import TextRowGenerator
 
 
-class TestBasic(MetapackTeste):
+class TestBasic(MetapackTest):
 
     def test_resolve_packages(self):
 
@@ -40,8 +40,8 @@ class TestBasic(MetapackTeste):
 
         self.assertEqual(16, len(list(p['Resources'].find('Root.Resource'))))
 
-
         all_names = [ r.name for r in p.find('Datafile') ]
+
         for name in ['renter_cost', 'simple-example-altnames', 'simple-example', 'unicode-latin1', 'unicode-utf8',
                      'renter_cost_excel07', 'renter_cost_excel97', 'renter_cost-2', 'random-names',
                      'random-names-fs', 'random-names-csv', 'random-names-xlsx', 'random-names-zip', 'sra']:
@@ -79,7 +79,7 @@ class TestBasic(MetapackTeste):
         doc.load_terms(tp)
 
         self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
-        self.assertEqual(150, len(doc.terms))
+        self.assertEqual(151, len(doc.terms))
 
         self.assertEqual(6, len(list(doc['References'])))
 
@@ -110,7 +110,7 @@ class TestBasic(MetapackTeste):
             doc.load_terms(tp)
 
         self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
-        self.assertEqual(154, len(doc.terms))
+        self.assertEqual(155, len(doc.terms))
 
         self.assertEqual(5, len(list(doc['References'])))
 

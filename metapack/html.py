@@ -542,7 +542,11 @@ def display_context(doc):
     # by the templates
     import re
 
-    context['inline_doc'] = re.sub(r'\s*#\s.*$', '', inline, flags=re.MULTILINE)
+    lines = inline.strip().splitlines()
+    if lines and lines[0].startswith('# '):
+        lines = lines[1:]
+
+    context['inline_doc'] = '\n'.join(lines)
 
     # Convert doc section
     doc_links = {}

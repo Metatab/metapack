@@ -1,5 +1,7 @@
 import logging
 from metapack.constants import PACKAGE_PREFIX
+from metapack.package import FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder
+from metatab import DEFAULT_METATAB_FILE
 
 from tabulate import tabulate
 
@@ -352,6 +354,8 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
 
     schemas_processed = 0
 
+    orig_columns = {}
+
     for r in doc['Resources'].find('Root.Resource'):
 
         if resource and r.name != resource:
@@ -376,7 +380,11 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
         schemas_processed += 1
 
         try:
-            rg = r.row_generator
+            if force:
+                rg = r.raw_row_generator
+            else:
+                rg = r.row_generator
+
         except SchemaError:
             rg = r.raw_row_generator
             warn("Failed to build row processor table, using raw row generator")
@@ -395,115 +403,109 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
             warn("Failed to download resource '{}'; {}".format(r.name, e))
             continue
 
-        new_columns = []
-
         if schema_term:
 
             prt("Updating table '{}' ".format(r.schema_name))
 
             # Existing columns
-            col_map = {c.name.lower(): c for c in schema_term.children if c.term_is('Table.Column')}
+            orig_columns = {e['name'].lower() if e['name'] else '': e for e in r.schema_columns or {}}
 
-            for i, c in enumerate(ti.to_rows()):
-
-                extant = col_map.get(c['header'].lower())
-
-                if extant:
-                    extant.datatype = type_map.get(c['resolved_type'], c['resolved_type'])
-                    # extant.description = get_col_value(c['header'].lower(), 'description')
-
-
-                else:
-                    new_columns.append(c)
+            for child in list(schema_term.children):
+                schema_term.remove_child(child)
 
         else:
-
-            schema_term = table = doc['Schema'].new_term('Table', r.schema_name)
             prt("Adding table '{}' ".format(r.schema_name))
+            schema_term  = doc['Schema'].new_term('Table', r.schema_name)
+            orig_columns = {}
 
-            for i, c in enumerate(ti.to_rows()):
-                raw_alt_name = alt_col_name(c['header'], i)
-                alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
+        for i, c in enumerate(ti.to_rows()):
 
-                kwargs = {}
+            raw_alt_name = alt_col_name(c['header'], i)
+            alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
 
-                if alt_name:
-                    kwargs['altname'] = alt_name
+            kwargs = {}
 
-                t = table.new_child('Column', c['header'],
-                                    datatype=type_map.get(c['resolved_type'], c['resolved_type']),
-                                    # description = get_col_value(c['header'].lower(),'description'),
-                                    **kwargs)
+            if alt_name:
+                kwargs['altname'] = alt_name
 
-    update_schema_properties(doc, force=force)
+            t = schema_term.new_child('Column', c['header'],
+                                datatype=type_map.get(c['resolved_type'], c['resolved_type']),
+                                # description = get_col_value(c['header'].lower(),'description'),
+                                **kwargs)
+
+        update_resource_properties(r, orig_columns=orig_columns, force=force)
 
     if write_doc_to_file and schemas_processed:
         write_doc(doc, mt_file)
 
 def update_schema_properties(doc, force=False):
+    for r in doc['Resources'].find('Root.Resource'):
+        update_resource_properties(r, force=False)
+
+def update_resource_properties(r, orig_columns = {}, force=False):
     """Get descriptions and other properties from this, or upstream, packages, and add them to the schema. """
 
-    for r in doc['Resources'].find('Root.Resource'):
+    added = []
 
-        added = []
+    schema_term = r.schema_term
 
-        schema_term = r.schema_term
+    if not schema_term:
+        warn("No schema term for ", r.name)
+        return
 
-        if not schema_term:
-            warn("No schema term for ", r.name)
-            continue
+    rg = r.raw_row_generator
 
-        rg = r.row_generator
+    # Get columns information from the schema, or, if it is a package reference,
+    # from the upstream schema
 
-        # Get columns information from the schema, or, if it is a package reference,
-        # from the upstream schema
-        upstream_columns = {e['name'].lower(): e for e in r.columns() or {}}
+    upstream_columns = {e['name'].lower() if e['name'] else '': e for e in r.columns() or {}}
 
-        # Just from the local schema
-        schema_columns = {e['name'].lower(): e for e in r.schema_columns or {}}
+    # Just from the local schema
+    schema_columns = {e['name'].lower() if e['name'] else '': e for e in r.schema_columns or {}}
 
-        # Ask the generator if it can provide column descriptions and types
-        generator_columns = {e['name'].lower(): e for e in rg.columns or {}}
+    # Ask the generator if it can provide column descriptions and types
+    generator_columns = {e['name'].lower() if e['name'] else '': e for e in rg.columns or {}}
 
 
-        def get_col_value(col_name, value_name):
+    def get_col_value(col_name, value_name):
 
-            v = None
+        v = None
 
-            if not col_name:
-                return None
+        if not col_name:
+            return None
 
-            for d in [generator_columns, upstream_columns, schema_columns]:
-                v_ = d.get(col_name.lower(), {}).get(value_name)
-                if v_:
-                    v = v_
+        for d in [generator_columns, upstream_columns,  orig_columns, schema_columns]:
+            v_ = d.get(col_name.lower(), {}).get(value_name)
+            if v_:
+                v = v_
 
-            return v
+        return v
 
-        # Look for new properties
-        extra_properties = set()
-        for d in [generator_columns, upstream_columns, schema_columns]:
-            for k, v in d.items():
-                for kk, vv in v.items():
-                    extra_properties.add(kk)
+    # Look for new properties
+    extra_properties = set()
+    for d in [generator_columns, upstream_columns, orig_columns, schema_columns]:
+        for k, v in d.items():
+            for kk, vv in v.items():
+                extra_properties.add(kk)
 
-        # Remove the properies that are already accounted for
-        extra_properties = extra_properties - {'pos', 'datatype',  'header', 'name', ''}
+    # Remove the properties that are already accounted for
+    extra_properties = extra_properties - {'pos',  'header', 'name', ''}
 
-        # Add any extra properties, such as from upstream packages, to the schema.
+    # Add any extra properties, such as from upstream packages, to the schema.
+
+    for ep in extra_properties:
+        r.doc['Schema'].add_arg(ep)
+
+    for c in schema_term.find('Table.Column'):
 
         for ep in extra_properties:
-            doc['Schema'].add_arg(ep)
+            t = c.get_or_new_child(ep)
+            v = get_col_value(c.name, ep)
+            if v:
+                t.value = v
+                added.append((c.name, ep, v))
 
-        for c in schema_term.find('Table.Column'):
-            for ep in extra_properties:
-                t = c.get_or_new_child(ep)
-                v = get_col_value(c.name, ep)
-                if v:
-                    t.value = v
-                    added.append((c.name, ep, v))
-
-        prt('Updates schema for {}. Set {} properties'.format(r.name, len(added)))
+    prt('Updated schema for {}. Set {} properties'.format(r.name, len(added)))
 
 
 def extract_path_name(ref):
@@ -582,13 +584,16 @@ class MetapackCliMemo(object):
         if not mtf:
             mtf = join(self.cwd, DEFAULT_METATAB_FILE)
 
+
         self.init_stage2(mtf, frag)
 
     def init_stage2(self, mtf, frag):
         from metapack import MetapackUrl
         from rowgenerators import parse_app_url
+        from rowgenerators.util import fs_join as join
 
         self.frag = frag
+
         self.mtfile_arg = mtf + frag
 
         u = parse_app_url(self.mtfile_arg, downloader=self.downloader)
@@ -710,3 +715,20 @@ def list_rr(doc):
         d.append(('Reference', '#' + r.name, r.url))
 
     prt(tabulate(d, 'Type Ref Url'.split()))
+
+
+def find_packages(name, pkg_dir):
+    """Locate pre-built packages in the _packages directory"""
+    for c in (FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder):
+
+        package_path, cache_path = c.make_package_path(pkg_dir, name)
+
+        if package_path.exists():
+
+            yield c.type_code, package_path, cache_path #c(package_path, pkg_dir)
+
+
+def generate_packages(m):
+
+    for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
+        yield ptype, purl, cache_path
