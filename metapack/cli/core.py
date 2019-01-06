@@ -659,16 +659,22 @@ def get_config():
     paths = [environ.get("METAPACK_CONFIG"), '~/.metapack.yaml', '/etc/metapack.yaml']
 
     for p in paths:
-        try:
-            if pexp(p).exists():
-                with  pexp(p).open() as f:
-                    config = yaml.safe_load(f)
-                    config['_loaded_from'] = str(pexp(p))
-                    return config
-        except TypeError:
-            pass
 
-    return {}
+        if not p:
+            continue
+
+        p = pexp(p)
+
+        if p.exists():
+            with p.open() as f:
+                config = yaml.safe_load(f)
+                if not config:
+                    config =  {}
+
+                config['_loaded_from'] = str(p)
+                return config
+
+    return None
 
 
 def update_index(packages, package_path, suffix=''):

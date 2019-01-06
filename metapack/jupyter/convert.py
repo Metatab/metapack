@@ -156,14 +156,14 @@ def convert_hugo(nb_path, hugo_path):
     fw.write(output, resources, notebook_name=resources['unique_key'])
 
 
-def convert_wordpress(nb_path, hugo_path):
+def convert_wordpress(nb_path, wp_path):
     from os import environ
 
     if not exists(nb_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
 
     c = Config()
-    c.WordpressExporter.staging_dir = hugo_path
+    c.WordpressExporter.staging_dir = wp_path
     he = WordpressExporter(config=c, log=logger)
 
     output, resources = he.from_filename(nb_path)

@@ -505,10 +505,10 @@ class OrganizeMetadata(Preprocessor):
         # Reset the identity, name and descriptions, because they can have add forms
         # in the data, which the Doc interface fixes.
         nb.metadata['metatab']['name'] = self.doc.name
-        nb.metadata['metatab']['description'] = self.doc.description
-        nb.metadata['metatab']['identifier'] = self.doc.identifier
+        nb.metadata['metatab']['description'] = self.doc.description if self.doc.identifier else self.doc.description
+        nb.metadata['metatab']['identifier'] = self.doc.identifier if self.doc.identifier else  self.doc.identifier
 
-        if not 'identifier' in nb.metadata['frontmatter']:
+        if not 'identifier' in nb.metadata['frontmatter'] and nb.metadata['metatab']['identifier'] :
             nb.metadata['frontmatter']['identifier'] = nb.metadata['metatab']['identifier']
 
         return nb, resources

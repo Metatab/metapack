@@ -98,8 +98,8 @@ def get_site_config(site_name):
     from textwrap import dedent
     config = get_config()
 
-    if not config:
-        err("No metatab configuration found. Can't get Wordpress credentials")
+    if config is None:
+        err("No metatab configuration found. Can't get Wordpress credentials. Maybe create '~/.metapack.yaml'")
 
     site_config = config.get('wordpress', {}).get(site_name, {})
 
@@ -140,7 +140,33 @@ def prepare_image(slug, file_name, post_id):
 
 
 def publish_wp(site_name, output_file, resources):
+
+    """Publish a notebook to a wordpress post, using Gutenberg blocks.
+
+    Here is what the metadata looks like, in a section of the notebook tagged 'frontmatter'
+
+    show_input: hide
+    github: https://github.com/sandiegodata/notebooks/blob/master/tutorial/American%20Community%20Survey.ipynb
+    identifier: 5c987397-a954-46ca-8743-bdcd7a71579c
+    featured_image: 171
+    authors:
+    - email: eric@civicknowledge.com
+      name: Eric Busboom
+      organization: Civic Knowledge
+      type: wrangler
+    tags:
+    - Tag1
+    - Tag2
+    categories:
+    - Demographics
+    - Tutorial
+
+    'Featured_image' is an attachment id
+
+    """
+
     import json
+    import yaml
     from uuid import uuid4
     from wordpress_xmlrpc import Client, WordPressPost
     from wordpress_xmlrpc.methods.posts import GetPosts, NewPost, EditPost, GetPost
@@ -172,10 +198,11 @@ def publish_wp(site_name, output_file, resources):
     for _post in wp.call(GetPosts()):
         if cust_field_dict(_post).get('identifier') == fm['identifier']:
             post = _post
-            prt("Updating old post")
             break
 
-    if not post:
+    if post:
+        prt("Updating old post")
+    else:
         post = WordPressPost()
         post.id = wp.call(NewPost(post))
         prt("Creating new post")
@@ -187,22 +214,25 @@ def publish_wp(site_name, output_file, resources):
         content = f.read()
 
     post.terms_names = {
-        'post_tag': ['test', 'firstpost'],
-        'category': ['Introductions', 'Tests']
+        'post_tag': fm.get('tags',[]),
+        'category':  fm.get('categories',[])
     }
-    post.custom_fields = [
-        {'key': 'identifier', 'value': fm['identifier']},
 
-    ]
+    print(yaml.dump(fm, default_flow_style=False))
 
-    post.excerpt = meta.get('bref', meta.get('description'))
+    if not 'identifier' in [ e['key'] for e in post.custom_fields]:
+
+        post.custom_fields = [
+            {'key': 'identifier', 'value': fm['identifier']},
+        ]
+
+    post.excerpt = fm.get('excerpt', fm.get('brief', fm.get('description')))
 
     def strip_image_name(n):
         """Strip off the version number from the media file"""
         from os.path import splitext
         import re
         return re.sub(r'\-\d+$','',splitext(n)[0])
-
 
     extant_files = list(wp.call(GetMediaLibrary(dict(parent_id=post.id))))
 
@@ -221,7 +251,7 @@ def publish_wp(site_name, output_file, resources):
         extant_image = find_extant_image(image_data['name'])
 
         if  extant_image:
-            prt("Post already has image:", extant_image.link)
+            prt("Post already has image:", extant_image.id, extant_image.link)
             img_to = extant_image.link
 
         elif r.endswith('.png'): # Foolishly assuming all images are PNGs
@@ -232,6 +262,12 @@ def publish_wp(site_name, output_file, resources):
             img_to = response['link']
 
         content = content.replace(img_from, img_to)
+
+    if fm['featured_image']:
+        post.thumbnail = int(fm['featured_image'])
+    elif isinstance(post.thumbnail, dict):
+        # The thumbnail expects an attachment id on EditPost, but returns a dict on GetPost
+        post.thumbnail = post.thumbnail['attachment_id']
 
 
     post.content = content

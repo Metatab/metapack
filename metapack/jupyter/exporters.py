@@ -691,7 +691,7 @@ class WordpressExporter(HTMLExporter):
         # Probably should be done with a postprocessor.
         output = re.sub(r'__IMGDIR__', '/' + slug, output)
 
-        output = re.sub(r'<style>.*</style>', '', output, flags=re.MULTILINE | re.DOTALL)
+        output = re.sub(r'<style scoped>.*</style>', '', output, flags=re.MULTILINE | re.DOTALL)
 
         resources['outputs'][join(self.staging_dir, slug + '.json')] = \
             json.dumps(nb_copy.metadata, indent=4).encode('utf-8')
