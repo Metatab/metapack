@@ -13,9 +13,14 @@
 <!-- /wp:paragraph -->
 {% endif %}
 {%- if nb.metadata.frontmatter.github -%}
-<!-- wp:paragraph -->
-<p><small><a href="{{ nb.metadata.frontmatter.github }}"> Full notebook on Github</a></small></p>
-<!-- /wp:paragraph -->
+<!-- wp:button {"backgroundColor":"cyan-bluish-gray","className":"is-style-squared"} -->
+<div class="wp-block-button is-style-squared">
+<a class="wp-block-button__link has-background has-cyan-bluish-gray-background-color" 
+   href="{{ nb.metadata.frontmatter.github }}">
+ <code>[icon name="github" class="icon-2x"]</code> 
+ Full notebook on github<br></a>
+ </div>
+<!-- /wp:button -->
 {%- endif -%}
 
 {%- endblock header -%}

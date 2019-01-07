@@ -83,9 +83,10 @@ def new_cmd(args):
     from metapack import MetapackDoc
     from metapack.util import make_metatab_file, datetime_now, ensure_dir
     from metapack.cli.core import write_doc, prt, err
-    from os.path import exists, join, expanduser
+    from os.path import exists, join, expanduser, dirname
     from metatab import DEFAULT_METATAB_FILE
     from os import getenv
+    import metapack.support as support_dir
 
     if args.config:
         config_file = args.config
@@ -158,10 +159,11 @@ def new_cmd(args):
 
     write_doc(doc, join(nv_name, DEFAULT_METATAB_FILE))
 
+    with open(join(dirname(support_dir.__file__),'gitignore')) as f:
+        gitignore = f.read()
+
     with open(join(nv_name,'.gitignore'), 'w') as f:
-        f.write("_packages\n")
-        f.write("*-errors.ipynb\n")
-        f.write("*-executed.ipynb\n")
+        f.write(gitignore)
 
     if args.title:
         readme = '# {}\n'.format(args.title)
