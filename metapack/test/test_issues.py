@@ -153,6 +153,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         dc.to_crs(comm.crs)
 
+    @unittest.skip('Has local path')
     def test_something_about_package_references(self):
 
         us = '/Users/eric/proj/virt-proj/planning/planning-database/datasets/sangis.org-business_sites/metadata.csv'
