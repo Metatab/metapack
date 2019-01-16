@@ -125,7 +125,6 @@ def new_cmd(args):
         for c in config['Contacts']:
             doc['Contacts'].add_term(c)
 
-
     if args.title:
         doc['Root'].find_first('Root.Title').value = args.title.strip()
 
@@ -172,6 +171,3 @@ def new_cmd(args):
 
     with open(join(nv_name,'README.md'), 'w') as f:
         f.write(readme)
-
-
-

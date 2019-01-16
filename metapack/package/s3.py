@@ -103,11 +103,12 @@ class S3PackageBuilder(PackageBuilder):
         pass
 
     def write_to_s3(self, path, body, reason=''):
+        from metapack.exc import PackageError
 
         access_url = self.bucket.write(body, path, acl=self._acl, force=self.force)
 
         if self.bucket.error:
-            err(self.bucket.last_reason[1])
+            raise PackageError(self.bucket.last_reason[1])
 
         if self.bucket.last_reason:
             self.files_processed.append((*self.bucket.last_reason, access_url, path))
