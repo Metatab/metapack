@@ -5,14 +5,22 @@
 CLI program for managing packages
 """
 
+import json
+import yaml
 from metapack import Downloader
-from metapack.cli.core import prt, err, warn, get_config
-from os import environ
+from metapack.cli.core import prt, err, get_config, MetapackCliMemo
+from metapack.jupyter.convert import convert_wordpress
+from metapack.util import ensure_dir
 from os.path import basename
-import re
+from rowgenerators import parse_app_url
+from textwrap import dedent
+from uuid import uuid4
+from wordpress_xmlrpc import Client, WordPressPost
+from wordpress_xmlrpc.methods.media import UploadFile, GetMediaLibrary
+from wordpress_xmlrpc.methods.posts import GetPosts, NewPost, EditPost, GetPost
+from metapack.cli.core import find_csv_packages
 
 downloader = Downloader.get_instance()
-
 
 def wp(subparsers):
     parser = subparsers.add_parser(
@@ -20,29 +28,45 @@ def wp(subparsers):
         help='Publish a Jupyter notebook to Wordpress ',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
-    parser.set_defaults(run_command=run_notebook)
+    parser.set_defaults(run_command=run_wp)
 
-    parser.add_argument('site_name', help="Site name, in the .metapack.yaml configuration file")
 
-    parser.add_argument('notebook', help="Path to a notebook file")
+    parser.add_argument('-g', '--group', help="Add an extra group")
+
+    parser.add_argument('-H','--header', help='Dump YAML of notebook header', action='store_true')
+
+    parser.add_argument('-G', '--get', help='Get and dump the post, rather that update it', action='store_true')
 
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentails profile", required=False)
 
+    parser.add_argument('site_name', help="Site name, in the .metapack.yaml configuration file")
+
+    parser.add_argument('source', help="Path to a notebook file or a Metapack package")
+
+def run_wp(args):
+
+    u = parse_app_url(args.source)
+
+    if u.target_format == 'ipynb':
+        run_notebook(args)
+    else:
+        args.metatabfile = args.source
+        m = MetapackCliMemo(args, downloader)
+
+        run_package(m)
 
 def run_notebook(args):
-    from metapack.jupyter.convert import convert_wordpress
-    from metapack.util import ensure_dir
 
     p = '/tmp/metapack-wp-notebook/'
     ensure_dir(p)
 
-    output_file, resources = convert_wordpress(args.notebook, p)
+    output_file, resources = convert_wordpress(args.source, p)
 
-    r, post = publish_wp(args.site_name, output_file, resources)
+    r, post = publish_wp(args.site_name, output_file, resources, args)
     prt("Post url: ", post.link)
 
 def get_site_config(site_name):
-    from textwrap import dedent
+
     config = get_config()
 
     if config is None:
@@ -85,8 +109,29 @@ def prepare_image(slug, file_name, post_id):
             'post_id': post_id
         }
 
+def cust_field_dict(post):
+    try:
+        return dict( (e['key'],e['value']) for e in post.custom_fields)
+    except (KeyError, AttributeError):
+        return {}
 
-def publish_wp(site_name, output_file, resources):
+def find_post(wp, identifier):
+
+    for _post in wp.call(GetPosts()):
+        if cust_field_dict(_post).get('identifier') == identifier:
+            return  _post
+
+    return None
+
+def set_custom_field(post, key, value):
+
+    if not hasattr(post, 'custom_fields') or not key in [ e['key'] for e in post.custom_fields]:
+
+        post.custom_fields = [
+            {'key': key, 'value': value},
+        ]
+
+def publish_wp(site_name, output_file, resources, args):
 
     """Publish a notebook to a wordpress post, using Gutenberg blocks.
 
@@ -112,14 +157,6 @@ def publish_wp(site_name, output_file, resources):
 
     """
 
-    import json
-    import yaml
-    from uuid import uuid4
-    from wordpress_xmlrpc import Client, WordPressPost
-    from wordpress_xmlrpc.methods.posts import GetPosts, NewPost, EditPost, GetPost
-    from wordpress_xmlrpc.methods.users import GetUserInfo
-    from wordpress_xmlrpc.methods.media import UploadFile, GetMediaLibrary
-
     # http://busboom.org/wptest/wp-content/uploads/sites/7/2017/11/output_16_0-300x200.png
 
     url, user, password = get_site_config(site_name)
@@ -138,17 +175,7 @@ def publish_wp(site_name, output_file, resources):
 
     wp = Client(url, user, password)
 
-    def cust_field_dict(post):
-        try:
-            return dict( (e['key'],e['value']) for e in post.custom_fields)
-        except (KeyError, AttributeError):
-            return {}
-
-    post = None
-    for _post in wp.call(GetPosts()):
-        if cust_field_dict(_post).get('identifier') == fm['identifier']:
-            post = _post
-            break
+    post = find_post(fm['identifier'])
 
     if post:
         prt("Updating old post")
@@ -168,13 +195,10 @@ def publish_wp(site_name, output_file, resources):
         'category':  fm.get('categories',[])
     }
 
-    print(yaml.dump(fm, default_flow_style=False))
+    if args.header:
+        print(yaml.dump(fm, default_flow_style=False))
 
-    if not hasattr(post, 'custom_fields') or not 'identifier' in [ e['key'] for e in post.custom_fields]:
-
-        post.custom_fields = [
-            {'key': 'identifier', 'value': fm['identifier']},
-        ]
+    set_custom_field(post, 'identifier', fm['identifier'])
 
     post.excerpt = fm.get('excerpt', fm.get('brief', fm.get('description')))
 
@@ -219,9 +243,70 @@ def publish_wp(site_name, output_file, resources):
         # The thumbnail expects an attachment id on EditPost, but returns a dict on GetPost
         post.thumbnail = post.thumbnail['attachment_id']
 
-
     post.content = content
 
     r = wp.call(EditPost(post.id, post))
 
     return r,  wp.call(GetPost(post.id))
+
+def html(doc):
+    from markdown import markdown as convert_markdown
+    from metapack.html import  markdown
+
+    extensions = [
+        'markdown.extensions.extra',
+        'markdown.extensions.admonition'
+    ]
+
+    return convert_markdown(markdown(doc, template='wordpress.md'), extensions)
+
+
+def run_package(m):
+
+    print(m.doc.ref)
+
+    url, user, password = get_site_config(m.args.site_name)
+
+    doc = m.doc
+
+    if not doc.find('Root.Distribution'):
+
+        doc = find_csv_packages(m, downloader)
+        prt("Package has no Root.Distribution, using CSV package: ", doc.ref)
+
+    wp = Client(url, user, password)
+
+    post = find_post(wp, doc.identifier)
+
+    if m.args.get:
+        if post:
+            print(post.content)
+            return
+
+    if post:
+        prt("Updating old post")
+        action = lambda post: EditPost(post.id, post)
+    else:
+        prt("Creating new post")
+        action = lambda post: NewPost(post)
+        post = WordPressPost()
+
+
+    set_custom_field(post, 'identifier', doc.identifier)
+
+    post.excerpt = doc['Root'].get_value('Root.Description')
+
+    post.terms_names = {
+        'post_tag': [ t.value for t in doc['Root'].find('Root.Tag') ] + \
+                    [t.value for t in doc['Root'].find('Root.Group')] + \
+                    [doc['Root'].get_value('Root.Origin')],
+        'category': ['Dataset']
+    }
+
+    post.title = doc.get_value('Root.Title')
+
+    post.content = html(doc)
+
+    r = wp.call(action(post))
+
+    return r

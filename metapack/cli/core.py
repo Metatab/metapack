@@ -1,4 +1,5 @@
 import logging
+from metapack import open_package
 from metapack.constants import PACKAGE_PREFIX
 from metapack.package import FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder
 from metatab import DEFAULT_METATAB_FILE
@@ -738,3 +739,16 @@ def generate_packages(m):
 
     for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
         yield ptype, purl, cache_path
+
+def find_csv_packages(m, downloader):
+    """Locate the build CSV package, which will have distributions if it was generated  as
+    and S3 package"""
+    from metapack.package import CsvPackageBuilder
+
+    pkg_dir = m.package_root
+    name = m.doc.get_value('Root.Name')
+
+    package_path, cache_path = CsvPackageBuilder.make_package_path(pkg_dir, name)
+
+    if package_path.exists():
+        return open_package(package_path, downloader=downloader)

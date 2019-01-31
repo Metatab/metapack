@@ -609,10 +609,16 @@ def display_context(doc):
             if new_term_vals:
                 context[section][term_key] = new_term_vals
 
+    context['distributions'] = {}
+    for dist in doc.find('Root.Distribution'):
+        context['distributions'][dist.type] = dist.value
+
+    if doc.find('Root.Giturl'):
+        context['distributions']['source'] = doc.get_value('Root.Giturl')
 
     return context
 
-def markdown(doc, title=True, template='short'):
+def markdown(doc, title=True, template='short_documentation.md'):
     """Markdown, specifically for the Notes field in a CKAN dataset"""
 
     from jinja2 import Environment, PackageLoader, select_autoescape
@@ -623,10 +629,10 @@ def markdown(doc, title=True, template='short'):
 
     context = display_context(doc)
 
-    return env.get_template(template+'_documentation.md').render(**context)
+    return env.get_template(template).render(**context)
 
 
-def html(doc, template='short'):
+def html(doc, template='short_documentation.md'):
     extensions = [
         'markdown.extensions.extra',
         'markdown.extensions.admonition'

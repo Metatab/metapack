@@ -438,10 +438,11 @@ def dump_schema(m, r):
     prt(tabulate(rows_about_columns, headers=headers, tablefmt=m.args.format))
 
 def dump_markdown(args):
+    from metapack.html import markdown
 
     m = MetapackCliMemo(args, downloader)
 
-    print(m.doc.markdown)
+    print(markdown(m.doc, template=args.template))
 
 def dump_html(args):
     from metapack.html import html
@@ -495,9 +496,8 @@ def dump_yaml(args):
 
     m = MetapackCliMemo(args, downloader)
 
-    print(yaml.safe_dump(display_context(m.doc), default_flow_style=False))
+    o = display_context(m.doc)
+    y = yaml.safe_dump(o, default_flow_style=False)
 
-
-
-
+    print(y)
 

@@ -10,16 +10,17 @@ The program uses the Root.Distributions in the source package to locate packages
 
 import mimetypes
 import traceback
-from os import getenv
-from os.path import join, basename
-
 from metapack import MetapackDoc, Downloader, open_package
-from metapack.cli.core import err, prt
-from metatab import  DEFAULT_METATAB_FILE, MetatabError
 from metapack.package.s3 import S3Bucket
-from .core import MetapackCliMemo as _MetapackCliMemo
-from .core import prt, warn, write_doc, generate_packages
+from metatab import MetatabError
+from os import getenv
+from os.path import basename
 from textwrap import dedent
+
+
+from metapack.cli.core import err, prt, warn, write_doc, find_csv_packages
+from .core import MetapackCliMemo as _MetapackCliMemo
+
 
 downloader = Downloader.get_instance()
 
@@ -135,7 +136,7 @@ def send_to_ckan(m):
     # which may be an S3 package with distributions.
 
     if not doc.find('Root.Distribution'):
-        doc = find_csv_packages(m)
+        doc = find_csv_packages(m, downloader)
 
 
     if not doc or not doc.find('Root.Distribution'):
@@ -307,7 +308,6 @@ def send_to_ckan(m):
     from rowgenerators.appurl.web import WebUrl
     if isinstance( m.mt_file.inner, WebUrl) and  m.mt_file.inner.target_format == 'csv':
 
-        from metapack.terms import Distribution
         dist = m.doc['Root'].new_term('Root.Distribution', m.mt_file)
         inst_distributions.append(dist)
         csv_package = load_resources(dist.url, dist.package_url, dist.metadata_url)
@@ -345,20 +345,6 @@ def send_to_ckan(m):
         doc['Root'].new_term('Group', group['name'])
 
     write_doc(doc, m.mt_file)
-
-
-def find_csv_packages(m):
-    """Locate the build CSV package, which will have distributions if it was generated  as
-    and S3 package"""
-    from metapack.package import CsvPackageBuilder
-
-    pkg_dir = m.package_root
-    name = m.doc.get_value('Root.Name')
-
-    package_path, cache_path = CsvPackageBuilder.make_package_path(pkg_dir, name)
-
-    if package_path.exists():
-        return open_package(package_path, downloader=downloader)
 
 
 def configure_ckan(m):

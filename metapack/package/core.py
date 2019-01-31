@@ -547,7 +547,10 @@ class PackageBuilder(object):
             else:
                 # Load it as a URL
                 f = self._get_ref_contents(term)
-                self._load_file(term.value,f.read() )
+                try:
+                    self._load_file(term.value,f.read() )
+                except Exception as e:
+                    raise PackageError("Failed to load file for '{}': {} ".format(term.value, e))
 
         nb_dir = join(self.source_dir, 'notebooks')
 

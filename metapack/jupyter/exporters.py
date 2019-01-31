@@ -571,7 +571,7 @@ class WordpressExporter(HTMLExporter):
     """ Export a python notebook to markdown, with frontmatter for Hugo.
     """
 
-    staging_dir = Unicode(help="Root of the Hugo directory").tag(config=True)
+    staging_dir = Unicode(help="Root of the output directory").tag(config=True)
 
     @property
     def default_config(self):
@@ -691,7 +691,7 @@ class WordpressExporter(HTMLExporter):
         # Probably should be done with a postprocessor.
         output = re.sub(r'__IMGDIR__', '/' + slug, output)
 
-        output = re.sub(r'<style scoped>.*</style>', '', output, flags=re.MULTILINE | re.DOTALL)
+        output = re.sub(r'<style scoped.*?>(.+?)</style>', '', output, flags=re.MULTILINE | re.DOTALL)
 
         resources['outputs'][join(self.staging_dir, slug + '.json')] = \
             json.dumps(nb_copy.metadata, indent=4).encode('utf-8')
