@@ -24,10 +24,12 @@ with analysis tools like Metapack.
 <!-- /wp:heading -->
 <!-- wp:code -->
 <pre class="wp-block-code"><code>import metapack as mp
-{% if distributions.zip %}pkg = mp.open_package('{{distributions.zip}}') # ZIP Package{% endif %}
-{% if distributions.csv %}pkg = mp.open_package('{{distributions.csv}}') # CSV Package{% endif %}
+{% if distributions.zip %}# ZIP Package
+pkg = mp.open_package('{{distributions.zip}}'){% endif %}
+{% if distributions.csv %}# CSV Package
+pkg = mp.open_package('{{distributions.csv}}') {% endif %}
 
-resource = pkg.resource('<resource_name>') # Get a resource
+resource = pkg.resource('resource_name') # Get a resource
 df = resource.dataframe() # Create a pandas Dataframe
 gdf = resource.geoframe() # Create a GeoPandas GeoDataFrame
 </code></pre>

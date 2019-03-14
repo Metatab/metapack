@@ -293,7 +293,7 @@ def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=Fal
         write_doc(doc, mt_file)
 
 
-def write_doc(doc, mt_file):
+def write_doc(doc, mt_file=None):
     """
     Write a Metatab doc to a CSV file, and update the Modified time
     :param doc:
@@ -304,6 +304,9 @@ def write_doc(doc, mt_file):
     from rowgenerators import parse_app_url
 
     import subprocess
+
+    if not mt_file:
+        mt_file = doc.ref
 
     try:
         out = subprocess.run(['git', 'remote', 'show', 'origin'], stdout=subprocess.PIPE,

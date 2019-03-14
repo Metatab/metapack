@@ -664,9 +664,9 @@ class Resource(Term):
                 gdf.set_geometry('geometry')
 
                 # Wild guess. This case should be most often for Metatab processed geo files,
-                # which are all 4269
+                # which are all 4326
                 if gdf.crs is None:
-                    gdf.crs = {'init': 'epsg:4269'}
+                    gdf.crs = {'init': 'epsg:4326'}
 
 
             except KeyError as e:

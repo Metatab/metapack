@@ -137,6 +137,9 @@ def send_to_ckan(m):
 
     if not doc.find('Root.Distribution'):
         doc = find_csv_packages(m, downloader)
+        if doc:
+            prt("Orig doc has no distributions, switching to doc from built packages:")
+            prt("    ", doc.ref)
 
 
     if not doc or not doc.find('Root.Distribution'):
@@ -344,7 +347,7 @@ def send_to_ckan(m):
     for group in pkg.get('groups', []):
         doc['Root'].new_term('Group', group['name'])
 
-    write_doc(doc, m.mt_file)
+    write_doc(doc)
 
 
 def configure_ckan(m):

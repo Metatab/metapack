@@ -1,7 +1,5 @@
 <!-- wp:paragraph -->
-
 <p id="top"><em>{{root.description}}</em></p>
-
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
