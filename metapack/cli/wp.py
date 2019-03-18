@@ -8,6 +8,7 @@ CLI program for managing packages
 import json
 import yaml
 from metapack import Downloader
+from metapack.cli.core import find_csv_packages
 from metapack.cli.core import prt, err, get_config, MetapackCliMemo
 from metapack.jupyter.convert import convert_wordpress
 from metapack.util import ensure_dir
@@ -15,10 +16,6 @@ from os.path import basename
 from rowgenerators import parse_app_url
 from textwrap import dedent
 from uuid import uuid4
-from wordpress_xmlrpc import Client, WordPressPost
-from wordpress_xmlrpc.methods.media import UploadFile, GetMediaLibrary
-from wordpress_xmlrpc.methods.posts import GetPosts, NewPost, EditPost, GetPost
-from metapack.cli.core import find_csv_packages
 
 downloader = Downloader.get_instance()
 
@@ -117,6 +114,8 @@ def cust_field_dict(post):
 
 def find_post(wp, identifier):
 
+    from wordpress_xmlrpc.methods.posts import GetPosts
+
     for _post in wp.call(GetPosts()):
         if cust_field_dict(_post).get('identifier') == identifier:
             return  _post
@@ -156,6 +155,10 @@ def publish_wp(site_name, output_file, resources, args):
     'Featured_image' is an attachment id
 
     """
+
+    from wordpress_xmlrpc import Client, WordPressPost
+    from wordpress_xmlrpc.methods.media import UploadFile, GetMediaLibrary
+    from wordpress_xmlrpc.methods.posts import NewPost, EditPost, GetPost
 
     # http://busboom.org/wptest/wp-content/uploads/sites/7/2017/11/output_16_0-300x200.png
 
@@ -262,6 +265,8 @@ def html(doc):
 
 
 def run_package(m):
+    from wordpress_xmlrpc import Client, WordPressPost
+    from wordpress_xmlrpc.methods.posts import NewPost, EditPost
 
     print(m.doc.ref)
 

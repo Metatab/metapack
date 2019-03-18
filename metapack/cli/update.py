@@ -40,6 +40,9 @@ def update(subparsers):
     group.add_argument('-P', '--schema-properties', default=False, action='store_true',
                        help='Load schema properties from generators and upstream sources')
 
+    group.add_argument('-A', '--alt-name', default=False, action='store_true',
+                       help='Move AltNames to column name')
+
     group.add_argument('--clean-properties', default=False, action='store_true',
                        help='Remove unused columns in the schema, like AltName')
 
@@ -76,6 +79,9 @@ def run_update(args):
 
     if m.args.clean_properties:
         clean_properties(m)
+
+    if m.args.alt_name:
+        move_alt_names(m)
 
     if m.args.categories:
         update_categories(m)
@@ -242,3 +248,23 @@ def update_resource_categories(m, resource, doc):
     doc.cleanse() # Creates Modified and Identifier
 
     return doc
+
+def move_alt_names(m):
+
+    doc = m.doc
+
+    for t in doc['Schema'].find('Root.Table'):
+        moved = 0
+        for c in t.find('Table.Column'):
+
+            altname = c.get('AltName')
+            if altname:
+                c.name = altname.value
+                c.remove_child(altname)
+
+                moved += 1
+
+
+        prt("Moved {} names in '{}'".format(moved, t.name))
+
+    doc.write_csv()

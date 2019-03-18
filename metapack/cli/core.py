@@ -354,7 +354,7 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
             doc['Schema']
 
     except KeyError:
-        doc.new_section('Schema', ['DataType', 'Altname', 'Description'])
+        doc.new_section('Schema', ['DataType', 'AltName', 'Description'])
 
     schemas_processed = 0
 
@@ -414,12 +414,13 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
             # Existing columns
             orig_columns = {e['name'].lower() if e['name'] else '': e for e in r.schema_columns or {}}
 
+            # Remove existing columns, so add them back later, possibly in a new order
             for child in list(schema_term.children):
                 schema_term.remove_child(child)
 
         else:
             prt("Adding table '{}' ".format(r.schema_name))
-            schema_term  = doc['Schema'].new_term('Table', r.schema_name)
+            schema_term = doc['Schema'].new_term('Table', r.schema_name)
             orig_columns = {}
 
         for i, c in enumerate(ti.to_rows()):
@@ -430,7 +431,7 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
             kwargs = {}
 
             if alt_name:
-                kwargs['altname'] = alt_name
+                kwargs['AltName'] = alt_name
 
             t = schema_term.new_child('Column', c['header'],
                                 datatype=type_map.get(c['resolved_type'], c['resolved_type']),
@@ -755,3 +756,76 @@ def find_csv_packages(m, downloader):
 
     if package_path.exists():
         return open_package(package_path, downloader=downloader)
+
+def md5_file(filePath):
+    import hashlib
+
+    with open(filePath, 'rb') as fh:
+        m = hashlib.md5()
+        while True:
+            data = fh.read(8192)
+            if not data:
+                break
+            m.update(data)
+        return m.hexdigest()
+
+#
+# The lines translation is a total HACK! It is however, at this point, the
+# safest way to be able to edit metadata data in a package in lines format
+#
+from contextlib import contextmanager
+@contextmanager
+def maybe_translate_lines(do_translate):
+    """Translate from  metadata.txt to metadata.csv before running a csv based command, then
+    from metadata.csv back to metadata.txt afterwards. Initial translation requires that the
+    .txt file is newer. """
+
+    # For now, this will only work in the current directory, since it is only intended to support
+    # manually
+
+    import pathlib
+    import shutil
+    from metatab import MetatabDoc
+    from metatab.generate import TextRowGenerator
+
+    import os
+
+
+    csv_file = pathlib.Path(DEFAULT_METATAB_FILE)
+    csv_file_save = csv_file.with_suffix('.save')
+    lines_file = csv_file.with_suffix('.txt')
+
+    if not do_translate:
+        if lines_file.exists():
+            warn("A lines file exist, but it is not being used. ")
+
+        yield
+        return
+
+    if lines_file.exists():
+        # Don't convert the lines file unless the lines file is newer than the csv file
+        if not csv_file.exists() or (csv_file.exists() and lines_file.stat().st_mtime > csv_file.stat().st_mtime):
+            if csv_file.exists():
+                shutil.copy(str(csv_file), csv_file_save)
+
+            with lines_file.open() as f:
+                lines_doc = MetatabDoc(TextRowGenerator(f.read()))
+
+            lines_doc.write_csv(str(csv_file))
+
+    yield
+
+
+    if csv_file.exists():
+
+        doc = MetatabDoc(str(csv_file))
+        doc.write_lines(str(lines_file))
+
+        mtime  = csv_file.stat().st_mtime
+
+        # Reset the mtime so if we run it again, this code doesn't assume that
+        # the lines file has been modified after being written.
+        os.utime(str(lines_file), (mtime, mtime))
+
+
+
