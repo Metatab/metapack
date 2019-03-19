@@ -69,8 +69,6 @@ def new_args(subparsers):
     parser.add_argument('-C', '--config', help="Path to config file. "
                                                "Defaults to ~/.metapack-defaults.csv or value of METAPACK_DEFAULTS env var."
                                                 "Sets defaults for specia root terms and the Contacts section.")
-
-
     return parser
 
 def doc_parser():

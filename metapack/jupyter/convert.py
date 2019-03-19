@@ -4,23 +4,20 @@
 """
 Functions for converting Jupyter notebooks
 """
-from os import getcwd
-from os.path import abspath, normpath, exists, dirname
-
 import nbformat
-from nbconvert.writers import FilesWriter
-from traitlets.config import Config
-
-from rowgenerators import parse_app_url
-from rowgenerators.util import fs_join as join
-from metatab import DEFAULT_METATAB_FILE
 from metapack import MetapackDoc
 from metapack.cli.core import prt, err
-from metapack.util import ensure_dir, copytree
 from metapack.jupyter.core import logger
 from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter, WordpressExporter
-from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc, ExtractMetatabTerms
-
+from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc
+from metapack.util import ensure_dir, copytree
+from metatab import DEFAULT_METATAB_FILE
+from nbconvert.writers import FilesWriter
+from os import getcwd
+from os.path import abspath, normpath, exists, dirname
+from pathlib import Path
+from rowgenerators.util import fs_join as join
+from traitlets.config import Config
 
 
 def convert_documentation(nb_path):
@@ -32,7 +29,7 @@ def convert_documentation(nb_path):
     with open(nb_path) as f:
         nb = nbformat.reads(f.read(), as_version=4)
 
-    doc = ExtractInlineMetatabDoc(package_url="metapack+file:" +dirname(nb_path)).run(nb)
+    doc = ExtractInlineMetatabDoc(package_url="metapack+file:" + dirname(nb_path)).run(nb)
 
     package_name = doc.as_version(None)
 
@@ -44,13 +41,12 @@ def convert_documentation(nb_path):
 
     fw = FilesWriter()
 
-    fw.build_directory = join(output_dir,'docs')
+    fw.build_directory = join(output_dir, 'docs')
     fw.write(output, resources, notebook_name='notebook')
     prt("Wrote documentation to {}".format(fw.build_directory))
 
 
 def convert_notebook(nb_path):
-
     prt('Convert notebook to Metatab source package')
 
     if not exists(nb_path):
@@ -73,7 +69,7 @@ def convert_notebook(nb_path):
     prt('Exporting documentation')
     output, resources = de.from_filename(nb_path)
 
-    fw.build_directory = join(pe.output_dir,'docs')
+    fw.build_directory = join(pe.output_dir, 'docs')
     fw.write(output, resources, notebook_name='notebook')
 
     new_mt_file = join(pe.output_dir, DEFAULT_METATAB_FILE)
@@ -83,7 +79,6 @@ def convert_notebook(nb_path):
     de.update_metatab(doc, resources)
 
     for lib_dir in pe.lib_dirs:
-
         lib_dir = normpath(lib_dir).lstrip('./')
 
         doc['Resources'].new_term("Root.PythonLib", lib_dir)
@@ -102,7 +97,6 @@ def convert_notebook(nb_path):
 
 
 def extract_metatab(nb_path):
-
     if not exists(nb_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
 
@@ -123,6 +117,7 @@ def doc_metadata(doc):
 
     return r
 
+
 def convert_hugo(nb_path, hugo_path):
     from os import environ
     from os.path import abspath
@@ -141,24 +136,22 @@ def convert_hugo(nb_path, hugo_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
 
     c = Config()
-    c.HugoExporter.hugo_dir = abspath(hugo_path) # Exports assume rel path is rel to notebook
-    he = HugoExporter(config=c,log=logger)
+    c.HugoExporter.hugo_dir = abspath(hugo_path)  # Exports assume rel path is rel to notebook
+    he = HugoExporter(config=c, log=logger)
 
     output, resources = he.from_filename(nb_path)
 
     prt('Writing Notebook to Hugo Markdown')
 
-    prt('    Writing ', resources['unique_key']+resources['output_extension'])
+    prt('    Writing ', resources['unique_key'] + resources['output_extension'])
     for k, v in resources['outputs'].items():
-        prt('    Writing ',k)
+        prt('    Writing ', k)
 
     fw = FilesWriter()
     fw.write(output, resources, notebook_name=resources['unique_key'])
 
 
 def convert_wordpress(nb_path, wp_path):
-    from os import environ
-
     if not exists(nb_path):
         err("Notebook path does not exist: '{}' ".format(nb_path))
 
@@ -185,4 +178,28 @@ def convert_wordpress(nb_path, wp_path):
     return output_file, resource_outputs
 
 
+def get_cell_source(nb, tag):
+    for cell in nb['cells']:
+        if tag in cell.get('metadata', {}).get('tags', []):
+            return cell.source
 
+    return ''
+
+
+def extract_notebook_metatab(nb_path: Path):
+    """Extract the metatab lines from a notebook and return a Metapack doc """
+
+    from metatab.generate import TextRowGenerator
+    import nbformat
+
+    with nb_path.open() as f:
+        nb = nbformat.read(f, as_version=4)
+
+    lines = '\n'.join(get_cell_source(nb, tag) for tag in ['metadata', 'resources', 'schema'])
+
+    doc = MetapackDoc(TextRowGenerator(lines))
+
+    doc['Root'].get_or_new_term('Root.Title').value = get_cell_source(nb, 'Title').strip('#').strip()
+    doc['Root'].get_or_new_term('Root.Description').value = get_cell_source(nb, 'Description')
+
+    return doc

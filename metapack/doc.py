@@ -300,4 +300,4 @@ class MetapackDoc(MetatabDoc):
 
         self.sort_by_term()
 
-        return super().write_csv(path)
+        return super().write_csv(str(path))

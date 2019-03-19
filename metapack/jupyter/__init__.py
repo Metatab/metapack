@@ -6,6 +6,7 @@
 from .metapack import MetapackExporter
 from .ipython import open_package, open_source_package
 
+
 def init():
     """Initialize features that are normally initialized in the CLI"""
 

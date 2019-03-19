@@ -5,10 +5,11 @@
 Common support for jupyter notebooks.
 """
 import nbformat
+from contextlib import contextmanager
 from os.path import join, dirname
 from os import makedirs
 import logging
-
+from pathlib import Path
 import unicodecsv as csv
 
 logger = logging.getLogger('user')
@@ -182,3 +183,16 @@ def write_geojson(path_or_flo, columns, gen):
 
     finally:
         f.close()
+
+
+@contextmanager
+def edit_notebook(nb_path: Path):
+    import nbformat
+
+    with nb_path.open() as f:
+        nb = nbformat.read(f, as_version=4)
+
+    yield nb
+
+    with nb_path.open('wt') as f:
+        nbformat.write(nb, f)

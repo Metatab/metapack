@@ -6,12 +6,8 @@ CLI program for managing packages
 """
 
 from metapack import Downloader
-from metapack.util import  ensure_dir
-from metapack.cli.core import update_name, process_schemas, MetapackCliMemo, list_rr, warn, prt, \
-    err, update_schema_properties
-import sys
-import requests
-from os.path import dirname, basename, exists, splitext
+from metapack.cli.core import update_name, process_schemas, MetapackCliMemo, warn, prt, \
+    update_schema_properties
 
 downloader = Downloader.get_instance()
 
@@ -52,11 +48,6 @@ def update(subparsers):
     group.add_argument('-n', '--name', action='store_true', default=False,
                        help="Update the Name from the Datasetname, Origin and Version terms")
 
-    group.add_argument('-E', '--eda', action='store_true', default=False,
-                        help='Create an EDA notebook for a resource')
-
-    group.add_argument('-N', '--notebook', action='store_true', default=False,
-                        help='Create a new notebook')
 
     group.add_argument('-D', '--descriptions', action='store_true', default=False,
                         help='Import descriptions for package references')
@@ -89,11 +80,6 @@ def run_update(args):
     elif m.mtfile_url.scheme == 'file' and m.args.name:
         update_name(m.mt_file, fail_on_missing=True, force=m.args.force)
 
-    elif m.args.eda:
-        write_eda_notebook(m)
-
-    elif m.args.notebook:
-        write_notebook(m)
 
     elif m.args.descriptions:
         update_descriptions(m)
@@ -131,65 +117,6 @@ def clean_properties(m):
     doc.write_csv()
 
 
-def write_notebook(m):
-    # Get the EDA notebook file from Github
-    import nbformat
-
-    url = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/package-notebook.ipynb"
-
-    r = requests.get(url, allow_redirects=True)
-    r.raise_for_status()
-
-    nb_path = 'notebooks/new-notebook.ipynb'
-
-    ensure_dir(dirname(nb_path))
-
-    if exists(nb_path):
-        err("Notebook {} already exists".format(nb_path))
-
-    with open(nb_path, 'wb') as f:
-        f.write(r.content)
-
-    prt('Wrote {}'.format(nb_path))
-
-
-def write_eda_notebook(m):
-    # Get the EDA notebook file from Github
-    import nbformat
-
-    url = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/eda.ipynb"
-
-    resource = m.get_resource()
-
-    if not resource:
-        warn('Must specify a resource. Select one of:')
-        list_rr(m.doc)
-        sys.exit(0)
-
-    r = requests.get(url, allow_redirects=True)
-    r.raise_for_status()
-
-    nb_path = 'notebooks/{}-{}.ipynb'.format(splitext(basename(url))[0], resource.name)
-
-    ensure_dir(dirname(nb_path))
-
-    if exists(nb_path):
-        err("Notebook {} already exists".format(nb_path))
-
-    with open(nb_path, 'wb') as f:
-        f.write(r.content)
-
-    prt('Wrote {}'.format(nb_path))
-
-    with open(nb_path) as f:
-        nb = nbformat.read(f, as_version=4)
-
-    for cell in nb['cells']:
-        if 'resource_name' in cell.get('metadata',{}).get('tags',[]):
-            cell.source = "resource_name='{}'".format(resource.name)
-
-    with open(nb_path, 'wt') as f:
-        nbformat.write(nb, f)
 
 
 def update_descriptions(m):
@@ -230,7 +157,6 @@ def update_categories(m):
 
 def update_resource_categories(m, resource, doc):
 
-    import json
     columns = resource.row_generator.columns
 
     tab = doc['Schema'].new_term('Root.Table', m.get_resource().name)

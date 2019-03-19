@@ -714,6 +714,7 @@ def load_ipython_extension(ipython):
     ip.register_magics(MetatabMagic)
     ip.register_magics(MetapackMagic)
 
+
     # init_logging()
 
 

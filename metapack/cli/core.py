@@ -3,6 +3,7 @@ from metapack import open_package
 from metapack.constants import PACKAGE_PREFIX
 from metapack.package import FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder
 from metatab import DEFAULT_METATAB_FILE
+from contextlib import contextmanager
 
 from tabulate import tabulate
 
@@ -773,7 +774,7 @@ def md5_file(filePath):
 # The lines translation is a total HACK! It is however, at this point, the
 # safest way to be able to edit metadata data in a package in lines format
 #
-from contextlib import contextmanager
+
 @contextmanager
 def maybe_translate_lines(do_translate):
     """Translate from  metadata.txt to metadata.csv before running a csv based command, then
