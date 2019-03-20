@@ -211,23 +211,14 @@ def extract_notebook_metatab(nb_path: Path):
 
 
 def write_metatab_notebook(doc, nb_path: Path = None):
-    url = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/metadata.ipynb"
 
     nb_path = nb_path or Path('metadata.ipynb')
-
-    if not nb_path.exists():
-
-        r = requests.get(url, allow_redirects=True)
-        r.raise_for_status()
-
-        with nb_path.open('wb') as f:
-            f.write(r.content)
 
     def as_lines(s, excludes):
         return '\n'.join('{}: {}'.format(t, v or '') for t, v in s.lines if t not in excludes)
 
     with edit_notebook(nb_path) as nb:
-        set_cell_source(nb, 'Title', "# " + doc.get_value('Root.Title') or '')
+        set_cell_source(nb, 'Title', "# " + (doc.get_value('Root.Title') or ''))
         set_cell_source(nb, 'Description', doc.description)
         set_cell_source(nb, 'metadata',
                         '\n\n'.join(as_lines(s, ['Title', 'Description', 'Declare', 'Readme'])
@@ -240,4 +231,4 @@ def write_metatab_notebook(doc, nb_path: Path = None):
                         '\n\n'.join(s.as_lines() for s in doc if s.name.lower() in ['schema']))
 
 
-        #set_cell_source(nb, 'readme', base64.b64decode((doc.get_value('Root.Readme') or '').strip()))
+        set_cell_source(nb, 'readme', (doc.get_value('Root.Readme') or '').strip())

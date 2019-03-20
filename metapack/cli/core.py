@@ -493,6 +493,8 @@ def update_resource_properties(r, orig_columns={}, force=False):
 
         return v
 
+
+
     # Look for new properties
     extra_properties = set()
     for d in [generator_columns, upstream_columns, orig_columns, schema_columns]:

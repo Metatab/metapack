@@ -5,19 +5,24 @@
 Metapack CLI program for creating new metapack package directories
 """
 
-from metapack.package import *
-
-from .core import MetapackCliMemo as _MetapackCliMemo
 import argparse
+import requests
+from metapack.jupyter.convert import write_metatab_notebook
+from metapack.package import *
 from pathlib import Path
+from shutil import copyfile
+from .core import MetapackCliMemo as _MetapackCliMemo
 
 downloader = Downloader.get_instance()
+
+TEMPLATE_NOTEBOOK = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/metadata.ipynb"
 
 
 class MetapackCliMemo(_MetapackCliMemo):
 
     def __init__(self, args, downloader):
         super().__init__(args, downloader)
+
 
 def new_args(subparsers):
     """
@@ -51,7 +56,7 @@ def new_args(subparsers):
     parser.set_defaults(run_command=new_cmd)
 
     parser.add_argument('-o', '--origin', help="Dataset origin, usually a second-level domain name. Required")
-    parser.add_argument('-d', '--dataset', help="Main dataset name. Required", required = True)
+    parser.add_argument('-d', '--dataset', help="Main dataset name. Required", required=True)
     parser.add_argument('-t', '--time', help="Temporal extents, usually a year, ISO8601 time, or interval. ")
     parser.add_argument('-s', '--space', help="Space, geographic extent, such as a name of a state or a Census geoid")
     parser.add_argument('-g', '--grain', help="Grain, the type of entity a row represents")
@@ -72,16 +77,22 @@ def new_args(subparsers):
     parser.add_argument('--template', help="Metatab file template, defaults to 'metatab' ", default='metatab')
     parser.add_argument('-C', '--config', help="Path to config file. "
                                                "Defaults to ~/.metapack-defaults.csv or value of METAPACK_DEFAULTS env var."
-                                                "Sets defaults for specia root terms and the Contacts section.")
+                                               "Sets defaults for specia root terms and the Contacts section.")
     return parser
+
 
 def doc_parser():
     from .mp import base_parser
 
     return new_args(base_parser())
 
-def new_cmd(args):
+class EmptyTerm(object):
 
+    value = None
+
+et = EmptyTerm()
+
+def new_cmd(args):
     from metapack import MetapackDoc
     from metapack.util import make_metatab_file, datetime_now, ensure_dir
     from metapack.cli.core import write_doc, prt, err
@@ -105,7 +116,24 @@ def new_cmd(args):
     else:
         config = MetapackDoc()
 
-    doc = make_metatab_file(args.template)
+    if args.jupyter:
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix='.ipynb', delete=False) as fp:
+
+            r = requests.get(TEMPLATE_NOTEBOOK, allow_redirects=True)
+            r.raise_for_status()
+            nb_contents = r.content
+
+            fp.write(r.content)
+            nb_path = Path(fp.name)
+
+        doc = MetapackDoc(str(nb_path))
+
+
+    else:
+
+        doc = make_metatab_file(args.template)
 
     doc['Root']['Created'] = datetime_now()
 
@@ -114,13 +142,13 @@ def new_cmd(args):
     if not origin:
         err("Must specify a value for origin, either on command line or in defaults file")
 
-    doc['Root'].find_first('Root.Origin').value = origin
-    doc['Root'].find_first('Root.Dataset').value = args.dataset
-    doc['Root'].find_first('Root.Space').value = args.space or config.get_value('Root.Space')
-    doc['Root'].find_first('Root.Time').value = args.time or config.get_value('Root.Time')
-    doc['Root'].find_first('Root.Grain').value = args.grain or config.get_value('Root.Grain')
-    doc['Root'].find_first('Root.Variant').value = args.variant or config.get_value('Root.Variant')
-    doc['Root'].find_first('Root.Version').value = args.revision or config.get_value('Root.Version')
+    (doc['Root'].find_first('Root.Origin') or et).value = origin
+    (doc['Root'].find_first('Root.Dataset') or et).value = args.dataset
+    (doc['Root'].find_first('Root.Space') or et).value = args.space or config.get_value('Root.Space')
+    (doc['Root'].find_first('Root.Time') or et).value = args.time or config.get_value('Root.Time')
+    (doc['Root'].find_first('Root.Grain') or et).value = args.grain or config.get_value('Root.Grain')
+    (doc['Root'].find_first('Root.Variant') or et).value = args.variant or config.get_value('Root.Variant')
+    (doc['Root'].find_first('Root.Version') or et).value = args.revision or config.get_value('Root.Version')
 
     # Copy contacts in
     if 'Contacts' in config:
@@ -132,7 +160,6 @@ def new_cmd(args):
 
     nv_name = doc.as_version(None)
 
-    doc['Documentation'].new_term('Root.Documentation', 'file:README.md', title='README')
 
     if args.example:
         doc['Resources'].new_term('Root.Datafile',
@@ -145,10 +172,22 @@ def new_cmd(args):
     doc.update_name(create_term=True)
 
     if args.jupyter:
-        from metapack.jupyter.convert import write_metatab_notebook
 
-        write_metatab_notebook(doc, Path(f'{nv_name}.ipynb'))
+        new_nb_path = Path(f'{nv_name}.ipynb')
+
+        doc['Resources'].new_term('Root.Datafile','./'+str(new_nb_path)+"#df" ,
+                                  name='local_dataframe', description='Example of using a local Dataframe')
+
+        if new_nb_path.exists():
+            err(f"Directory {nb_path} already exists")
+
+        copyfile(nb_path, new_nb_path)
+
+        write_metatab_notebook(doc, new_nb_path)
+        nb_path.unlink()
     else:
+
+        doc['Documentation'].new_term('Root.Documentation', 'file:README.md', title='README')
 
         if True:  # args.pylib:
             from metapack.support import pylib
@@ -169,10 +208,10 @@ def new_cmd(args):
 
         write_doc(doc, join(nv_name, DEFAULT_METATAB_FILE))
 
-        with open(join(dirname(support_dir.__file__),'gitignore')) as f:
+        with open(join(dirname(support_dir.__file__), 'gitignore')) as f:
             gitignore = f.read()
 
-        with open(join(nv_name,'.gitignore'), 'w') as f:
+        with open(join(nv_name, '.gitignore'), 'w') as f:
             f.write(gitignore)
 
         if args.title:
@@ -180,5 +219,5 @@ def new_cmd(args):
         else:
             readme = '# {}\n'.format(doc.get_value('Root.Name'))
 
-        with open(join(nv_name,'README.md'), 'w') as f:
+        with open(join(nv_name, 'README.md'), 'w') as f:
             f.write(readme)
