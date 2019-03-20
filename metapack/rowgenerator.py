@@ -6,7 +6,7 @@
 """
 
 from csv import reader
-from metapack.jupyter.convert import get_cell_source
+from metapack.jupyter.core import get_cell_source
 from metapack.jupyter.exec import execute_notebook
 from metapack.util import get_materialized_data_cache
 from metatab.rowgenerators import TextRowGenerator

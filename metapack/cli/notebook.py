@@ -11,7 +11,7 @@ import requests
 from metapack import Downloader, MetapackDoc
 from metapack.cli.core import list_rr, warn, prt, err, MetapackCliMemo, write_doc
 
-from metapack.jupyter.core import edit_notebook
+from metapack.jupyter.core import edit_notebook, set_cell_source
 from metapack.util import ensure_dir
 from os.path import dirname, basename, exists, splitext
 
@@ -122,12 +122,6 @@ def write_notebook(m):
         f.write(r.content)
 
     prt('Wrote {}'.format(nb_path))
-
-
-def set_cell_source(nb, tag, source):
-    for cell in nb['cells']:
-        if tag in cell.get('metadata', {}).get('tags', []):
-            cell.source = source
 
 
 def write_eda_notebook(m):

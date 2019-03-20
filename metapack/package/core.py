@@ -512,8 +512,8 @@ class PackageBuilder(object):
         # Root.Readme is a special term added from Jupyter notebooks, so README files
         # can be generated for packages.
         t = self.doc.find_first('Root.Readme')
-        t['title'] = 'Readme'
-        if t:
+
+        if t and (t.value or '').strip():
             t['title'] = 'Readme'
             # Since the text is comming from a notebook, it probably does not have a title
             readme = '# '+ (self.doc.get_value('Root.Title') or '').strip()

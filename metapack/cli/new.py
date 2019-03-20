@@ -12,6 +12,8 @@ from metapack.package import *
 from pathlib import Path
 from shutil import copyfile
 from .core import MetapackCliMemo as _MetapackCliMemo
+from metapack.jupyter.core import edit_notebook, set_cell_source, get_cell_source
+
 
 downloader = Downloader.get_instance()
 
@@ -184,6 +186,12 @@ def new_cmd(args):
         copyfile(nb_path, new_nb_path)
 
         write_metatab_notebook(doc, new_nb_path)
+
+        with edit_notebook(new_nb_path) as nb:
+            init = get_cell_source(nb, 'init')
+            init += f"\nthis_package_name = '{str(new_nb_path.name)}'"
+            set_cell_source(nb,'init',init)
+         
         nb_path.unlink()
     else:
 

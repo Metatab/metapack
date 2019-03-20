@@ -5,11 +5,9 @@
 Functions for converting Jupyter notebooks
 """
 import nbformat
-import requests
 from metapack import MetapackDoc
 from metapack.cli.core import prt, err
-from metapack.cli.notebook import set_cell_source
-from metapack.jupyter.core import logger, edit_notebook
+from metapack.jupyter.core import logger, edit_notebook, get_cell_source, set_cell_source
 from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter, WordpressExporter
 from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc
 from metapack.util import ensure_dir, copytree
@@ -20,7 +18,6 @@ from os.path import abspath, normpath, exists, dirname
 from pathlib import Path
 from rowgenerators.util import fs_join as join
 from traitlets.config import Config
-import base64
 
 
 def convert_documentation(nb_path):
@@ -181,14 +178,6 @@ def convert_wordpress(nb_path, wp_path):
     return output_file, resource_outputs
 
 
-def get_cell_source(nb, tag):
-    for cell in nb['cells']:
-        if tag in cell.get('metadata', {}).get('tags', []):
-            return cell.source
-
-    return ''
-
-
 def extract_notebook_metatab(nb_path: Path):
     """Extract the metatab lines from a notebook and return a Metapack doc """
 
@@ -232,3 +221,5 @@ def write_metatab_notebook(doc, nb_path: Path = None):
 
 
         set_cell_source(nb, 'readme', (doc.get_value('Root.Readme') or '').strip())
+
+

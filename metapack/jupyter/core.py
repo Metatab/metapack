@@ -197,3 +197,17 @@ def edit_notebook(nb_path: Path):
 
     with nb_path.open('wt') as f:
         nbformat.write(nb, f)
+
+
+def get_cell_source(nb, tag):
+    for cell in nb['cells']:
+        if tag in cell.get('metadata', {}).get('tags', []):
+            return cell.source
+
+    return ''
+
+
+def set_cell_source(nb, tag, source):
+    for cell in nb['cells']:
+        if tag in cell.get('metadata', {}).get('tags', []):
+            cell.source = source
