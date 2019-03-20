@@ -599,9 +599,6 @@ class MetapackCliMemo(object):
             if not Path(mtf).exists():
                 mtf = join(self.cwd, IPYNB_METATAB_FILE)
 
-            if not Path(mtf).exists():
-                raise FileNotFoundError('No default metadata file found')
-
         self.init_stage2(mtf, frag)
 
         self._doc = None

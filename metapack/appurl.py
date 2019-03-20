@@ -160,13 +160,14 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def package_url(self):
         """Return the package URL associated with this metadata"""
 
-        if self.target_format in [Path(e).suffix[1:] for e in METATAB_FILES]:
+        if self.resource_file == DEFAULT_METATAB_FILE or self.target_format in ('txt','ipynb'):
             u = self.inner.clone().clear_fragment()
             u.path = dirname(self.path) + '/'
             u.scheme_extension = 'metapack'
-            return MetapackPackageUrl(str(u.clear_fragment()), downloader=self._downloader)
         else:
-            return MetapackPackageUrl(str(self.clear_fragment()), downloader=self._downloader)
+            u = self
+
+        return MetapackPackageUrl(str(u.clear_fragment()), downloader=self._downloader)
 
     def get_resource(self):
 

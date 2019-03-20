@@ -22,7 +22,9 @@ class TestUrls(unittest.TestCase):
         groups = {}
 
         with open(test_data('mpurls.csv')) as f:
-            for l in DictReader(f):
+            for i, l in enumerate(DictReader(f)):
+
+                #print(i,l['in_url'])
 
                 u = parse_app_url(l['in_url'])
 
