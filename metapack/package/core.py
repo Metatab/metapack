@@ -509,6 +509,23 @@ class PackageBuilder(object):
 
             self._load_documentation(t, resource.read(), resource.resource_file)
 
+        # Root.Readme is a special term added from Jupyter notebooks, so README files
+        # can be generated for packages.
+        t = self.doc.find_first('Root.Readme')
+        t['title'] = 'Readme'
+        if t:
+            t['title'] = 'Readme'
+            # Since the text is comming from a notebook, it probably does not have a title
+            readme = '# '+ (self.doc.get_value('Root.Title') or '').strip()
+            if self.doc.description:
+                readme += '\n\n' + (self.doc.description or '').strip()
+
+            if (t.value or '').strip():
+                readme += '\n\n' +(t.value or '').strip()
+
+            self._load_documentation(t, readme.encode('utf8'), 'README.md')
+
+
     def _load_documentation(self, term, contents, file_name):
         raise NotImplementedError()
 

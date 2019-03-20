@@ -7,7 +7,7 @@ CLI program for managing packages
 
 from metapack import Downloader
 from metapack.cli.core import update_name, process_schemas, MetapackCliMemo, warn, prt, \
-    update_schema_properties
+    update_schema_properties, write_doc
 
 downloader = Downloader.get_instance()
 
@@ -48,16 +48,15 @@ def update(subparsers):
     group.add_argument('-n', '--name', action='store_true', default=False,
                        help="Update the Name from the Datasetname, Origin and Version terms")
 
-
     group.add_argument('-D', '--descriptions', action='store_true', default=False,
-                        help='Import descriptions for package references')
+                       help='Import descriptions for package references')
 
     parser.add_argument('-C', '--clean', default=False, action='store_true',
-                       help='Clean schema before processing')
-
+                        help='Clean schema before processing')
 
     parser.add_argument('-F', '--force', action='store_true', default=False,
                         help='Force the operation')
+
 
 def run_update(args):
     m = MetapackCliMemo(args, downloader)
@@ -80,7 +79,6 @@ def run_update(args):
     elif m.mtfile_url.scheme == 'file' and m.args.name:
         update_name(m.mt_file, fail_on_missing=True, force=m.args.force)
 
-
     elif m.args.descriptions:
         update_descriptions(m)
 
@@ -100,31 +98,27 @@ def update_schemas(m):
 
     process_schemas(m.mt_file, resource=m.resource, cache=m.cache, clean=m.args.clean, force=force)
 
-def update_schema_props(m):
 
+def update_schema_props(m):
     doc = m.doc
 
     update_schema_properties(doc, force=m.args.force)
 
-    doc.write_csv()
+    write_doc(doc)
+
 
 def clean_properties(m):
-
     doc = m.doc
 
     doc.clean_unused_schema_terms()
 
-    doc.write_csv()
-
-
+    write_doc(doc)
 
 
 def update_descriptions(m):
-
     doc = m.doc
 
     for ref in doc.references():
-
         v = ref.find_first('Description')
 
         ref['Description'] = ref.resource.description
@@ -132,31 +126,29 @@ def update_descriptions(m):
         print(ref.name, id(ref))
         print("Updated '{}' to '{}'".format(ref.name, ref.description))
 
-    #print(m.doc.as_csv())
+    # print(m.doc.as_csv())
 
     for ref in doc.references():
         v = ref.find_first('Description')
 
         print(ref.name, id(ref), ref.description)
 
-    doc.write_csv()
+    write_doc(doc)
 
 
 def update_categories(m):
-
     import metapack as mp
 
     doc = mp.MetapackDoc()
     doc['Root'].get_or_new_term('Root.Title', 'Schema and Value Categories')
     doc.new_section('Schema', ['Description', 'Ordered'])
 
-    update_resource_categories(m, m.get_resource(), doc )
+    update_resource_categories(m, m.get_resource(), doc)
 
     doc.write_csv('categories.csv')
 
 
 def update_resource_categories(m, resource, doc):
-
     columns = resource.row_generator.columns
 
     tab = doc['Schema'].new_term('Root.Table', m.get_resource().name)
@@ -168,15 +160,15 @@ def update_resource_categories(m, resource, doc):
         if col.get('ordered'):
             doc_col.new_child('Column.Ordered', 'true')
 
-        for k, v in col.get('values',{}).items():
+        for k, v in col.get('values', {}).items():
             doc_col.new_child('Column.Value', k, description=v)
 
-    doc.cleanse() # Creates Modified and Identifier
+    doc.cleanse()  # Creates Modified and Identifier
 
     return doc
 
-def move_alt_names(m):
 
+def move_alt_names(m):
     doc = m.doc
 
     for t in doc['Schema'].find('Root.Table'):
@@ -190,7 +182,6 @@ def move_alt_names(m):
 
                 moved += 1
 
-
         prt("Moved {} names in '{}'".format(moved, t.name))
 
-    doc.write_csv()
+    write_doc(doc)

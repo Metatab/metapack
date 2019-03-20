@@ -17,7 +17,7 @@ from rowgenerators import Source, parse_app_url
 from rowgenerators.exceptions import RowGeneratorError, AppUrlError
 from metapack.util import datetime_now
 from metapack.exc import MetatabFileNotFound
-
+from pathlib import Path
 
 class Resolver(WebResolver):
     def get_row_generator(self, ref, cache=None):
@@ -65,6 +65,7 @@ class MetapackDoc(MetatabDoc):
                 package_url = None
 
         try:
+
             super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
         except RowGeneratorError as e:
             raise MetatabFileNotFound("Failed to get Metatabfile for reference: '{}' ".format(ref))
@@ -301,3 +302,24 @@ class MetapackDoc(MetatabDoc):
         self.sort_by_term()
 
         return super().write_csv(str(path))
+
+    def write_ipynb(self, path:Path=None):
+        from metapack.jupyter.convert import write_metatab_notebook
+
+        write_metatab_notebook(self, path)
+
+
+    def write(self, path=None):
+        from metatab.exc import FormatError
+
+        path = self._write_path(path)
+
+        if path.suffix == '.txt':
+            self.write_lines(path)
+        elif path.suffix == '.csv':
+            self.write_csv(path)
+        elif path.suffix == '.ipynb':
+            self.write_ipynb(path)
+        else:
+            raise FormatError("Can't write to filetype of {}".format(path.suffix))
+

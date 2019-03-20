@@ -242,4 +242,4 @@ def scrape_page(m):
 
     prt("Added {} resource and {} documentation terms".format(new_resources, new_documentation))
 
-    doc.write_csv()
+    write_doc(doc)

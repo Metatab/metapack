@@ -24,7 +24,7 @@ from metapack.appurl import MetapackPackageUrl
 from metapack.cli.core import process_schemas
 from metapack.html import bibliography, data_sources
 from metatab import TermParser
-from metatab.generate import TextRowGenerator
+from metatab.rowgenerators import TextRowGenerator
 from os import makedirs, getcwd
 from os.path import join, abspath, dirname, exists, normpath
 from rowgenerators import Downloader, parse_app_url

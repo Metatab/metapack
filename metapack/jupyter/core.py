@@ -68,7 +68,8 @@ def ensure_source_package_dir(nb_path, pkg_name):
 def get_metatab_doc(nb_path):
     """Read a notebook and extract the metatab document. Only returns the first document"""
 
-    from metatab.generate import TextRowGenerator, CsvDataRowGenerator
+    from metatab.generate import CsvDataRowGenerator
+    from metatab.rowgenerators import TextRowGenerator
     from metatab import MetatabDoc
 
     with open(nb_path) as f:

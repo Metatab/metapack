@@ -8,7 +8,7 @@ from metapack.cli.core import (make_filesystem_package,  make_excel_package, mak
                                make_csv_package,
                                cli_init)
 from metapack.test.support import test_data
-from metatab.generate import TextRowGenerator
+from metatab.rowgenerators import TextRowGenerator
 from rowgenerators import get_generator,  parse_app_url
 from rowgenerators.exceptions import RowGeneratorError
 import platform
@@ -27,8 +27,7 @@ class TestPackages(unittest.TestCase):
         with open(test_data('packages.csv')) as f:
             for i, l in enumerate(DictReader(f)):
 
-
-                print(l['url'], l['target_file'])
+                print(i, l['url'], l['target_file'])
 
                 u = MetapackPackageUrl(l['url'], downloader=Downloader())
 
@@ -41,8 +40,6 @@ class TestPackages(unittest.TestCase):
 
                 # Testing containment because t can have path in local filesystem, which changes depending on where
                 # test is run
-
-
 
                 print("   ", t)
                 self.assertTrue(l['resolved_url'] in str(t), (i, l['resolved_url'], str(t)))
@@ -119,17 +116,17 @@ class TestPackages(unittest.TestCase):
 
         _, url, created = make_excel_package(fs_url, package_dir, cache, {}, False)
 
-        self.assertEquals(['random-names', 'renter_cost', 'unicode-latin1'], [r.name for r in url.doc.resources()])
+        self.assertEqual(['random-names', 'renter_cost', 'unicode-latin1'], [r.name for r in url.doc.resources()])
 
-        self.assertEquals(['random-names', 'renter_cost', 'unicode-latin1'], [r.url for r in url.doc.resources()])
+        self.assertEqual(['random-names', 'renter_cost', 'unicode-latin1'], [r.url for r in url.doc.resources()])
 
         # ZIP
 
         _, url, created = make_zip_package(fs_url, package_dir, cache, {}, False)
 
-        self.assertEquals(['random-names', 'renter_cost', 'unicode-latin1'], [r.name for r in url.doc.resources()])
+        self.assertEqual(['random-names', 'renter_cost', 'unicode-latin1'], [r.name for r in url.doc.resources()])
 
-        self.assertEquals(['data/random-names.csv', 'data/renter_cost.csv', 'data/unicode-latin1.csv'],
+        self.assertEqual(['data/random-names.csv', 'data/renter_cost.csv', 'data/unicode-latin1.csv'],
                           [r.url for r in url.doc.resources()])
 
         #  CSV

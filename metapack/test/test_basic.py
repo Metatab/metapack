@@ -5,7 +5,7 @@ from metapack import MetapackUrl, Downloader
 from metapack.terms import Reference, Resource
 from metapack.test.support import test_data, MetapackTest
 from metatab import TermParser
-from metatab.generate import TextRowGenerator
+from metatab.rowgenerators import TextRowGenerator
 
 
 class TestBasic(MetapackTest):
@@ -69,14 +69,39 @@ class TestBasic(MetapackTest):
 
     def test_line_oriented(self):
 
-        doc = MetapackDoc(TextRowGenerator("Declare: metatab-latest"))
+        doc = MetapackDoc(TextRowGenerator(test_data('line', 'line-oriented-doc.txt')))
 
-        with open(test_data('line','line-oriented-doc.txt')) as f:
-            text = f.read()
+        self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
+        self.assertEqual(151, len(doc.terms))
 
-        tp = TermParser(TextRowGenerator(text), resolver=doc.resolver, doc=doc)
+        self.assertEqual(6, len(list(doc['References'])))
 
-        doc.load_terms(tp)
+        self.assertEqual(6, len(list(doc['References'].find('Root.Reference'))))
+
+        self.assertEqual(6, len(list(doc['References'].find('Root.Resource'))))  # References are Resources
+
+        rt = list(doc['References'].find('Root.Resource'))[0]
+
+        self.assertIsInstance(rt, Reference)
+
+    def test_gen_line_rows(self):
+        from metatab import parse_app_url
+        from metapack import MetapackDocumentUrl
+        from metatab.rowgenerators import  TextRowGenerator
+        u = parse_app_url(test_data('line','line-oriented-doc.txt'), proto='metapack')
+
+        self.assertIsInstance(u, MetapackDocumentUrl)
+        self.assertIsInstance(u.get_resource(), MetapackDocumentUrl)
+        self.assertIsInstance(u.get_resource().get_target(), MetapackDocumentUrl)
+
+        self.assertIsInstance(u.generator, TextRowGenerator)
+
+        doc = MetapackDoc(u)
+        self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
+
+    def test_line_oriented_2(self):
+
+        doc = MetapackDoc(TextRowGenerator(test_data('line','line-oriented-doc.txt')))
 
         self.assertEqual('47bc1089-7584-41f0-b804-602ec42f1249', doc.get_value('Root.Identifier'))
         self.assertEqual(151, len(doc.terms))

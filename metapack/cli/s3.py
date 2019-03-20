@@ -9,7 +9,7 @@ import os
 from botocore.exceptions import NoCredentialsError
 from metapack import MetapackDoc, MetapackUrl
 from metapack import MetapackPackageUrl
-from metapack.cli.core import prt, err, generate_packages
+from metapack.cli.core import prt, err, generate_packages, write_doc
 from metapack.constants import PACKAGE_PREFIX
 from metapack.index import SearchIndex, search_index_file
 from metapack.package import *
@@ -157,7 +157,7 @@ def set_distributions(doc, dist_urls):
     for au in dist_urls:
         doc['Root'].new_term('Root.Distribution', au)
 
-    path = doc.write_csv()
+    path = write_doc(doc)()
 
 
 def make_s3_package(file, package_root, cache, env, skip_if_exists, acl='public-read'):

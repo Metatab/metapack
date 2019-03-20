@@ -22,7 +22,7 @@ class TestIssues(unittest.TestCase):
 
         from metapack import MetapackDoc
         from metapack.test.support import test_data
-        from metatab.generate import TextRowGenerator
+        from metatab.rowgenerators import TextRowGenerator
 
         mt_lines="""
 Declare: metatab-latest
@@ -53,7 +53,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         from metapack import  MetapackDoc
         from rowgenerators.valuetype import ShapeValue
         from metapack.test.support import test_data
-        from metatab.generate import TextRowGenerator
+        from metatab.rowgenerators import TextRowGenerator
 
         with open(test_data('line', 'line-oriented-doc.txt')) as f:
             text = f.read()

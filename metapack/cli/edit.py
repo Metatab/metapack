@@ -7,7 +7,7 @@ Metapack CLI program for creating new metapack package directories
 
 from metapack.package import *
 
-from .core import MetapackCliMemo as _MetapackCliMemo, err, prt, warn
+from .core import MetapackCliMemo as _MetapackCliMemo, err, prt, warn, write_doc
 
 downloader = Downloader.get_instance()
 
@@ -78,7 +78,7 @@ def add_cmd(m):
     term = doc[m.section].new_term(m.term, m.value)
 
     print(doc.as_csv())
-    doc.write_csv()
+    write_doc(doc)
 
 def change_cmd(m):
 
@@ -89,7 +89,7 @@ def change_cmd(m):
     t.value = m.value
 
     print(doc.as_csv())
-    doc.write_csv()
+    write_doc(doc)
 
 def delete_cmd(m):
 
@@ -109,5 +109,5 @@ def delete_cmd(m):
         warn("Delete failed")
 
     print(doc.as_csv())
-    doc.write_csv()
+    write_doc(doc)
 

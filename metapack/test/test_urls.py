@@ -77,7 +77,7 @@ class TestUrls(unittest.TestCase):
         self.assertIsInstance(r.inner, ZipUrl)
 
         t = r.get_target()
-        self.assertIsInstance(t, CsvFileUrl)
+        self.assertIsInstance(t.inner, CsvFileUrl)
 
         g = get_generator(t)
         self.assertEquals(50, len(list(g)))

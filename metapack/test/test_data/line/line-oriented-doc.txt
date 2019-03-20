@@ -1,3 +1,4 @@
+Declare: metatab-latest
 Identifier: 47bc1089-7584-41f0-b804-602ec42f1249
 Origin: civicknowledge.com
 Dataset: rcfe_affordability

@@ -79,9 +79,10 @@ setup_d = dict(
 
         ],
         'rowgenerators': [
-
-            "<MetapackUrl> = metapack.rowgenerator:MetapackGenerator",
             "<JupyterNotebookUrl> = metapack.rowgenerator:JupyterNotebookSource",
+            "metapack+.txt =  metatab.rowgenerators:TextRowGenerator",
+            "metatab+.ipynb =  metapack.rowgenerator:IpynbRowGenerator",
+            "metapack+.ipynb =  metapack.rowgenerator:IpynbRowGenerator",
 
         ],
         'mt.subcommands': [

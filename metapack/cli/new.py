@@ -9,6 +9,7 @@ from metapack.package import *
 
 from .core import MetapackCliMemo as _MetapackCliMemo
 import argparse
+from pathlib import Path
 
 downloader = Downloader.get_instance()
 
@@ -63,6 +64,9 @@ def new_args(subparsers):
                         action='store_true')
 
     parser.add_argument('-E', '--example', help="Add examples of resources",
+                        action='store_true')
+
+    parser.add_argument('-J', '--jupyter', help="Create a Jupyter notebook source package",
                         action='store_true')
 
     parser.add_argument('--template', help="Metatab file template, defaults to 'metatab' ", default='metatab')
@@ -128,11 +132,6 @@ def new_cmd(args):
 
     nv_name = doc.as_version(None)
 
-    if exists(nv_name):
-        err(f"Directory {nv_name} already exists")
-
-    ensure_dir(nv_name)
-
     doc['Documentation'].new_term('Root.Documentation', 'file:README.md', title='README')
 
     if args.example:
@@ -142,30 +141,44 @@ def new_cmd(args):
 
         doc['Documentation'].new_term('Root.Homepage', 'http://metatab.org', title='Metatab Home Page')
 
-    if True: # args.pylib:
-        from metapack.support import pylib
-        pylib_dir = join(nv_name,'pylib')
-        ensure_dir(pylib_dir)
-        with open(join(pylib_dir, '__init__.py'), 'w') as f_out, open(pylib.__file__) as f_in:
-            f_out.write(f_in.read())
+    doc.ensure_identifier()
+    doc.update_name(create_term=True)
 
-        if args.example:
-            doc['Resources'].new_term('Root.Datafile','python:pylib#row_generator', name='row_generator')
+    if args.jupyter:
+        from metapack.jupyter.convert import write_metatab_notebook
 
-    prt(f"Writing to '{nv_name}'")
-
-    write_doc(doc, join(nv_name, DEFAULT_METATAB_FILE))
-
-    with open(join(dirname(support_dir.__file__),'gitignore')) as f:
-        gitignore = f.read()
-
-    with open(join(nv_name,'.gitignore'), 'w') as f:
-        f.write(gitignore)
-
-    if args.title:
-        readme = '# {}\n'.format(args.title)
+        write_metatab_notebook(doc, Path(f'{nv_name}.ipynb'))
     else:
-        readme = '# {}\n'.format(doc.get_value('Root.Name'))
 
-    with open(join(nv_name,'README.md'), 'w') as f:
-        f.write(readme)
+        if True:  # args.pylib:
+            from metapack.support import pylib
+            pylib_dir = join(nv_name, 'pylib')
+            ensure_dir(pylib_dir)
+            with open(join(pylib_dir, '__init__.py'), 'w') as f_out, open(pylib.__file__) as f_in:
+                f_out.write(f_in.read())
+
+            if args.example:
+                doc['Resources'].new_term('Root.Datafile', 'python:pylib#row_generator', name='row_generator')
+
+        if exists(nv_name):
+            err(f"Directory {nv_name} already exists")
+
+        ensure_dir(nv_name)
+
+        prt(f"Writing to '{nv_name}'")
+
+        write_doc(doc, join(nv_name, DEFAULT_METATAB_FILE))
+
+        with open(join(dirname(support_dir.__file__),'gitignore')) as f:
+            gitignore = f.read()
+
+        with open(join(nv_name,'.gitignore'), 'w') as f:
+            f.write(gitignore)
+
+        if args.title:
+            readme = '# {}\n'.format(args.title)
+        else:
+            readme = '# {}\n'.format(doc.get_value('Root.Name'))
+
+        with open(join(nv_name,'README.md'), 'w') as f:
+            f.write(readme)

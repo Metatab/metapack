@@ -5,9 +5,11 @@
 Functions for converting Jupyter notebooks
 """
 import nbformat
+import requests
 from metapack import MetapackDoc
 from metapack.cli.core import prt, err
-from metapack.jupyter.core import logger
+from metapack.cli.notebook import set_cell_source
+from metapack.jupyter.core import logger, edit_notebook
 from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter, WordpressExporter
 from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc
 from metapack.util import ensure_dir, copytree
@@ -18,6 +20,7 @@ from os.path import abspath, normpath, exists, dirname
 from pathlib import Path
 from rowgenerators.util import fs_join as join
 from traitlets.config import Config
+import base64
 
 
 def convert_documentation(nb_path):
@@ -189,17 +192,52 @@ def get_cell_source(nb, tag):
 def extract_notebook_metatab(nb_path: Path):
     """Extract the metatab lines from a notebook and return a Metapack doc """
 
-    from metatab.generate import TextRowGenerator
+    from metatab.rowgenerators import TextRowGenerator
     import nbformat
 
     with nb_path.open() as f:
         nb = nbformat.read(f, as_version=4)
 
-    lines = '\n'.join(get_cell_source(nb, tag) for tag in ['metadata', 'resources', 'schema'])
-
+    lines = '\n'.join(['Declare: metatab-latest'] + [get_cell_source(nb, tag) for tag in ['metadata', 'resources',
+                                                                                     'schema']])
     doc = MetapackDoc(TextRowGenerator(lines))
 
     doc['Root'].get_or_new_term('Root.Title').value = get_cell_source(nb, 'Title').strip('#').strip()
     doc['Root'].get_or_new_term('Root.Description').value = get_cell_source(nb, 'Description')
 
+    doc['Documentation'].get_or_new_term('Root.Readme').value = get_cell_source(nb, 'readme')
+
     return doc
+
+
+def write_metatab_notebook(doc, nb_path: Path = None):
+    url = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/metadata.ipynb"
+
+    nb_path = nb_path or Path('metadata.ipynb')
+
+    if not nb_path.exists():
+
+        r = requests.get(url, allow_redirects=True)
+        r.raise_for_status()
+
+        with nb_path.open('wb') as f:
+            f.write(r.content)
+
+    def as_lines(s, excludes):
+        return '\n'.join('{}: {}'.format(t, v or '') for t, v in s.lines if t not in excludes)
+
+    with edit_notebook(nb_path) as nb:
+        set_cell_source(nb, 'Title', "# " + doc.get_value('Root.Title') or '')
+        set_cell_source(nb, 'Description', doc.description)
+        set_cell_source(nb, 'metadata',
+                        '\n\n'.join(as_lines(s, ['Title', 'Description', 'Declare', 'Readme'])
+                                    for s in doc if s.name.lower() not in ['references', 'resources',
+                                                                           'schema']))
+        set_cell_source(nb, 'resources',
+                        '\n\n'.join(s.as_lines() for s in doc if s.name.lower() in ['references', 'resources']))
+
+        set_cell_source(nb, 'schema',
+                        '\n\n'.join(s.as_lines() for s in doc if s.name.lower() in ['schema']))
+
+
+        #set_cell_source(nb, 'readme', base64.b64decode((doc.get_value('Root.Readme') or '').strip()))

@@ -6,7 +6,7 @@ from rowgenerators import parse_app_url
 from metapack import open_package, MetapackDoc, Downloader
 from metapack.constants import PACKAGE_PREFIX
 from metatab.util import flatten
-from metatab.generate import TextRowGenerator
+from metatab.rowgenerators import TextRowGenerator
 from itertools import islice
 from rowgenerators import get_generator
 from metapack.test.support import test_data, get_cache, MetapackTest

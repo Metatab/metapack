@@ -49,6 +49,12 @@ def info_args(subparsers):
     group.add_argument('-R', '--row-table', default=False, action='store_true',
                        help="Print the row-processor table, including transforms and valuetypes")
 
+    group.add_argument('-p', '--package-url', default=False, action='store_true',
+                       help="Print the package url")
+
+    group.add_argument('-P', '--package-root', default=False, action='store_true',
+                       help="Print the package root url")
+
     parser.add_argument('-v', '--version', default=False, action='store_true',
                              help='Print Metapack versions')
 
@@ -89,6 +95,12 @@ def info(args):
 
         elif m.args.root_name:
             prt(m.doc.as_version(None))
+
+        elif m.args.package_url:
+            prt(m.package_url)
+
+        elif m.args.package_root:
+            prt(m.package_root)
 
         elif m.args.schema:
             dump_schemas(m)

@@ -221,6 +221,7 @@ def index_s3(u, idx):
     prt("Indexed ", len(entries), 'entries to ', idx.path)
 
 def dump_index(args, idx):
+    """Create a metatab file for the index"""
 
     import csv
     import sys

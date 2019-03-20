@@ -1,11 +1,11 @@
 import logging
-from metapack import open_package
+from contextlib import contextmanager
+from metapack import open_package, MetapackDoc
 from metapack.constants import PACKAGE_PREFIX
 from metapack.package import FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder
-from metatab import DEFAULT_METATAB_FILE
-from contextlib import contextmanager
-
+from metatab import DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE
 from tabulate import tabulate
+from pathlib import Path
 
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
@@ -69,7 +69,7 @@ def new_metatab_file(mt_file, template):
 
         doc['Root']['Identifier'] = str(uuid4())
 
-        doc.write_csv(mt_file)
+        write_doc(doc, mt_file)
 
 
 def find_files(base_path, types):
@@ -248,7 +248,6 @@ def make_filesystem_package(file, package_root, cache, env, force, nv_name=None,
     from os.path import join
 
     from metapack.package import FileSystemPackageBuilder
-    from metatab import DEFAULT_METATAB_FILE
 
     assert package_root
 
@@ -294,7 +293,26 @@ def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=Fal
         write_doc(doc, mt_file)
 
 
-def write_doc(doc, mt_file=None):
+def add_giturl(doc : MetapackDoc):
+
+    import subprocess
+
+    if not doc['Root'].find('GitUrl'):
+        try:
+            out = subprocess.run(['git', 'remote', 'show', 'origin'], stdout=subprocess.PIPE,
+                                 stderr=subprocess.DEVNULL, timeout=6) \
+                .stdout.decode('utf-8')
+
+            fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l)
+        except (TimeoutError, StopIteration, subprocess.TimeoutExpired, FileNotFoundError):
+            fetchline = None
+
+        if fetchline:
+            t = doc['Root'].get_or_new_term('GitUrl')
+            t.value = fetchline[-1]
+
+
+def write_doc(doc : MetapackDoc, mt_file=None):
     """
     Write a Metatab doc to a CSV file, and update the Modified time
     :param doc:
@@ -304,28 +322,15 @@ def write_doc(doc, mt_file=None):
 
     from rowgenerators import parse_app_url
 
-    import subprocess
-
     if not mt_file:
         mt_file = doc.ref
 
-    try:
-        out = subprocess.run(['git', 'remote', 'show', 'origin'], stdout=subprocess.PIPE,
-                             stderr=subprocess.DEVNULL, timeout=6) \
-            .stdout.decode('utf-8')
-
-        fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l)
-    except (TimeoutError, StopIteration, subprocess.TimeoutExpired, FileNotFoundError):
-        fetchline = None
-
-    if fetchline:
-        t = doc['Root'].get_or_new_term('GitUrl')
-        t.value = fetchline[-1]
+    add_giturl(doc)
 
     u = parse_app_url(mt_file)
 
     if u.scheme == 'file':
-        doc.write_csv(mt_file)
+        doc.write(mt_file)
         return True
     else:
         return False
@@ -435,20 +440,22 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
                 kwargs['AltName'] = alt_name
 
             t = schema_term.new_child('Column', c['header'],
-                                datatype=type_map.get(c['resolved_type'], c['resolved_type']),
-                                # description = get_col_value(c['header'].lower(),'description'),
-                                **kwargs)
+                                      datatype=type_map.get(c['resolved_type'], c['resolved_type']),
+                                      # description = get_col_value(c['header'].lower(),'description'),
+                                      **kwargs)
 
         update_resource_properties(r, orig_columns=orig_columns, force=force)
 
     if write_doc_to_file and schemas_processed:
         write_doc(doc, mt_file)
 
+
 def update_schema_properties(doc, force=False):
     for r in doc['Resources'].find('Root.Resource'):
         update_resource_properties(r, force=False)
 
-def update_resource_properties(r, orig_columns = {}, force=False):
+
+def update_resource_properties(r, orig_columns={}, force=False):
     """Get descriptions and other properties from this, or upstream, packages, and add them to the schema. """
 
     added = []
@@ -472,7 +479,6 @@ def update_resource_properties(r, orig_columns = {}, force=False):
     # Ask the generator if it can provide column descriptions and types
     generator_columns = {e['name'].lower() if e['name'] else '': e for e in rg.columns or {}}
 
-
     def get_col_value(col_name, value_name):
 
         v = None
@@ -480,7 +486,7 @@ def update_resource_properties(r, orig_columns = {}, force=False):
         if not col_name:
             return None
 
-        for d in [generator_columns, upstream_columns,  orig_columns, schema_columns]:
+        for d in [generator_columns, upstream_columns, orig_columns, schema_columns]:
             v_ = d.get(col_name.lower(), {}).get(value_name)
             if v_:
                 v = v_
@@ -495,7 +501,7 @@ def update_resource_properties(r, orig_columns = {}, force=False):
                 extra_properties.add(kk)
 
     # Remove the properties that are already accounted for
-    extra_properties = extra_properties - {'pos',  'header', 'name', ''}
+    extra_properties = extra_properties - {'pos', 'header', 'name', ''}
 
     # Add any extra properties, such as from upstream packages, to the schema.
 
@@ -556,13 +562,10 @@ type_map = {
     'datetime64[ns]': 'datetime'
 }
 
-
 class MetapackCliMemo(object):
     def __init__(self, args, downloader):
         from os import getcwd
         from os.path import join
-
-        from metatab import DEFAULT_METATAB_FILE
 
         self.cwd = getcwd()
         self.args = args
@@ -590,13 +593,22 @@ class MetapackCliMemo(object):
         if not mtf:
             mtf = join(self.cwd, DEFAULT_METATAB_FILE)
 
+            if not Path(mtf).exists():
+                mtf = join(self.cwd, LINES_METATAB_FILE)
+
+            if not Path(mtf).exists():
+                mtf = join(self.cwd, IPYNB_METATAB_FILE)
+
+            if not Path(mtf).exists():
+                raise FileNotFoundError('No default metadata file found')
 
         self.init_stage2(mtf, frag)
+
+        self._doc = None
 
     def init_stage2(self, mtf, frag):
         from metapack import MetapackUrl
         from rowgenerators import parse_app_url
-        from rowgenerators.util import fs_join as join
 
         self.frag = frag
 
@@ -607,7 +619,11 @@ class MetapackCliMemo(object):
         if u.scheme == 'index':
             self.mtfile_url = MetapackUrl(u.resolve(), downloader=self.downloader)
         else:
-            self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
+
+            if u.scheme == 'file':
+                self.mtfile_url = MetapackUrl(u.fspath.resolve(), downloader=self.downloader)
+            else:
+                self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
 
         self.resource = self.mtfile_url.resource_name
 
@@ -618,19 +634,21 @@ class MetapackCliMemo(object):
         self.package_url = self.mtfile_url.package_url
         self.mt_file = self.mtfile_url.metadata_url
 
-        # assert self.package_url.scheme == 'file'
-
         if hasattr(self.args, 'build_directory') and self.args.build_directory:
             self.package_root = parse_app_url(self.args.build_directory)
         else:
             self.package_root = self.package_url.join(PACKAGE_PREFIX)
+
 
         assert self.package_root._downloader
 
     @property
     def doc(self):
         from metapack import MetapackDoc
-        return MetapackDoc(self.mt_file)
+        if self._doc is None:
+            self._doc = MetapackDoc(self.mt_file)
+
+        return self._doc
 
     def get_resource(self):
         return get_resource(self)
@@ -675,7 +693,7 @@ def get_config():
             with p.open() as f:
                 config = yaml.safe_load(f)
                 if not config:
-                    config =  {}
+                    config = {}
 
                 config['_loaded_from'] = str(p)
                 return config
@@ -736,14 +754,13 @@ def find_packages(name, pkg_dir):
         package_path, cache_path = c.make_package_path(pkg_dir, name)
 
         if package_path.exists():
-
-            yield c.type_code, package_path, cache_path #c(package_path, pkg_dir)
+            yield c.type_code, package_path, cache_path  # c(package_path, pkg_dir)
 
 
 def generate_packages(m):
-
     for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
         yield ptype, purl, cache_path
+
 
 def find_csv_packages(m, downloader):
     """Locate the build CSV package, which will have distributions if it was generated  as
@@ -758,6 +775,7 @@ def find_csv_packages(m, downloader):
     if package_path.exists():
         return open_package(package_path, downloader=downloader)
 
+
 def md5_file(filePath):
     import hashlib
 
@@ -769,64 +787,5 @@ def md5_file(filePath):
                 break
             m.update(data)
         return m.hexdigest()
-
-#
-# The lines translation is a total HACK! It is however, at this point, the
-# safest way to be able to edit metadata data in a package in lines format
-#
-
-@contextmanager
-def maybe_translate_lines(do_translate):
-    """Translate from  metadata.txt to metadata.csv before running a csv based command, then
-    from metadata.csv back to metadata.txt afterwards. Initial translation requires that the
-    .txt file is newer. """
-
-    # For now, this will only work in the current directory, since it is only intended to support
-    # manually
-
-    import pathlib
-    import shutil
-    from metatab import MetatabDoc
-    from metatab.generate import TextRowGenerator
-
-    import os
-
-
-    csv_file = pathlib.Path(DEFAULT_METATAB_FILE)
-    csv_file_save = csv_file.with_suffix('.save')
-    lines_file = csv_file.with_suffix('.txt')
-
-    if not do_translate:
-        if lines_file.exists():
-            warn("A lines file exist, but it is not being used. ")
-
-        yield
-        return
-
-    if lines_file.exists():
-        # Don't convert the lines file unless the lines file is newer than the csv file
-        if not csv_file.exists() or (csv_file.exists() and lines_file.stat().st_mtime > csv_file.stat().st_mtime):
-            if csv_file.exists():
-                shutil.copy(str(csv_file), csv_file_save)
-
-            with lines_file.open() as f:
-                lines_doc = MetatabDoc(TextRowGenerator(f.read()))
-
-            lines_doc.write_csv(str(csv_file))
-
-    yield
-
-
-    if csv_file.exists():
-
-        doc = MetatabDoc(str(csv_file))
-        doc.write_lines(str(lines_file))
-
-        mtime  = csv_file.stat().st_mtime
-
-        # Reset the mtime so if we run it again, this code doesn't assume that
-        # the lines file has been modified after being written.
-        os.utime(str(lines_file), (mtime, mtime))
-
 
 

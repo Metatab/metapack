@@ -14,7 +14,7 @@ from traitlets import Unicode, List, Dict
 
 from metapack import MetapackDoc
 from metatab import TermParser
-from metatab.generate import TextRowGenerator
+from metatab.rowgenerators import TextRowGenerator
 from rowgenerators import parse_app_url
 from .magic import MetatabMagic
 

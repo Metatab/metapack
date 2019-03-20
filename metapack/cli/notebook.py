@@ -9,11 +9,11 @@ import sys
 
 import requests
 from metapack import Downloader, MetapackDoc
-from metapack.cli.core import list_rr, warn, prt, err, MetapackCliMemo
+from metapack.cli.core import list_rr, warn, prt, err, MetapackCliMemo, write_doc
+
 from metapack.jupyter.core import edit_notebook
 from metapack.util import ensure_dir
 from os.path import dirname, basename, exists, splitext
-from pathlib import Path
 
 downloader = Downloader.get_instance()
 
@@ -162,44 +162,13 @@ def write_eda_notebook(m):
 
 
 def write_metatab_notebook(m):
+    from metapack.jupyter.convert import write_metatab_notebook as _write_metatab_notebook
     _write_metatab_notebook(m.doc)
-
-
-def _write_metatab_notebook(doc, nb_path: Path = None):
-    url = "https://raw.githubusercontent.com/Metatab/exploratory-data-analysis/master/metadata.ipynb"
-
-    nb_path = nb_path or Path('metadata.ipynb')
-
-    if not nb_path.exists():
-        err("Notebook {} already exists".format(str(nb_path)))
-
-        r = requests.get(url, allow_redirects=True)
-        r.raise_for_status()
-
-        with nb_path.open('wb') as f:
-            f.write(r.content)
-
-        prt('Wrote new {}'.format(str(nb_path)))
-
-    def as_lines(s, excludes):
-        return '\n'.join('{}: {}'.format(t, v) for t, v in s.lines if t not in excludes)
-
-    with edit_notebook(nb_path) as nb:
-        set_cell_source(nb, 'Title', "# " + doc.get_value('Root.Title'))
-        set_cell_source(nb, 'Description', doc.description)
-        set_cell_source(nb, 'metadata',
-                        '\n\n'.join(as_lines(s, ['Title', 'Description'])
-                                    for s in doc if s.name.lower() not in ['references', 'resources',
-                                                                           'schema']))
-        set_cell_source(nb, 'resources',
-                        '\n\n'.join(s.as_lines() for s in doc if s.name.lower() in ['references', 'resources']))
-
-        set_cell_source(nb, 'schema',
-                        '\n\n'.join(s.as_lines() for s in doc if s.name.lower() in ['schemas']))
 
 
 def convert_metatab_notebook(source):
     from metapack.jupyter.convert import extract_notebook_metatab
+    from metapack.jupyter.convert import write_metatab_notebook as _write_metatab_notebook
     from pathlib import Path
 
     source = Path(source)
@@ -217,7 +186,7 @@ def convert_metatab_notebook(source):
         doc = extract_notebook_metatab(source)
         doc.ensure_identifier()
         doc.update_name(create_term=True)
-        doc.write_csv(dest)
+        write_doc(doc, dest)
 
     else:
         err("Source file must be either .ipynb or .csv")

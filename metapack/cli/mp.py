@@ -17,7 +17,7 @@ except DistributionNotFound:
    # package is not installed
    pass
 
-from metapack.cli.core import  cli_init, maybe_translate_lines
+from metapack.cli.core import cli_init
 
 def base_parser():
 
@@ -31,10 +31,6 @@ def base_parser():
 
     parser.add_argument('--debug', default=False, action='store_true',
                         help='Turn on debug logging ( Basic Config ) ')
-
-    parser.add_argument('-L','--lines', default=False, action='store_true',
-                        help='Translate lines file. Convert metadata.txt to CSV before running command, and from CSV '
-                             'back to lines afterward')
 
     subparsers = parser.add_subparsers(help='Commands')
 
@@ -65,9 +61,7 @@ def mp():
         sys.exit(2)
 
     try:
-        with maybe_translate_lines(bool(args.lines)):
-            args.run_command(args)
-
+        args.run_command(args)
     except Exception as e:
         if args.exceptions:
             raise e

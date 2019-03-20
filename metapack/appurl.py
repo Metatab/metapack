@@ -5,16 +5,17 @@
 
 """
 
-from os.path import basename, join, dirname, exists
 from metapack.exc import MetapackError, ResourceError
+from metatab import DEFAULT_METATAB_FILE, LINES_METATAB_FILE
+from os.path import basename, join, dirname
+from pathlib import Path
 from rowgenerators import Url, parse_app_url
-from rowgenerators.appurl.web.web import WebUrl
 from rowgenerators.appurl.file.file import FileUrl
 from rowgenerators.appurl.util import file_ext
+from rowgenerators.appurl.web.web import WebUrl
 from rowgenerators.exceptions import AppUrlError, DownloadError
-import json
 
-from metatab import DEFAULT_METATAB_FILE
+METATAB_FILES = (DEFAULT_METATAB_FILE, LINES_METATAB_FILE, DEFAULT_METATAB_FILE.replace('.csv', '.ipynb'))
 
 
 class _MetapackUrl(object):
@@ -24,7 +25,7 @@ class _MetapackUrl(object):
         if self.inner.proto == 'file':
             return self.inner.exists()
         else:
-            # Hack, really ought to implement exeists() for web urls.
+            # Hack, really ought to implement exists() for web urls.
             return True
 
     @property
@@ -33,9 +34,12 @@ class _MetapackUrl(object):
 
 
 def is_metapack_url(u):
-    return isinstance(u,_MetapackUrl)
+    return isinstance(u, _MetapackUrl)
+
 
 class MetapackDocumentUrl(Url, _MetapackUrl):
+    simple_file_formats = ('csv', 'txt', 'ipynb')
+
     def __init__(self, url=None, downloader=None, **kwargs):
         kwargs['proto'] = 'metapack'
 
@@ -45,16 +49,16 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
 
         # If there is no file with an extension in the path, assume that this
         # is a filesystem package, and that the path should have DEFAULT_METATAB_FILE
-        if file_ext(basename(u.path)) not in ('zip', 'xlsx', 'csv'):
+        if file_ext(basename(u.path)) not in ('zip', 'xlsx') + self.simple_file_formats:
             u.path = join(u.path, DEFAULT_METATAB_FILE)
 
         super().__init__(str(u), downloader=downloader, **kwargs)
 
         self.scheme_extension = 'metapack'
 
-        if basename(self.path) == DEFAULT_METATAB_FILE:
+        if basename(self.path) in METATAB_FILES:
             frag = ''
-        elif self.resource_format == 'csv':
+        elif self.resource_format in self.simple_file_formats:
             frag = ''
         elif self.resource_format == 'xlsx':
             frag = 'meta'
@@ -85,21 +89,22 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
 
     @property
     def target_file(self):
-        if self.path.endswith(DEFAULT_METATAB_FILE):
-            return DEFAULT_METATAB_FILE
-        elif self.resource_format == 'csv':
+
+        if self.fspath.name in METATAB_FILES:
+            return self.fspath.name
+        elif self.resource_format in self.simple_file_formats:
             return self.resource_file
         elif self.resource_format == 'xlsx':
             return 'meta'
         elif self.resource_format == 'zip':
-            return 'metadata.csv'
+            return DEFAULT_METATAB_FILE
         else:
             return self.resource_file
 
     @property
     def target_format(self):
-        if self.resource_format == 'csv':
-            return 'csv'
+        if self.resource_format in self.simple_file_formats:
+            return self.resource_format
         elif self.resource_format == 'xlsx':
             return 'xlsx'
         elif self.resource_format == 'zip':
@@ -119,7 +124,12 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
 
         from rowgenerators import get_generator
 
-        t = self.get_resource().get_target().inner
+        # HACK! This used to be:
+        # t = self.get_resource().get_target().inner
+        # I don't know why, but stripping off the proto is problematic
+        # for other cases.
+
+        t = self.get_resource().get_target()
 
         return get_generator(t)
 
@@ -150,7 +160,7 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def package_url(self):
         """Return the package URL associated with this metadata"""
 
-        if self.resource_file == DEFAULT_METATAB_FILE:
+        if self.target_format in [Path(e).suffix[1:] for e in METATAB_FILES]:
             u = self.inner.clone().clear_fragment()
             u.path = dirname(self.path) + '/'
             u.scheme_extension = 'metapack'
@@ -168,11 +178,13 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
         return MetapackDocumentUrl(str(u), downloader=self._downloader)
 
     def get_target(self):
-        return self.inner.get_target()
+        u = self.inner.get_target().clone(scheme_extension=self.proto)
+        u.scheme_extension = self.scheme_extension
+        return parse_app_url(str(u), downloader=self._downloader)
 
     def join_target(self, tf):
 
-        if self.target_file == DEFAULT_METATAB_FILE:
+        if self.target_file in METATAB_FILES:
             return self.inner.join_dir(tf)
         else:
             return self.inner.join_target(tf)
@@ -229,7 +241,7 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
     def join_target(self, tf):
         """Like join(), but returns the inner URL, not a package url class"""
-        if self.target_file == DEFAULT_METATAB_FILE:
+        if self.target_file in METATAB_FILES:
             return self.inner.join_dir(tf)
         else:
             return self.inner.join_target(tf)
@@ -267,13 +279,13 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
             # For CSV packages, need to get the package and open it to get the resource URL, because
             # they are always absolute web URLs and may not be related to the location of the metadata.
+
             s = self.get_resource()
             rs = s.metadata_url.doc.resource(resource_name)
             if rs is not None:
                 t = parse_app_url(rs.url)
             else:
                 raise ResourceError("No resource for '{}' in '{}' ".format(resource_name, self))
-
 
         else:
             jt = self.join_target(resource_name)
@@ -317,7 +329,6 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
 
     @property
     def target_file(self):
-        from urllib.parse import unquote_plus
 
         if self.fragment[0]:
             return self.fragment[0]
@@ -365,7 +376,6 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
             r = self.doc.reference(self.fragment[0])
 
         return r
-
 
 
 # Would have made this a function, but it needs to be a class to have the match() method
