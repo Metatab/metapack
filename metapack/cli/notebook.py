@@ -43,8 +43,8 @@ def notebook(subparsers):
     cmdp.add_argument('-E', '--eda', action='store_true', default=False,
                       help='Create an EDA notebook for a resource')
 
-    cmdp.add_argument('-N', '--notebook', action='store_true', default=False,
-                      help='Create a new notebook')
+    cmdp.add_argument('-b', '--notebook', action='store_true', default=False,
+                      help='Create a new, blank notebook')
 
     cmdp.add_argument('metatabfile', nargs='?',
                       help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")

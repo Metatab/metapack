@@ -214,7 +214,6 @@ class FileSystemPackageBuilder(PackageBuilder):
         if source_r.errors:
             self.err("Resource processing generated conversion errors")
 
-
         # Writing between resources so row-generating programs and notebooks can
         # access previously created resources. We have to clean the doc before writing it
 

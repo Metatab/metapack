@@ -71,7 +71,7 @@ class TestPackages(unittest.TestCase):
         package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
 
         cache = Downloader().cache
-
+        print("!!!!", cache)
         _, fs_url, created = make_filesystem_package(m, package_dir, cache, {}, False)
 
         print(created)

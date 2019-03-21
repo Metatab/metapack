@@ -10,7 +10,7 @@ from metapack.util import walk_up
 from os.path import getmtime, join, exists
 from metapack.exc import PackageError
 from rowgenerators.exceptions import RowGeneratorError
-
+from metatab import DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE
 
 def caller_locals():
     """Get the local variables in the caller's frame."""
@@ -34,18 +34,21 @@ def open_source_package(dr=None):
 
     for i, e in enumerate(walk_up(dr)):
 
-        if 'metadata.csv' in e[2]:
-            return op(join(e[0], 'metadata.csv'))
+        intr = set([DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE]) & set(e[2])
+
+        if intr:
+
+            return op(join(e[0], list(intr)[0] ))
 
         if i > 2:
             break
 
     return None
 
-
 def open_package(locals=None, dr=None):
     """Try to open a package with the metatab_doc variable, which is set when a Notebook is run
     as a resource. If that does not exist, try the local _packages directory"""
+
 
     if locals is None:
         locals = caller_locals()
@@ -66,8 +69,11 @@ def open_package(locals=None, dr=None):
 
         for i, e in enumerate(walk_up(dr)):
 
-            if 'metadata.csv' in e[2]:
-                source_package = join(e[0], 'metadata.csv')
+            intr = set([DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE]) & set(e[2])
+
+            if intr:
+
+                source_package = join(e[0], list(intr)[0])
                 p = op(source_package)
                 package_name = p.find_first_value("Root.Name")
 
