@@ -591,6 +591,7 @@ class MetapackCliMemo(object):
             frag = ''
             mtf = args.metatabfile
 
+
         # If could not get it from the args, Set it to the default file name in the current dir
         if not mtf:
             mtf = join(self.cwd, DEFAULT_METATAB_FILE)
@@ -620,7 +621,7 @@ class MetapackCliMemo(object):
         else:
 
             if u.scheme == 'file':
-                self.mtfile_url = MetapackUrl(u.fspath.resolve(), downloader=self.downloader)
+                self.mtfile_url = MetapackUrl(u.absolute(), downloader=self.downloader)
             else:
                 self.mtfile_url = MetapackUrl(self.mtfile_arg, downloader=self.downloader)
 

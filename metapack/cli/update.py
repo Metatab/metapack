@@ -30,26 +30,28 @@ def update(subparsers):
 
     group = parser.add_mutually_exclusive_group()
 
-    group.add_argument('-s', '--schemas', default=False, action='store_true',
-                       help='Rebuild the schemas for files referenced in the resource section')
-
-    group.add_argument('-P', '--schema-properties', default=False, action='store_true',
-                       help='Load schema properties from generators and upstream sources')
-
-    group.add_argument('-A', '--alt-name', default=False, action='store_true',
-                       help='Move AltNames to column name')
-
-    group.add_argument('--clean-properties', default=False, action='store_true',
-                       help='Remove unused columns in the schema, like AltName')
-
     group.add_argument('-c', '--categories', default=False, action='store_true',
                        help='Update categories, creating a new categories.csv metadata file')
 
     group.add_argument('-n', '--name', action='store_true', default=False,
                        help="Update the Name from the Datasetname, Origin and Version terms")
 
+    group.add_argument('-s', '--schemas', default=False, action='store_true',
+                       help='Rebuild the schemas for files referenced in the resource section')
+
+    group.add_argument('-P', '--schema-properties', default=False, action='store_true',
+                       help='Load schema properties from generators and upstream sources')
+
+
+
     group.add_argument('-D', '--descriptions', action='store_true', default=False,
                        help='Import descriptions for package references')
+
+    parser.add_argument('-A', '--alt-name', default=False, action='store_true',
+                       help='Move AltNames to column name')
+
+    parser.add_argument('-X', '--clean-properties', default=False, action='store_true',
+                       help='Remove unused columns in the schema, like AltName')
 
     parser.add_argument('-C', '--clean', default=False, action='store_true',
                         help='Clean schema before processing')
@@ -177,10 +179,15 @@ def move_alt_names(m):
 
             altname = c.get('AltName')
             if altname:
+
+                if not c.get('Description'):
+                    c.description = c.name.replace('\n',' ')
+
                 c.name = altname.value
                 c.remove_child(altname)
 
                 moved += 1
+
 
         prt("Moved {} names in '{}'".format(moved, t.name))
 

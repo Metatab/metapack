@@ -26,7 +26,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.35',
+    version='0.8.37',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -57,7 +57,8 @@ setup_d = dict(
         'geoid>=1.0.4',
         'terminaltables',
         'docopt',
-        'jinja2'
+        'jinja2',
+        'jupyter-console<6.0.0' # 6 and later cause conflict with ipython + prompt-toolkit
 
 
         # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
@@ -119,7 +120,7 @@ setup_d = dict(
     },
 
     test_suite='metapack.test.test_suite.suite',
-    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj', 'jupyter'],
+    tests_require=['nose','publicdata', 'geopandas', 'fiona', 'shapely', 'pyproj', 'jupyter','tox','tox-pyenv'],
 
 )
 

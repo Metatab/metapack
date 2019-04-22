@@ -22,7 +22,17 @@ downloader = Downloader.get_instance()
 def wp(subparsers):
     parser = subparsers.add_parser(
         'wp',
-        help='Publish a Jupyter notebook to Wordpress ',
+        help='Publish a Jupyter notebook or data package to Wordpress ',
+        description = """
+        Write a notebook or package to Wordpress. 
+        
+        If the source argument is a data package, package information will be submitted to the Wordpress blog as a 
+        blog post, formatted impliarly to the package html documentation file. 
+        
+        If the source argument is a Jupyter notebook, the notebook is written as a blog post. See
+        http://insights.civicknowledge.com for examples. 
+        
+        """,
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
     parser.set_defaults(run_command=run_wp)
@@ -178,7 +188,7 @@ def publish_wp(site_name, output_file, resources, args):
 
     wp = Client(url, user, password)
 
-    post = find_post(fm['identifier'])
+    post = find_post(wp, fm['identifier'])
 
     if post:
         prt("Updating old post")
@@ -240,9 +250,9 @@ def publish_wp(site_name, output_file, resources, args):
 
         content = content.replace(img_from, img_to)
 
-    if fm['featured_image']:
+    if fm.get('featured_image') and fm.get('featured_image').strip():
         post.thumbnail = int(fm['featured_image'])
-    elif isinstance(post.thumbnail, dict):
+    elif hasattr(post, 'thumbnail') and isinstance(post.thumbnail, dict):
         # The thumbnail expects an attachment id on EditPost, but returns a dict on GetPost
         post.thumbnail = post.thumbnail['attachment_id']
 

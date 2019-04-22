@@ -132,7 +132,6 @@ def new_cmd(args):
 
         doc = MetapackDoc(str(nb_path))
 
-
     else:
 
         doc = make_metatab_file(args.template)
@@ -162,7 +161,6 @@ def new_cmd(args):
 
     nv_name = doc.as_version(None)
 
-
     if args.example:
         doc['Resources'].new_term('Root.Datafile',
                                   'http://public.source.civicknowledge.com/example.com/sources/random-names.csv',
@@ -191,11 +189,16 @@ def new_cmd(args):
             init = get_cell_source(nb, 'init')
             init += f"\nthis_package_name = '{str(new_nb_path.name)}'"
             set_cell_source(nb,'init',init)
-         
+
         nb_path.unlink()
     else:
 
         doc['Documentation'].new_term('Root.Documentation', 'file:README.md', title='README')
+
+        if exists(nv_name):
+            err(f"Directory {nv_name} already exists")
+
+        ensure_dir(nv_name)
 
         if True:  # args.pylib:
             from metapack.support import pylib
@@ -207,10 +210,6 @@ def new_cmd(args):
             if args.example:
                 doc['Resources'].new_term('Root.Datafile', 'python:pylib#row_generator', name='row_generator')
 
-        if exists(nv_name):
-            err(f"Directory {nv_name} already exists")
-
-        ensure_dir(nv_name)
 
         prt(f"Writing to '{nv_name}'")
 

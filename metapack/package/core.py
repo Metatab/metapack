@@ -514,8 +514,10 @@ class PackageBuilder(object):
         t = self.doc.find_first('Root.Readme')
 
         if t and (t.value or '').strip():
-            t['title'] = 'Readme'
+
             # Since the text is comming from a notebook, it probably does not have a title
+            t['title'] = 'Readme'
+
             readme = '# '+ (self.doc.get_value('Root.Title') or '').strip()
             if self.doc.description:
                 readme += '\n\n' + (self.doc.description or '').strip()

@@ -8,14 +8,17 @@ The program uses the Root.Distributions in the source package to locate packages
 
 """
 
-from metapack.cli.core import prt, err
-from metapack.package import *
-from .core import MetapackCliMemo as _MetapackCliMemo, list_rr
-from tabulate import tabulate
 import sys
 from itertools import islice
 
+from metapack.cli.core import prt, err
+from metapack.package import *
+from tableintuit import Stats, TypeIntuiter
+
+from .core import MetapackCliMemo as _MetapackCliMemo, list_rr
+
 downloader = Downloader.get_instance()
+
 
 class MetapackCliMemo(_MetapackCliMemo):
 
@@ -24,7 +27,6 @@ class MetapackCliMemo(_MetapackCliMemo):
 
 
 def stats_args(subparsers):
-
     parser = subparsers.add_parser(
         'stats',
         help='Create statistical report for a resource'
@@ -37,13 +39,15 @@ def stats_args(subparsers):
     parser.add_argument('-H', '--head', type=int, help='Use only the first <HEAD> rows. Can substitute for --rows')
 
     parser.add_argument('-d', '--descriptive', default=False, action='store_true',
-                       help="Calculate descriptive stats; min, max, mean, std, quartiles")
+                        help="Calculate descriptive stats; min, max, mean, std, quartiles")
 
     parser.add_argument('-D', '--distribution', default=False, action='store_true',
                         help="Calculate distribution stats; histogram, skew, kurtosis")
 
     parser.add_argument('-V', '--values', default=False, action='store_true',
                         help="Display a set of unique values")
+
+    parser.add_argument('-T', '--types', default=False, action='store_true',  help="Intuit types instead")
 
     parser.set_defaults(run_command=stats)
 
@@ -52,7 +56,6 @@ def stats_args(subparsers):
 
 
 def stats(args):
-
     m = MetapackCliMemo(args, downloader)
 
     if m.args.sample and (m.args.head and not m.args.rows):
@@ -69,27 +72,31 @@ def stats(args):
     if m.args.values and (m.args.distribution or m.args.descriptive):
         err("The --values option can be used with neither --descriptive nor --distribution ")
 
-    from tableintuit import Stats
-
     r = m.doc.resource(m.resource)
 
-    schema = [(c['name'],c['datatype']) for c in r.columns() ]
+    schema = [(c['name'], c['datatype']) for c in r.columns()]
 
     if m.args.head:
-        source = islice(r.iterdict, m.args.head)
+        source = islice(r, m.args.head)
     else:
-        source = r.iterdict
+        source = r
 
-    s = Stats( source, schema, n_rows=m.args.rows, sample_size=m.args.sample,
-               descriptive=m.args.descriptive,
-               distribution=m.args.distribution,
-               sample_values=m.args.values)
-    s.run()
-
-    if m.args.values:
-        for k,v in s.dict.items():
-            print("==== {} ".format(k))
-            for val, count in v.uvalues.items():
-                print("   {} {}".format(count, val))
+    if m.args.types:
+        ti = TypeIntuiter().run(source)
+        print(ti)
     else:
-        print(s)
+
+        s = Stats(source, schema, n_rows=m.args.rows, sample_size=m.args.sample,
+                  descriptive=m.args.descriptive,
+                  distribution=m.args.distribution,
+                  sample_values=m.args.values)
+        s.run()
+
+        if m.args.values:
+            for k, v in s.dict.items():
+                print("==== {} ".format(k))
+                for val, count in v.uvalues.items():
+                    print("   {} {}".format(count, val))
+        else:
+            print(s)
+

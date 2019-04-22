@@ -271,24 +271,27 @@ class FileSystemPackageBuilder(PackageBuilder):
 
     def _load_documentation(self, term, contents, file_name):
         """Load a single documentation entry"""
+
         try:
             title = term['title'].value
         except KeyError:
             self.warn("Documentation has no title, skipping: '{}' ".format(term.value))
             return
 
-        try:
-            eu = term.expanded_url
-            parsed_url = term.parsed_url
-        except AttributeError:
-            parsed_url = eu = parse_app_url(term.value)
-
-        # Can't used expanded_url here because expansion makes file system URLS absolute.
-        if eu.proto == 'file' and not parsed_url.path_is_absolute:
-            package_sub_dir = parsed_url.fspath.parent
-        else:
-
+        if term.term_is('Root.Readme'): # This term type has inline content, not a url
             package_sub_dir = 'docs'
+        else:
+            try:
+                eu = term.expanded_url
+                parsed_url = term.parsed_url
+            except AttributeError:
+                parsed_url = eu = parse_app_url(term.value)
+
+            # Can't used expanded_url here because expansion makes file system URLS absolute.
+            if eu.proto == 'file' and not parsed_url.path_is_absolute:
+                package_sub_dir = parsed_url.fspath.parent
+            else:
+                package_sub_dir = 'docs'
 
 
         path = join(self.package_path.path,  package_sub_dir, file_name)

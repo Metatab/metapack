@@ -64,16 +64,6 @@ class JupyterNotebookSource(Source):
         self.finish()
 
 
-def copy_reference(resource, doc, env, *args, **kwargs):
-    """A row-generating function that yields from a reference. This permits an upstream package to be
-    copied and modified by this package, while being formally referenced as a dependency
-
-    The function will generate rows from a reference that has the same name as the resource term
-    """
-
-    yield from doc.reference(resource.name)
-
-
 class IpynbRowGenerator(TextRowGenerator):
     """Generate metatab rows from the text lines in a Jupyter notebook"""
 
@@ -170,3 +160,62 @@ class IpynbRowGenerator(TextRowGenerator):
 
         for tag in ['metadata', 'resources', 'schema']:
             yield from self._iter_lines(get_cell_source(nb, tag), row_cb)
+
+def copy_reference(resource, doc, env, *args, **kwargs):
+    """A row-generating function that yields from a reference. This permits an upstream package to be
+    copied and modified by this package, while being formally referenced as a dependency
+
+    The function will generate rows from a reference that has the same name as the resource term
+    """
+
+    yield from doc.reference(resource.name)
+
+def copy_reference_group(resource, doc, env, *args, **kwargs):
+    """
+    A Row generating function that copies all of the references that have the same 'Group' argument as this reference
+
+    The 'RefArgs' argument is a comma seperated list of arguments from the references that will be prepended to each
+    row.
+
+    :param resource:
+    :param doc:
+    :param env:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+
+    all_headers = []
+
+    # Combine all of the headers into a list of tuples by position
+    for ref in doc.references():
+        if ref.get_value('Group') == resource.get_value('Group'):
+            for row in ref.iterrowproxy():
+                all_headers.append(list(row.keys()))
+                break
+
+    # For each position, add the headers that are not already in the header set.
+    # this merges the headers from all datasets, maintaining the order. mostly.
+
+    headers = []
+    for e in zip(*all_headers):
+        for c in set(e):
+            if c not in headers:
+                headers.append(c)
+
+    if resource.get_value('RefArgs'):
+        ref_args = [e.strip() for e in resource.get_value('RefArgs').strip().split(',')]
+    else:
+        ref_args = []
+
+    yield ref_args+headers
+
+    for ref in doc.references():
+        if ref.get_value('Group') == resource.get_value('Group'):
+            ref_args_values = [ ref.get_value(e) for e in ref_args]
+
+            for row in ref.iterdict:
+                yield ref_args_values + [ row.get(c) for c in headers]
+
+
+

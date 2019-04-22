@@ -24,9 +24,6 @@ def notebook(subparsers):
         help='Create and convet Jupyter notebooks ',
         epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
 
-    parser.add_argument('notebook', nargs='?',
-                        help="Path to a notebok file' ")
-
     parser.set_defaults(handler=None)
 
     ##
@@ -59,8 +56,11 @@ def notebook(subparsers):
                       help='Write images and Markdown into a Hugo static site directory. or use '
                            'METAPACK_HUGO_DIR env var')
 
-    cmdp.add_argument('-m', '--metatab', default=False,
-                      help='Convert metatab data between .ipynb and .csv files, depending on argument')
+    cmdp.add_argument('-n', '--notebook', default=False,  action='store_true',
+                      help='Convert a filesystem source package into a notebook format. ')
+
+    cmdp.add_argument('metatabfile', nargs='?',
+                      help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
 
 def new_cmd(args):
@@ -81,6 +81,8 @@ def new_cmd(args):
 def convert_cmd(args):
     from metapack.jupyter.convert import convert_hugo
 
+    m = MetapackCliMemo(args, downloader)
+
     if False:  # args.package:
         convert_notebook(args.notebook)
 
@@ -99,9 +101,8 @@ def convert_cmd(args):
     elif args.hugo:
         convert_hugo(args.notebook, args.hugo)
 
-    elif args.metatab:
-        convert_metatab_notebook(args.metatab)
-
+    elif args.notebook:
+        convert_metatab_notebook(m)
 
 def write_notebook(m):
     # Get the EDA notebook file from Github
@@ -157,13 +158,28 @@ def write_eda_notebook(m):
 
 def write_metatab_notebook(m):
     from metapack.jupyter.convert import write_metatab_notebook as _write_metatab_notebook
+
+    print (m.doc.description)
+
     _write_metatab_notebook(m.doc)
 
+def get_readme(m):
 
-def convert_metatab_notebook(source):
-    from metapack.jupyter.convert import extract_notebook_metatab
-    from metapack.jupyter.convert import write_metatab_notebook as _write_metatab_notebook
-    from pathlib import Path
+    for t in m.doc.find('Root.Documentation', title='README'):
+        print(t.resolved_url)
+
+        m.doc.remove_term(t)
+
+        with t.resolved_url.fspath.open() as f:
+            return f.read()
+
+
+def convert_metatab_notebook(m):
+
+    m.doc['Documentation'].get_or_new_term('Root.Readme').value = get_readme(m)
+
+    return
+
 
     source = Path(source)
 

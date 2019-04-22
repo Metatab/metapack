@@ -170,6 +170,21 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         df = r.dataframe()
 
+    def test_mp_url_drop_frag(self):
+
+        from metapack import MetapackUrl
+        from metapack import MetapackUrl, Downloader
+
+        downloader = Downloader()
+
+        us = '.#resource'
+
+        u = parse_app_url(us, downloader=downloader)
+
+        mpu = MetapackUrl(u.fspath.resolve(), downloader=downloader)
+
+        print(u, u.fspath.resolve(), mpu)
+
 
 if __name__ == '__main__':
     unittest.main()
