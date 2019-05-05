@@ -794,7 +794,7 @@ class Reference(Resource):
         e['reference'] = self
         return e
 
-    def _iter__(self):
+    def __iter__(self):
         """Iterate over the resource's rows"""
 
         try:
