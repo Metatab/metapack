@@ -131,7 +131,6 @@ def run_metapack(args):
 
     downloader.set_callback((build_downloader_callback))
 
-
     m = MetapackCliMemo(args, downloader)
 
     if m.args.profile:
@@ -150,6 +149,7 @@ def run_metapack(args):
         else:
             err(e)
     except Exception as e:
+        raise
         if m.args.exceptions:
             raise e
         else:
@@ -195,39 +195,36 @@ def metatab_derived_handler(m):
 
     reuse_resources=m.args.reuse_resources
 
-    try:
 
-        # Always create a filesystem package before ZIP or Excel, so we can use it as a source for
-        # data for the other packages. This means that Transform processes and programs only need
-        # to be run once.
+    # Always create a filesystem package before ZIP or Excel, so we can use it as a source for
+    # data for the other packages. This means that Transform processes and programs only need
+    # to be run once.
 
-        _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force, False,
-                                                  nv_link, reuse_resources=reuse_resources)
-        create_list.append(('fs', url, created))
+    _, url, created = make_filesystem_package(m.mt_file, m.package_root, m.cache, env, m.args.force, False,
+                                              nv_link, reuse_resources=reuse_resources)
+    create_list.append(('fs', url, created))
 
-        lb_path = Path( m.package_root.fspath,'last_build')
+    lb_path = Path( m.package_root.fspath,'last_build')
 
-        if created or not lb_path.exists():
-            Path( m.package_root.fspath,'last_build').touch()
+    if created or not lb_path.exists():
+        Path( m.package_root.fspath,'last_build').touch()
 
-        m.mt_file = url
+    m.mt_file = url
 
-        env = {}  # Don't need it anymore, since no more programs will be run.
+    env = {}  # Don't need it anymore, since no more programs will be run.
 
-        if m.args.excel is not False:
-            _, url, created = make_excel_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
-            create_list.append(('xlsx', url, created))
+    if m.args.excel is not False:
+        _, url, created = make_excel_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
+        create_list.append(('xlsx', url, created))
 
-        if m.args.zip is not False:
-            _, url, created = make_zip_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
-            create_list.append(('zip', url, created))
+    if m.args.zip is not False:
+        _, url, created = make_zip_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
+        create_list.append(('zip', url, created))
 
-        if m.args.csv is not False:
-            _, url, created = make_csv_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
-            create_list.append(('csv', url, created))
+    if m.args.csv is not False:
+        _, url, created = make_csv_package(m.mt_file, package_dir, m.cache, env, m.args.force, nv_name, nv_link)
+        create_list.append(('csv', url, created))
 
-    except PackageError as e:
-        err("Failed to generate package: {}".format(e))
 
     index_packages(m)
 

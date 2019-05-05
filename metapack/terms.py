@@ -473,11 +473,14 @@ class Resource(Term):
                               env=self.env,
                               code_path=self.code_path)
 
+
         else:
             headers = self._get_header()  # Try to get the headers from defined header lines
 
             yield headers
             rg = islice(base_row_gen, start, None)
+
+
 
         yield from rg
 
@@ -578,9 +581,6 @@ class Resource(Term):
 
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
-
-
-
 
     def dataframe(self, dtype=False, parse_dates=True,  *args, **kwargs):
         """Return a pandas datafrome from the resource"""
@@ -787,7 +787,6 @@ class Resource(Term):
         from .html import ckan_resource_markdown
         return ckan_resource_markdown(self)
 
-
 class Reference(Resource):
     @property
     def env(self):
@@ -795,7 +794,7 @@ class Reference(Resource):
         e['reference'] = self
         return e
 
-    def __iter__(self):
+    def _iter__(self):
         """Iterate over the resource's rows"""
 
         try:
@@ -808,7 +807,24 @@ class Reference(Resource):
 
             yield from self.resolved_url.resource
         except AttributeError:
-            yield from self.row_generator
+
+            # There are several args for SelectiveRowGenerator, but only
+            # start is really important.
+            try:
+                start = int(self.get_value('startline', 1))
+            except ValueError as e:
+                start = 1
+
+            try:
+                end = int(self.get_value('endline', self.parsed_url.end))
+            except (ValueError, TypeError) as e:
+                end = None
+
+            headers = self.headers
+
+            yield headers
+
+            yield islice(self.row_generator, start, end)
 
     @property
     def resource(self):

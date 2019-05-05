@@ -55,20 +55,6 @@ def info_args(subparsers):
     group.add_argument('-P', '--package-root', default=False, action='store_true',
                        help="Print the package root url")
 
-    parser.add_argument('-v', '--version', default=False, action='store_true',
-                             help='Print Metapack versions')
-
-    parser.add_argument('-V', '--versions', default=False, action='store_true',
-                        help='Print version of several important packages')
-
-    parser.add_argument('-C', '--cache', default=False, action='store_true',
-                        help='Print the location of the cache')
-
-    parser.add_argument('-D', '--declare', default=False, action='store_true',
-                        help='Print the location of the default declarition document')
-
-    parser.add_argument('-M', '--materialized', default=False, action='store_true',
-                        help='Print the location of the materialized data cache')
 
     parser.add_argument('-T', '--value-types', default=False, action='store_true',
                         help='Print a list of available value types')
@@ -108,23 +94,6 @@ def info(args):
         elif m.args.row_table:
             dump_rptable(m)
 
-        elif args.version:
-            prt(get_distribution('metapack'))
-
-        elif args.cache:
-            from shlex import quote
-            prt(downloader.cache.getsyspath('/'))
-
-        elif args.materialized:
-            from metapack.util import get_materialized_data_cache
-            prt(get_materialized_data_cache())
-
-        elif args.versions:
-            print_versions(m)
-
-        elif args.declare:
-            print_declare(m)
-
         elif m.resource:
             r = m.get_resource()
             prt('Resolved:     ', r.resolved_url)
@@ -139,10 +108,8 @@ def info(args):
             print_transforms(m)
 
         else:
-            try:
-                prt(m.doc.name)
-            except MetatabFileNotFound:
-                print_versions(m)
+           prt(m.doc.name)
+
 
     except MetatabFileNotFound:
         err('No metatab file found')

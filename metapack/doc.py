@@ -190,7 +190,7 @@ class MetapackDoc(MetatabDoc):
 
         from importlib import import_module
 
-
+        
         if not self.ref:
             return {}
 
@@ -205,7 +205,9 @@ class MetapackDoc(MetatabDoc):
 
                 try:
                     m = import_module(module_name)
-                    return {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
+                    d =  {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
+                    return d
+
                 except ModuleNotFoundError as e:
                     # We need to know if it is the datapackage's module that is missing
                     # or if it is a module that it imported

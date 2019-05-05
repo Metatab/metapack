@@ -120,10 +120,9 @@ def clean_properties(m):
 def update_descriptions(m):
     doc = m.doc
 
-    for ref in doc.references():
-        v = ref.find_first('Description')
-
-        ref['Description'] = ref.resource.description
+    for ref in doc.resources():
+        print ('!!!', ref.resource)
+        ref['Description'] = ref.description
 
         print(ref.name, id(ref))
         print("Updated '{}' to '{}'".format(ref.name, ref.description))
@@ -134,6 +133,9 @@ def update_descriptions(m):
         v = ref.find_first('Description')
 
         print(ref.name, id(ref), ref.description)
+
+
+
 
     write_doc(doc)
 

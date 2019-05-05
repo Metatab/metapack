@@ -655,6 +655,7 @@ class MetapackCliMemo(object):
 
 
 def get_resource(m):
+
     if m.resource:
         r = m.doc.resource(m.resource)
         return r if r else m.doc.reference(m.resource)

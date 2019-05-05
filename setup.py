@@ -26,7 +26,7 @@ classifiers = [
 # noinspection PyTypeChecker
 setup_d = dict(
     name='metapack',
-    version='0.8.37',
+    version='0.8.38',
     description='Data packaging system using Metatab',
     long_description=readme,
     packages=find_packages(),
@@ -34,33 +34,39 @@ setup_d = dict(
 
     zip_safe=False,
     install_requires=[
-        'urllib3<1.24,>=1.20', # To keep botocore happy.
-        'click<7.0,>=3.3', # For jsontableschema
-        'python-dateutil<2.7.0', # Stupid botocode
-        'boto3',
-        'openpyxl<2.5', # Required by tabulator
-        'unicodecsv',
-        'pyyaml',
-        'datapackage<1.0',
-        'bs4',
+        'metatab',
+        'metatabdecl',
+        'rowgenerators',
+        'geoid',
+        'tableintuit',
+        #
+        # For generating documentation
         'markdown==2.6.11',
-        'nbconvert',
-        'IPython',
-        'ipykernel',
-        'jupyter',
         'nameparser',
         'pybtex',
-        'rowgenerators>=0.7.16',
-        'metatabdecl>=1.0.0',
-        'metatab>=0.6.6',
-        'tableintuit>=0.0.6',
-        'geoid>=1.0.4',
-        'terminaltables',
-        'docopt',
         'jinja2',
-        'jupyter-console<6.0.0' # 6 and later cause conflict with ipython + prompt-toolkit
+        'terminaltables',
+        #
+        # Handling Jupyter notebooks
+        'IPython',
+        'jupyter',
+        'ipykernel',
+        'nbconvert',
+        #
+        'boto3',
+        'bs4',
+        'unicodecsv',
+        'pyyaml',
+
+        #
+        # Fix dependency screwups
+        #'urllib3', #'urllib3<1.24,>=1.20', # To keep botocore happy.
+        #'click', # 'click<7.0,>=3.3', # For jsontableschema
+        #'python-dateutil', #'python-dateutil<2.7.0', # Stupid botocore
+        #'openpyxl', #'openpyxl<2.5', # Required by tabulator
 
 
+        #'jupyter-console<5.2.0' # 6 and later cause conflict with ipython + prompt-toolkit
         # 'wordpress_xmlrpc'# For `mp notebook -w`, sending notebooks to wordpress
     ],
 
@@ -98,6 +104,7 @@ setup_d = dict(
             'run=metapack.cli.run:run',
             'search=metapack.cli.search:search',
             'info=metapack.cli.info:info_args',
+            'config=metapack.cli.config:config_args',
             'doc=metapack.cli.doc:doc_args',
             'stats=metapack.cli.stats:stats_args',
             'edit=metapack.cli.edit:edit_args',

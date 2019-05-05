@@ -174,6 +174,9 @@ def copy_reference_group(resource, doc, env, *args, **kwargs):
     """
     A Row generating function that copies all of the references that have the same 'Group' argument as this reference
 
+    This version collects columns names from the set of references and outputs a combined set, matching
+    input to outputs by name. Use copy_reference_group_s to skipp all of that and just match by position
+
     The 'RefArgs' argument is a comma seperated list of arguments from the references that will be prepended to each
     row.
 
@@ -216,6 +219,42 @@ def copy_reference_group(resource, doc, env, *args, **kwargs):
 
             for row in ref.iterdict:
                 yield ref_args_values + [ row.get(c) for c in headers]
+
+def copy_reference_group_s(resource, doc, env, *args, **kwargs):
+    """
+    A Row generating function that copies all of the references that have the same 'Group' argument as this reference
+
+    Like copy_reference_group but just uses the output schema, and matches columns by position
+    The 'RefArgs' argument is a comma seperated list of arguments from the references that will be prepended to each
+    row.
+
+    :param resource:
+    :param doc:
+    :param env:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+
+    if resource.get_value('RefArgs'):
+        ref_args = [e.strip() for e in resource.get_value('RefArgs').strip().split(',')]
+    else:
+        ref_args = []
+
+    header = None
+
+    for i, ref in enumerate(doc.references()):
+
+        if ref.get_value('Group') == resource.get_value('Group'):
+            ref_args_values = [ ref.get_value(e) for e in ref_args]
+
+            for j, row in enumerate(ref):
+                if j == 0:
+                    if not header:
+                        header = ref_args + row
+                        yield header
+                else:
+                    yield ref_args_values + row
 
 
 

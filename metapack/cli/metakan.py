@@ -33,9 +33,6 @@ class MetapackCliMemo(_MetapackCliMemo):
 
         self.ckan_url = self.args.ckan or getenv('METAKAN_CKAN_URL')
 
-    def set_mt_arg(self, metatabfile):
-
-
         if not self.ckan_url:
             err("Set the --ckan option or the METAKAN_CKAN_URL env var to set the URL of a ckan instance")
 
@@ -45,7 +42,6 @@ class MetapackCliMemo(_MetapackCliMemo):
     def update_mt_arg(self, metatabfile):
         """Return a new memo with a new metatabfile argument"""
         o = MetapackCliMemo(self.args)
-        o.set_mt_arg(metatabfile)
         return o
 
 def metakan(subparsers):
@@ -66,9 +62,12 @@ def metakan(subparsers):
     parser.add_argument('-a', '--api', help="CKAN API Key")
 
     parser.add_argument('-g', '--group', nargs='?', action='append', help="Assign an additional group. Can be used "
-                                                                          "multiple times")
+                                                                          "multiple times, one onece with values "
+                                                                          "seperated by commas")
 
-    parser.add_argument('-t', '--tag', nargs='?', action='append', help="Assign an additional tag. Can be used multiple times")
+    parser.add_argument('-t', '--tag', nargs='?', action='append', help="Assign an additional tag. Can be used "
+                                                                        "multiple timesm or once with values "
+                                                                        "seperated by commas")
 
     parser.add_argument('-p', '--packages', action='store_true',
                         help="The file argument is a text file with a list of package URLs to load")
@@ -192,16 +191,23 @@ def send_to_ckan(m):
     pkg['groups'] = [ {'name': g.value } for g in doc['Root'].find('Root.Group')]
 
     if m.args.group:
+
         for g in m.args.group:
-            pkg['groups'].append({'name': g })
+            if ',' in g:
+                for g_ in g.split(','):
+                    pkg['groups'].append({'name': g_})
+            else:
+                pkg['groups'].append({'name': g })
 
     pkg['tags'] = [{'name': g.value} for g in doc['Root'].find('Root.Tag')]
 
-
     if m.args.tag:
         for g in m.args.tag:
-            pkg['tags'].append({'name': g })
-
+            if ',' in g:
+                for g_ in g.split(','):
+                    pkg['tags'].append({'name': g_})
+            else:
+                pkg['tags'].append({'name': g })
 
     org_name = doc.get_value('Root.Origin', doc.get_value('Root.CkanOrg'))
 
