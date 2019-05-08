@@ -12,7 +12,7 @@ from metatab import MetatabDoc, WebResolver
 from metapack.appurl import MetapackDocumentUrl, MetapackResourceUrl, MetapackUrl
 from .html import linkify
 from .util import slugify
-from metapack.package.core import Downloader
+from metapack.package import Downloader
 from rowgenerators import Source, parse_app_url
 from rowgenerators.exceptions import RowGeneratorError, AppUrlError
 from metapack.util import datetime_now

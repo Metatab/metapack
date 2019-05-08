@@ -12,8 +12,6 @@ from metapack.test.test_urls import TestUrls
 def suite():
 
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(TestBasic))
-    test_suite.addTest(unittest.makeSuite(TestPackages))
     test_suite.addTest(unittest.makeSuite(TestIPython))
     test_suite.addTest(unittest.makeSuite(TestIssues))
     test_suite.addTest(unittest.makeSuite(TestPublish))

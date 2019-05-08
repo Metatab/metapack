@@ -454,7 +454,7 @@ class SearchUrl(Url):
     @classmethod
     def initialize(cls):
         if SearchUrl._search_initialized is False:
-            from metapack.package.core import Downloader
+            from metapack.package import Downloader # Breaks inclusion cycle
             try:
                 search_func = cls.search_json_indexed_directory(Downloader.get_instance().cache.getsyspath('/'))
                 SearchUrl.register_search(search_func)

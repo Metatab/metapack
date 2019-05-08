@@ -176,33 +176,7 @@ class TestIPython(MetapackTest):
 
         print(list(g))
 
-    @unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "Skipping this test on Travis CI.")
-    def test_build_notebook_package(self):
 
-        try:
-            import pandas
-        except ImportError:
-            unittest.skip("Pandas not installed")
-            return
-
-        from metapack import MetapackUrl, MetapackDocumentUrl
-        from metapack.cli.core import make_filesystem_package, process_schemas
-
-        m = MetapackDocumentUrl(test_data('packages/example.com/example.com-notebook/metadata.csv'), downloader=downloader)
-
-        #process_schemas(m)
-
-        doc = MetapackDoc(m)
-
-        r = doc.resource('basic_a')
-
-        self.assertEqual(2501, len(list(r)))
-
-        package_dir = m.package_url.join_dir(PACKAGE_PREFIX)
-
-        _, fs_url, created = make_filesystem_package(m, package_dir, get_cache(), {}, False, False, False)
-
-        print(fs_url)
 
     @unittest.skip("Broken")
     def test_nbconvert(self):
