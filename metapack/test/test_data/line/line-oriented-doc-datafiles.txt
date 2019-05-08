@@ -1,0 +1,35 @@
+
+Section: Resources
+
+DataFile: censusreporter:B09020/140/05000US06073
+DataFile.Name: B09020
+DataFile.Description: Relationship by Household Type (Including Living Alone) for Population 65 Years and Over
+
+#
+# Tract crosswalk
+#
+DataFile: metatab+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#tract-sra-msa-xwalk
+DataFile.Name: tracts
+DataFile.Description: Crosswalk between crosswalks, tracts, zip codes and SRAs in San Diego County
+
+#
+# Tract boundaries
+#
+DataFile: metatab+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#tracts
+DataFile.Name: tracts_geo
+DataFile.Description: Geographics Boundaries for Tracts
+
+#
+# SRA boundaries
+#
+DataFile: metatab+http://s3.amazonaws.com/library.metatab.org/sangis.org-census_regions-2010-sandiego-7.csv#sra
+DataFile.Name: sra_geo
+DataFile.Description: Geographics Boundaries for SRAs
+
+#
+# IPUMS Housing and Income Data
+#
+# Need to use the ZIP version b/c we need to import the Python Code
+DataFile: metatab+http://s3.amazonaws.com/library.metatab.org/ipums.org-income_homevalue-5.zip#income_homeval
+DataFile.Name: incv
+DataFile.Description: Income and Home value records from IPUMS for San Diego County
