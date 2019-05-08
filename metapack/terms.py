@@ -156,36 +156,6 @@ class Resource(Term):
 
             return self.expanded_url
 
-        elif False:
-
-
-            assert isinstance(self.doc.package_url, MetapackPackageUrl), (type(self.doc.package_url), self.doc.package_url)
-
-            try:
-                t = self.doc.package_url.resolve_url(self.url) # Why are we doing this?
-
-                # Also a hack
-                t.scheme_extension = parse_app_url(self.url).scheme_extension
-
-                # Another Hack!
-                try:
-                    if not any(t.fragment) and any(u.fragment):
-                        t.fragment = u.fragment
-                except TypeError:
-                    if not t.fragment and u.fragment:
-                        t.fragment = u.fragment
-
-
-                # Yet more hack!
-                t = parse_app_url(str(t))
-
-                return t
-
-            except ResourceError as e:
-                # This case happens when a filesystem packages has a non-standard metadata name
-                # Total hack
-                raise
-
         else:
             raise ResourceError('Unknown case for url {} '.format(self.url))
 
@@ -820,11 +790,11 @@ class Reference(Resource):
             except (ValueError, TypeError) as e:
                 end = None
 
-            headers = self.headers
+            headers = self._get_header()
 
             yield headers
 
-            yield islice(self.row_generator, start, end)
+            yield from islice(self.row_generator, start, end)
 
     @property
     def resource(self):

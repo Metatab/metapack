@@ -10,7 +10,9 @@ from pathlib import Path
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
+download_logger = logging.getLogger('debug')
 
+from rowgenerators.appurl.web.download import logger as download_logger
 
 def cli_init(log_level=logging.INFO):
     import sys
@@ -34,6 +36,13 @@ def cli_init(log_level=logging.INFO):
     out_hdlr.setLevel(log_level)
     debug_logger.addHandler(out_hdlr)
     debug_logger.setLevel(log_level)
+
+
+    out_hdlr = logging.StreamHandler(sys.stdout)
+    out_hdlr.setFormatter(logging.Formatter('DEBUG: %(message)s'))
+    out_hdlr.setLevel(log_level)
+    download_logger.addHandler(out_hdlr)
+    download_logger.setLevel(log_level)
 
     SearchUrl.initialize()  # Setup the JSON index search.
 

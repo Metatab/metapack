@@ -10,6 +10,7 @@ from pkg_resources import get_distribution, DistributionNotFound, iter_entry_poi
 import argparse
 import logging
 import sys
+from metapack import Downloader
 
 try:
     __version__ = get_distribution(__name__).version
@@ -26,11 +27,14 @@ def base_parser():
         description='Create and manipulate metatab data packages. ')
 
 
-    parser.add_argument('--exceptions', default=False, action='store_true',
+    parser.add_argument('--exceptions', '-e', default=False, action='store_true',
                         help='Show full stack tract for some unhandled exceptions')
 
-    parser.add_argument('--debug', default=False, action='store_true',
+    parser.add_argument('--debug', '-d', default=False, action='store_true',
                         help='Turn on debug logging ( Basic Config ) ')
+
+    parser.add_argument('--no-cache', '-n', default=False, action='store_true',
+                        help='Ignore the download cache')
 
     subparsers = parser.add_subparsers(help='Commands')
 
@@ -49,6 +53,10 @@ def mp():
     args = parser.parse_args()
 
     cli_init(log_level=logging.DEBUG if args.debug else logging.INFO)
+
+    if args.no_cache:
+        downloader = Downloader.get_instance()
+        downloader.use_cache = False
 
     try:
         args.run_command # Happens when no commands are specified

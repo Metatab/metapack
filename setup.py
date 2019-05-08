@@ -109,7 +109,7 @@ setup_d = dict(
             'stats=metapack.cli.stats:stats_args',
             'edit=metapack.cli.edit:edit_args',
             'open=metapack.cli.open:open_args',
-            'wp=metapack.cli.wp:wp',
+            #'wp=metapack.cli.wp:wp',
         ]
     },
 

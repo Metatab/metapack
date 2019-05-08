@@ -8,7 +8,7 @@ import nbformat
 from metapack import MetapackDoc
 from metapack.cli.core import prt, err
 from metapack.jupyter.core import logger, edit_notebook, get_cell_source, set_cell_source
-from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter, HugoExporter, WordpressExporter
+from metapack.jupyter.exporters import NotebookExecutor, DocumentationExporter
 from metapack.jupyter.preprocessors import ExtractInlineMetatabDoc
 from metapack.util import ensure_dir, copytree
 from metatab import DEFAULT_METATAB_FILE
@@ -117,65 +117,6 @@ def doc_metadata(doc):
 
     return r
 
-
-def convert_hugo(nb_path, hugo_path):
-    from os import environ
-    from os.path import abspath
-
-    # Total hack. Would like the -H to be allowed to have no arg, and then use the env var,
-    # but I don't know how to do that. This is the case where the user types
-    # -H nb_path, so just go with it.
-    if hugo_path and not nb_path:
-        nb_path = hugo_path
-        hugo_path = environ.get('METAPACK_HUGO_DIR')
-
-    if not hugo_path:
-        err("Must specify value for -H or the METAPACK_HUGO_DIR environment var")
-
-    if not exists(nb_path):
-        err("Notebook path does not exist: '{}' ".format(nb_path))
-
-    c = Config()
-    c.HugoExporter.hugo_dir = abspath(hugo_path)  # Exports assume rel path is rel to notebook
-    he = HugoExporter(config=c, log=logger)
-
-    output, resources = he.from_filename(nb_path)
-
-    prt('Writing Notebook to Hugo Markdown')
-
-    prt('    Writing ', resources['unique_key'] + resources['output_extension'])
-    for k, v in resources['outputs'].items():
-        prt('    Writing ', k)
-
-    fw = FilesWriter()
-    fw.write(output, resources, notebook_name=resources['unique_key'])
-
-
-def convert_wordpress(nb_path, wp_path):
-    if not exists(nb_path):
-        err("Notebook path does not exist: '{}' ".format(nb_path))
-
-    c = Config()
-    c.WordpressExporter.staging_dir = wp_path
-    he = WordpressExporter(config=c, log=logger)
-
-    output, resources = he.from_filename(nb_path)
-
-    prt('Writing Notebook to Wordpress HTML')
-
-    output_file = resources['unique_key'] + resources['output_extension']
-    prt('    Writing ', output_file)
-
-    resource_outputs = []
-
-    for k, v in resources['outputs'].items():
-        prt('    Writing ', k)
-        resource_outputs.append(k)
-
-    fw = FilesWriter()
-    fw.write(output, resources, notebook_name=resources['unique_key'])
-
-    return output_file, resource_outputs
 
 
 def extract_notebook_metatab(nb_path: Path):
