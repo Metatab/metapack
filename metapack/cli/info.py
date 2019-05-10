@@ -180,6 +180,10 @@ def dump_schemas(m):
     r = get_resource(m)
 
     st = r.schema_term
+
+    if not st:
+        err("No schema term for resource {}".format(r.name))
+
     rows_about_columns = []
 
     has_vt = any(c.get_value('valuetype') for c in st.find('Table.Column'))

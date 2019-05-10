@@ -402,30 +402,6 @@ class MetapackUrl(Url):
         return url.proto in ('metapack', 'metatab')
 
 
-class JupyterNotebookUrl(FileUrl):
-    """IPYthon Notebook URL"""
-
-    match_priority = FileUrl.match_priority - 10
-
-    def __init__(self, url=None, **kwargs):
-        kwargs['proto'] = 'ipynb'
-        super().__init__(url, **kwargs)
-
-    @classmethod
-    def _match(cls, url, **kwargs):
-        return url.resource_format == 'ipynb'
-
-    def get_target(self):
-        return self
-
-    def target_dataframe(self):
-        if self._target_file:
-            return self._target_file
-
-        if self.fragment[0]:
-            return self.fragment[0]
-
-        return None
 
 
 class SearchUrl(Url):

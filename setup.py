@@ -46,12 +46,7 @@ setup_d = dict(
         'pybtex',
         'jinja2',
         'terminaltables',
-        #
-        # Handling Jupyter notebooks
-        'IPython',
-        'jupyter',
-        'ipykernel',
-        'nbconvert',
+
         #
         'boto3',
         'bs4',
@@ -81,35 +76,21 @@ setup_d = dict(
 
         'appurl.urls': [
             "metapack+ = metapack.appurl:MetapackUrl",
-            ".ipynb = metapack.appurl:JupyterNotebookUrl",
             "index: = metapack.appurl:SearchUrl"
 
         ],
         'rowgenerators': [
-            "<JupyterNotebookUrl> = metapack.rowgenerator:JupyterNotebookSource",
             "metapack+.txt =  metatab.rowgenerators:TextRowGenerator",
-            "metatab+.ipynb =  metapack.rowgenerator:IpynbRowGenerator",
-            "metapack+.ipynb =  metapack.rowgenerator:IpynbRowGenerator",
 
         ],
         'mt.subcommands': [
-            #'url=metapack.cli.url:url',
-            #'update=metapack.cli.update:update',
-            #'build=metapack.cli.build:build',
-            #'new=metapack.cli.new:new_args',
-            # 'stats=metapack.cli.stats:stats_args',
-            # 'edit=metapack.cli.edit:edit_args',
             'info=metapack.cli.info:info_args',
             'config=metapack.cli.config:config_args',
-            #'s3=metapack.cli.s3:s3',
-            #'ckan=metapack.cli.metakan:metakan',
             'index=metapack.cli.index:index_args',
             'search=metapack.cli.search:search',
-            'notebook=metapack.cli.notebook:notebook',
             'run=metapack.cli.run:run',
             'doc=metapack.cli.doc:doc_args',
             'open=metapack.cli.open:open_args',
-            #'wp=metapack.cli.wp:wp',
         ]
     },
 
