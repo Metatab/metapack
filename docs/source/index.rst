@@ -25,9 +25,9 @@ data packages, see the `metapack-build
 <https://github.com/Metatab/metapack-build>`_. module.
 
 .. toctree::
-   :hidden:
 
    JustEnough
+   metapack
 
 Install
 =======
@@ -67,23 +67,14 @@ Using Metapack Packages
 
 .. toctree::
    :maxdepth: 3
-   :caption: Using Metapack Packages
 
    using
 
 
 .. toctree::
-   :maxdepth: 1
-   :caption: CLI Commands
+   :maxdepth: 2
 
-   cli/mp
-   cli/config
-   cli/info
-   cli/doc
-   cli/index
-   cli/search
-   cli/run
-   cli/open
+   commands
 
 Building Metapack Packages
 ==========================
