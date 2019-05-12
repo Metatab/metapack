@@ -24,8 +24,7 @@ def search(subparsers):
         The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
 
 
-        """),
-        epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
+        """))
 
     parser.add_argument('-l', '--list', default=False, action='store_true',
                         help="List the packages in the index")

@@ -11,6 +11,7 @@ import argparse
 import logging
 import sys
 from metapack import Downloader
+from textwrap import dedent
 
 try:
     __version__ = get_distribution(__name__).version
@@ -24,7 +25,11 @@ def base_parser():
 
     parser = argparse.ArgumentParser(
         prog='mp',
-        description='Create and manipulate metatab data packages. ')
+
+        description=dedent("""
+            Entry program for running Metapack commands. 
+            """)
+    )
 
 
     parser.add_argument('--exceptions', '-e', default=False, action='store_true',

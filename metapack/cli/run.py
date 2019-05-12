@@ -27,8 +27,7 @@ def run(subparsers):
 
     parser = subparsers.add_parser(
         'run',
-        help='Generate rows for a resource or reference ',
-        epilog='Cache dir: {}\n'.format(str(downloader.cache.getsyspath('/'))))
+        help='Generate rows for a resource or reference ')
 
     parser.set_defaults(run_command=run_run)
 

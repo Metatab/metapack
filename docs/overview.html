@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Metapack Overview &#8212; Metapack 0.7.11 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using Metapack Packages" href="using.html" />
+    <link rel="prev" title="Metapack: Data Packaging System" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="metapack-overview">
+<h1>Metapack Overview<a class="headerlink" href="#metapack-overview" title="Permalink to this headline">¶</a></h1>
+<p>A Metapackage data package is a collection of data and metadata, where the
+metadata is expressed in Metatab format, usually in a CSV
+file. Metapack packages come in several variants:</p>
+<ul class="simple">
+<li><p>Filesystem: files in a directory</p></li>
+<li><p>ZIP: A ZIPped Filesystem package</p></li>
+<li><p>S3: A Filesystem package in an S3 buckets</p></li>
+<li><p>Excel: All metadata and data in a single Excel spreadsheet</p></li>
+<li><p>Source: A Filesystem package with data processing instructions, to build all other package types.</p></li>
+</ul>
+<p>Each package has data, metadata and documention.</p>
+<ul class="simple">
+<li><p>Root Metadata includes the title, name, identifiers, and other top level information</p></li>
+<li><p>Resources are data that is included in the data package, usually as a CSV file.</p></li>
+<li><p>References are URLs to other documents or data</p></li>
+<li><p>Documentation includes a README file, links to websites, and inline notes.</p></li>
+<li><p>Data Dictionary, a list of all tables and their columns.</p></li>
+</ul>
+<p>All of this data and metadata is acessible through either the Metapack
+programamtic interface or the CLI commands.</p>
+<p>The resources, references and documentation metadata makes heavy use of URLs to
+refer to external resources, and the resources and references use of <a class="reference external" href="https://row-generators.readthedocs.io/en/latest/appurls/index.html">custom
+urls</a> to
+refer to row-oriented data.</p>
+<p>For this overview, we’ll refer to the metadata file for the <a class="reference external" href="https://docs.google.com/spreadsheets/d/1j_rmEfDuR7h22GQvMp9s6pCKiiqW9l3xZY67IRnDiy8/edit?usp=sharing">example.com-full-2017-us-1</a> package</p>
+<div class="section" id="just-enough-metatab">
+<h2>Just Enough Metatab<a class="headerlink" href="#just-enough-metatab" title="Permalink to this headline">¶</a></h2>
+<p>To fully understand this documentation, you’ll want to have a basic
+understanding of Metatab. The best information is in the <a class="reference external" href="https://github.com/Metatab/metatab-declarations/blob/master/specs/Metatab%20Specification.md">Specification</a>, but you can get by with a short introduction.</p>
+<p>Metatab is a tabular format for structured data, so you can put records that
+have multiple properties and children into a spreadsheet. Each of the Metatab
+records is a <code class="code docutils literal notranslate"><span class="pre">Term</span></code>. Terms have a short name and a fullt qualified name.
+For instance, the term that holds title information is the <code class="code docutils literal notranslate"><span class="pre">Root.Title</span></code>
+term, but can be shortened to <code class="code docutils literal notranslate"><span class="pre">Title</span></code>.</p>
+<p>In a Metatab file, the first column always holds a term name, and the second
+column holds the term value. The follwoing columns can hold properties, which
+are also child terms.</p>
+<p>Child Relationship are encoded by specifing a term that has the first part of
+the fully qualified term be the same name as the parent term. For instance,
+these rows:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 54%" />
+<col style="width: 46%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Root.Table</p></td>
+<td><p>TableName</p></td>
+</tr>
+<tr class="row-even"><td><p>Table.Column</p></td>
+<td><p>ColumnName</p></td>
+</tr>
+</tbody>
+</table>
+<p>Will create a <code class="code docutils literal notranslate"><span class="pre">Root.Table</span></code> term, with a value of ‘TableName’ and a
+<code class="code docutils literal notranslate"><span class="pre">Table.Column</span></code> child, with a column name of ‘ColumnName’.</p>
+<p>Rows can also have properties, values in the third column of the file or
+later, which are converted to child properties. The term name for the
+properties is specified in a header, which is part of the section the terms are
+in. A Metatab document starts with a root section, but the section can be
+explicitly set with a <code class="code docutils literal notranslate"><span class="pre">Section</span></code> term. Here is an example, from the
+Schema section of a typical Metatab document:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 39%" />
+<col style="width: 32%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Section</p></td>
+<td><p>Schema</p></td>
+<td><p>DataType</p></td>
+</tr>
+<tr class="row-even"><td><p>Table</p></td>
+<td><p>TableName</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Column</p></td>
+<td><p>ColumnName</p></td>
+<td><p>integer</p></td>
+</tr>
+</tbody>
+</table>
+<p>In the <code class="code docutils literal notranslate"><span class="pre">Section</span></code> row, the third column, “DataType” declares that in
+this section, any value in the third column is a child of the row’s term,
+with a name of <code class="code docutils literal notranslate"><span class="pre">DataType</span></code>. Therefore, the third line of this example
+results in a <code class="code docutils literal notranslate"><span class="pre">Table.Column</span></code> term with a value of “ColumnName” and the
+<code class="code docutils literal notranslate"><span class="pre">Table.Column</span></code> term has a child term of type <code class="code docutils literal notranslate"><span class="pre">Column.DataType</span></code>
+with a value of “integer”</p>
+<p>For writing in text files, there is a “Text Lines” version of the format, which
+consists of only the term and value portions of the format; all properties are
+represented explicityly as children. This is the format you will see in this
+documentation. For instance, the Schema section example would be expressed in
+Text Lines as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Section</span><span class="p">:</span> <span class="n">Schema</span>
+<span class="n">Table</span><span class="p">:</span> <span class="n">TableName</span>
+<span class="n">Table</span><span class="o">.</span><span class="n">Column</span><span class="p">:</span> <span class="n">ColumnName</span>
+<span class="n">Column</span><span class="o">.</span><span class="n">DataType</span><span class="p">:</span> <span class="n">Integer</span>
+</pre></div>
+</div>
+<p>In both CSV and Lines format, the parent portion of a term name can be elided if it can be inferred from the previous term, so the above example can also be written as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Section</span><span class="p">:</span> <span class="n">Schema</span>
+<span class="n">Table</span><span class="p">:</span> <span class="n">TableName</span>
+<span class="n">Table</span><span class="o">.</span><span class="n">Column</span><span class="p">:</span> <span class="n">ColumnName</span>
+        <span class="o">.</span><span class="n">DataType</span><span class="p">:</span> <span class="n">Integer</span>
+</pre></div>
+</div>
+<p>The Lines format is more compact and more readable in text files, so
+occasionally documentation will use the Lines format.</p>
+</div>
+<div class="section" id="root-documentation-and-contact-metadata">
+<h2>Root, Documentation and Contact Metadata<a class="headerlink" href="#root-documentation-and-contact-metadata" title="Permalink to this headline">¶</a></h2>
+<p>The Root section is the first, unlabeled section of a Metatab document, which
+contains information such as the package title, name, and identification
+numbers. In the <a class="reference external" href="https://docs.google.com/spreadsheets/d/1j_rmEfDuR7h22GQvMp9s6pCKiiqW9l3xZY67IRnDiy8/edit?usp=sharing">example.com-full-2017-us-1</a> example file, the root section contains:</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 83%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Declare</p></td>
+<td><p>metatab-latest</p></td>
+</tr>
+<tr class="row-even"><td><p>Title</p></td>
+<td><p>A Metatab Example Data Package</p></td>
+</tr>
+<tr class="row-odd"><td><p>Description</p></td>
+<td><p>An example data package, from the Metatab tutorial at</p></td>
+</tr>
+<tr class="row-even"><td><p>Description</p></td>
+<td><p><a class="reference external" href="https://github.com/CivicKnowledge/metatab-py/blob/master/README.rst">https://github.com/CivicKnowledge/metatab-py/blob/master/README.rst</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Identifier</p></td>
+<td><p>96cd659b-94ad-46ae-9c18-4018caa64355</p></td>
+</tr>
+<tr class="row-even"><td><p>Name</p></td>
+<td><p>example.com-full-2017-us-1</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p>full</p></td>
+</tr>
+<tr class="row-even"><td><p>Origin</p></td>
+<td><p>example.com</p></td>
+</tr>
+<tr class="row-odd"><td><p>Time</p></td>
+<td><p>2017</p></td>
+</tr>
+<tr class="row-even"><td><p>Space</p></td>
+<td><p>US</p></td>
+</tr>
+<tr class="row-odd"><td><p>Version</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>Modified</p></td>
+<td><p>2017-09-20T16:00:18</p></td>
+</tr>
+<tr class="row-odd"><td><p>Issued</p></td>
+<td><p>2017-09-20T16:43:33</p></td>
+</tr>
+<tr class="row-even"><td><p>Giturl</p></td>
+<td><p><a class="reference external" href="https://github.com/CivicKnowledge/metapack.git">https://github.com/CivicKnowledge/metapack.git</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Distribution</p></td>
+<td><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1/metadata.csv">http://library.metatab.org/example.com-full-2017-us-1/metadata.csv</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Distribution</p></td>
+<td><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1.zip">http://library.metatab.org/example.com-full-2017-us-1.zip</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Distribution</p></td>
+<td><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1.csv">http://library.metatab.org/example.com-full-2017-us-1.csv</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>Some of the important terms in this section include:</p>
+<ul class="simple">
+<li><p>Declare: specifies the terms that are valid for the document and their datatypes.</p></li>
+<li><p>Title: The dataset title</p></li>
+<li><p>Description: A simple description, which can be split across multiple terms.</p></li>
+<li><p>Identifier: An automatically generated unique string for this dataset.</p></li>
+<li><p>Name: The formal name of the dataset, which is created from the Origin, Dataset, Variation, Time, Space, Grain and Version terms.</p></li>
+<li><p>Distribution: Indicates where other versions of this same package are located on the Web.</p></li>
+</ul>
+<p>The Documentation section has links to URLS, or text files included in a ZIP
+package, for imporant documentation, download pages, data dictionaries, or notes.</p>
+<p>The Contacts section lists the names, urls and email addresses for people opr organizations that created, wrangled or published the dataset.</p>
+</div>
+<div class="section" id="resources-and-references">
+<h2>Resources and References<a class="headerlink" href="#resources-and-references" title="Permalink to this headline">¶</a></h2>
+<p>The heart of the metadata is the Resorces and References section. Both sections
+have the same format, with an important difference: The Resources section
+declares row-oriented datafiles that are included in data packages ( ie, files
+that are copied into a ZIP package ) while the References section specifies
+URLs to objects that are not included in the data package, and may not be
+row-oriented data.</p>
+<p>The Resources section has ( Line Lines format )</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Section</span><span class="p">:</span> <span class="n">Resources</span><span class="o">|</span><span class="n">Name</span><span class="o">|</span><span class="n">schema</span><span class="o">|</span><span class="n">StartLine</span><span class="o">|</span><span class="n">HeaderLines</span><span class="o">|</span><span class="n">Description</span><span class="o">|</span><span class="n">nrows</span><span class="o">|||</span>
+<span class="n">Datafile</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">public</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">civicknowledge</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">sources</span>\
+                  <span class="o">/</span><span class="n">test_data</span><span class="o">.</span><span class="n">zip</span><span class="c1">#renter_cost.csv</span>
+    <span class="o">.</span><span class="n">Name</span><span class="p">:</span> <span class="n">renter_cost</span>
+    <span class="o">.</span><span class="n">Startline</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="o">.</span><span class="n">Headerlines</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span><span class="mi">4</span>
+    <span class="o">.</span><span class="n">Description</span><span class="p">:</span> <span class="n">Portion</span> <span class="n">of</span> <span class="n">income</span> <span class="n">spent</span> <span class="n">on</span> <span class="n">rent</span><span class="p">,</span> <span class="n">extracted</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">ACS</span>
+    <span class="o">.</span><span class="n">Nrows</span><span class="p">:</span> <span class="mi">12000</span>
+</pre></div>
+</div>
+<p>The values for the Datafile terms are urls that reference row-oriented data on
+the web. The fragment portion of the URL – preceeded by a ‘#’ – describes
+that file within the ZIP file to extract. The <code class="docutils literal notranslate"><span class="pre">.Startline</span></code> argument indicates
+that the first data line of the file is on line 5, not line 1 as is typical,
+and the <code class="docutils literal notranslate"><span class="pre">.Headerlines</span></code> argument indicates that rather than using line 0 for
+the headers, the headers are on lines 3 and 4. The values in line 3 and line 4
+will be concatenated column-wise.</p>
+<p>Datafiles can also be references from other metatab packages, such as with this resource line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Datafile</span><span class="p">:</span> <span class="n">metapack</span><span class="o">+</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">library</span><span class="o">.</span><span class="n">metatab</span><span class="o">.</span><span class="n">org</span><span class="o">/</span>\
+          <span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">-</span><span class="n">simple_example</span><span class="o">-</span><span class="mi">2017</span><span class="o">-</span><span class="n">us</span><span class="o">-</span><span class="mf">2.</span><span class="n">csv</span><span class="c1">#random-names</span>
+    <span class="o">.</span><span class="n">Name</span><span class="p">:</span> <span class="n">random</span><span class="o">-</span><span class="n">names</span><span class="o">-</span><span class="n">csv</span>
+    <span class="o">.</span><span class="n">Schema</span><span class="p">:</span> <span class="n">random</span><span class="o">-</span><span class="n">names</span>
+    <span class="o">.</span><span class="n">Description</span><span class="p">:</span> <span class="n">Names</span> <span class="ow">and</span> <span class="n">a</span> <span class="n">random</span> <span class="n">number</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">metapack+</span></code> portion of the URL indicates that the URL references a
+metapack package, and the fragment <code class="docutils literal notranslate"><span class="pre">#random-names</span></code> is a resource in the
+package.</p>
+<p>In source packages, resources can also reference programs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Datafile</span><span class="p">:</span> <span class="n">program</span><span class="o">+</span><span class="n">file</span><span class="p">:</span><span class="n">scripts</span><span class="o">/</span><span class="n">rowgen</span><span class="o">.</span><span class="n">py</span>
+    <span class="o">.</span><span class="n">Name</span><span class="p">:</span> <span class="n">rowgen</span>
+</pre></div>
+</div>
+<p>The preceeding examples are actually from a source package, so when this
+package is built all of the resources will be downloaded and processed into a
+standard CSV files, with a corresponding change to their URLs.</p>
+<p>The References section has the same structure to URLs, but the data for the
+resources is not copied into the data package. References frequently refer to
+more complex data, such as geographic shape files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Reference</span><span class="p">:</span> <span class="n">shape</span><span class="o">+</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">ds</span><span class="o">.</span><span class="n">civicknowledge</span><span class="o">.</span><span class="n">org</span><span class="o">/</span>\
+           <span class="n">sangis</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">Subregional_Areas_2010</span><span class="o">.</span><span class="n">zip</span>
+    <span class="o">.</span><span class="n">Name</span><span class="p">:</span> <span class="n">sra</span>
+    <span class="o">.</span><span class="n">Description</span><span class="p">:</span> <span class="n">Sub</span><span class="o">-</span><span class="n">regional</span> <span class="n">areas</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">shape+</span></code> protocol is defined in the <a class="reference external" href="https://github.com/Metatab/rowgenerators">rowgenerators module</a>. The full set of url patterns that
+the rowgenerators module recognizes can be found from running the
+<strong class="command">rowgen-urls -l</strong> program</p>
+</div>
+<div class="section" id="schemas-the-data-dictionary">
+<h2>Schemas: The Data Dictionary<a class="headerlink" href="#schemas-the-data-dictionary" title="Permalink to this headline">¶</a></h2>
+<p>The last major section of the metadata is the Schema section, which holds
+information about each of the tables and each column in the table. Like a
+typical Data Dictionary, this information usually ( or should, anyway )
+includes a description of each column.</p>
+<p>Continue to the next section, <a class="reference internal" href="using.html"><span class="doc">Using Metapack Packages</span></a>, for basic use patterns.</p>
+<p class="rubric">Footnotes</p>
+<dl class="footnote brackets">
+<dt class="label" id="other-formats"><span class="brackets">1</span></dt>
+<dd><p>Metatab can also be expressed in a line oriented format, which is easier to edit in the terminal and can be included in a Jupyter notebooks</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Metapack Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#just-enough-metatab">Just Enough Metatab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#root-documentation-and-contact-metadata">Root, Documentation and Contact Metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resources-and-references">Resources and References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#schemas-the-data-dictionary">Schemas: The Data Dictionary</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="using.html">Using Metapack Packages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Metpack CLI Commands</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/overview.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/overview.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

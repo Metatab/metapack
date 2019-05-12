@@ -10,7 +10,6 @@ from .doc import MetapackDoc, Resolver
 from .package import open_package, Downloader
 from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl
 from .terms import Resource
-from  . import jupyter
 
 #from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
 

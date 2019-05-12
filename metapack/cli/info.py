@@ -14,6 +14,7 @@ from .core import MetapackCliMemo as _MetapackCliMemo
 from tabulate import tabulate
 import sys
 from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
+from textwrap import dedent
 
 downloader = Downloader.get_instance()
 
@@ -28,7 +29,10 @@ def info_args(subparsers):
 
     parser = subparsers.add_parser(
         'info',
-        help='Print info about a package '
+        help='Print info about a package ',
+        description=dedent("""
+               Entry program for running Metapack commands. 
+               """)
     )
 
     parser.set_defaults(run_command=info)
@@ -180,6 +184,10 @@ def dump_schemas(m):
     r = get_resource(m)
 
     st = r.schema_term
+
+    if not st:
+        err("No schema term for resource {}".format(r.name))
+
     rows_about_columns = []
 
     has_vt = any(c.get_value('valuetype') for c in st.find('Table.Column'))

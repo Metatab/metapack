@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Metapack: Data Packaging System &#8212; Metapack 0.7.11 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Metapack Overview" href="overview.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="metapack-data-packaging-system">
+<h1>Metapack: Data Packaging System<a class="headerlink" href="#metapack-data-packaging-system" title="Permalink to this headline">¶</a></h1>
+<p>Metapack is a data package format and packging system that uses Metatab
+formatted files for both metadata and for the instructions for building data
+packages.</p>
+<p><a class="reference external" href="http://metatab.org">Metatab</a> is a metadata format that allows structured
+metadata – the sort of information about a dataset like title, origin, or date
+of publication that you’d normally store in JSON, YAML or XML – to be stored
+and edited in tabular forms like CSV or Excel. Metatab files look exactly like
+you’d expect, so they are very easy for non-technical users to read and edit,
+using tools they already have. Metatab is an excellent format for creating,
+storing and transmitting metadata. For more information about metatab, visit
+<a class="reference external" href="http://metatab.org">http://metatab.org</a>, or get <a class="reference internal" href="overview.html"><span class="doc">Metapack Overview</span></a> to understand the format.</p>
+<p>Using metapack, you can create a Metatab formatted file that describes the data
+you’d like to package and create an Excel or Zip file data package that holds
+that data. Metapack also includes programs to load data sets to AWS S3,
+Data.World and CKAN, and to use these packages in Jupyter notebooks.</p>
+<p>This python module provides CLI tools and APIs for inspecting and using data
+packages, but does not provide support for building data packages. For building
+data packages, see the <a class="reference external" href="https://github.com/Metatab/metapack-build">metapack-build</a>. module.</p>
+</div>
+<div class="section" id="install">
+<h1>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
+<p>Install the Metapack package from PiPy with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install metapack
+</pre></div>
+</div>
+<p>Other modules you may want include:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/Metatab/metapack-build">metapack-build</a> for building
+packages.</p></li>
+<li><p><a class="reference external" href="https://github.com/Metatab/metapack-jupyter">metapack-jupyter</a>. for
+Jupyter notebook support.</p></li>
+<li><p><a class="reference external" href="https://github.com/Metatab/metapack-wp">metapack-wp</a>. for publising
+packages to the web.</p></li>
+</ul>
+<p>Install everything with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install metapack metapack-build metapack-jupyter metapack-wp
+</pre></div>
+</div>
+<p>For development, you’ll probably want the development package, with sub-modules
+for related repos:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone --recursive https://github.com/Metatab/metapack-dev.git
+$ <span class="nb">cd</span> metapack-dev
+$ bin/init-develop.sh
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-metapack-packages">
+<h1>Using Metapack Packages<a class="headerlink" href="#using-metapack-packages" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Metapack Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#just-enough-metatab">Just Enough Metatab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#root-documentation-and-contact-metadata">Root, Documentation and Contact Metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#resources-and-references">Resources and References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#schemas-the-data-dictionary">Schemas: The Data Dictionary</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="using.html">Using Metapack Packages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using.html#command-line-operations">Command Line Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#opening-packages">Opening Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#finding-resources">Finding Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#iterating-data">Iterating Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#pandas-and-geopandas">Pandas and GeoPandas</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Metpack CLI Commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#mp-main-program"><strong>mp</strong>: Main program</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#config-show-configuration-information"><strong>config</strong>: Show Configuration Information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#doc-display-package-documentation"><strong>doc</strong>: Display package documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#index-add-a-package-to-the-search-index"><strong>index</strong>: Add a package to the search index</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#info-show-package-information"><strong>info</strong>: Show Package information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#open-open-a-resource-as-a-csv-file"><strong>open</strong>: Open a resource as a CSV file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#run-run-a-resource-to-produce-data"><strong>run</strong>: Run a resource to produce data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commands.html#search-search-for-a-package"><strong>search</strong>: Search for a package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="building-metapack-packages">
+<h1>Building Metapack Packages<a class="headerlink" href="#building-metapack-packages" title="Permalink to this headline">¶</a></h1>
+<p>Creating Metapack packages  requires the
+<a class="reference external" href="https://github.com/Metatab/metapack-build">metapack-build</a>. module.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="#">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Metapack Overview</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="using.html">Using Metapack Packages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Metpack CLI Commands</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Eric Busboom.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

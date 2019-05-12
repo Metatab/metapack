@@ -68,4 +68,3 @@ Citation.Version: 7.0
 Citation.AccessDate: 20170718
 Citation.Url: https://usa.ipums.org/usa/index.shtml
 Citation.Doi: https://doi.org/10.18128/D010.V7.0
-
