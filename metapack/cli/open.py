@@ -27,7 +27,7 @@ def open_args(subparsers):
     """
     parser = subparsers.add_parser(
         'open',
-        help='open a CSV resoruce with a system application',
+        help='open a CSV resource with a system application',
         description=open_args.__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

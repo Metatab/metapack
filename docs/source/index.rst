@@ -12,7 +12,7 @@ and edited in tabular forms like CSV or Excel. Metatab files look exactly like
 you'd expect, so they are very easy for non-technical users to read and edit,
 using tools they already have. Metatab is an excellent format for creating,
 storing and transmitting metadata. For more information about metatab, visit
-http://metatab.org, or get :doc:`JustEnough` to understand the files.
+http://metatab.org, or get :doc:`overview` to understand the format.
 
 Using metapack, you can create a Metatab formatted file that describes the data
 you'd like to package and create an Excel or Zip file data package that holds
@@ -24,10 +24,7 @@ packages, but does not provide support for building data packages. For building
 data packages, see the `metapack-build
 <https://github.com/Metatab/metapack-build>`_. module.
 
-.. toctree::
 
-   JustEnough
-   metapack
 
 Install
 =======
@@ -64,6 +61,10 @@ for related repos:
 
 Using Metapack Packages
 =======================
+
+.. toctree::
+
+    overview
 
 .. toctree::
    :maxdepth: 3
