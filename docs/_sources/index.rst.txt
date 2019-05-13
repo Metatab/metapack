@@ -59,12 +59,15 @@ for related repos:
     $ cd metapack-dev
     $ bin/init-develop.sh
 
-Using Metapack Packages
-=======================
+Metatab and Metapack Overview
+=============================
 
 .. toctree::
 
     overview
+	
+Using Metapack Packages
+=======================
 
 .. toctree::
    :maxdepth: 3
@@ -80,8 +83,15 @@ Using Metapack Packages
 Building Metapack Packages
 ==========================
 
-Creating Metapack packages  requires the
-`metapack-build <https://github.com/Metatab/metapack-build>`_. module.
+.. note::
+
+	Creating Metapack packages requires the
+	`metapack-build <https://github.com/Metatab/metapack-build>`_. module.
+	
+* :doc:`Getting Started Tutorial <mpbuild:build/GettingStarted>`
+* :doc:`Generating Rows <mpbuild:build/GeneratingRows>`
+* :doc:`Altering rows with transforms <mpbuild:build/Transforms>`
+
 
 Indices and tables
 ==================

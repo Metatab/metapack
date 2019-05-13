@@ -231,6 +231,93 @@ The ``shape+`` protocol is defined in the `rowgenerators module
 the rowgenerators module recognizes can be found from running the
 :command:`rowgen-urls -l` program
 
+Resource Urls
++++++++++++++
+
+We've see a few URLs in the previous sections, but they should be describes in more detail, because URLs are so central to the system. These urls have a few extra commponents that are not common on web urls. The parts of these URLs are; 
+
+* An options protocol, the part of the scheme before a '=' character. 
+* A normal URL, or a file path. 
+* A fragment, indicated with a '#' character. Fragments can contain:
+
+	** One or two segments, after the fragment, to indicate files within a resource container
+	** Multiple argments, seperates with & characters. 
+
+The _protocol_ describes additional handling for the URL, such as the ``shape+``
+protocol, which indicates a shapefile. The _segments_ refer to files in a
+contain, such as file in a ZIP archive, or a spreadsheet in an Excel workbook.
+There are two segments, so you can refer to a spreadsheet in an Excel workbooks
+that's inside a ZIP file. The _argument_ can override information about the
+resoruce describe by the URL, such as forcing a file that ends in '.txt' to be
+interpreted as a CSV file.
+
+When Resource URLs are processed in the :py:mod:`rowgenerator.appurl` module, the processing distinguishes several important application-specific parts of the URL:
+
+- ``proto``. This is set to the ``scheme_extension`` if it exists, the scheme otherwise.
+- ``resource_file``. The filename of the resource to download. It is usually the last part of the URL, but can be overidden in the fragment
+- ``resource_format``. The format name of the resource, normally drawn from the ``resource_file`` extension, but can be overidden in the fragment
+- ``target_file``. The filename of the file that will be produced by :py:meth`Url.get_target`, but may be overidden.
+- ``target_format``. The format of the ``target_file``, but may be overidden. The format is just a file extension string, with out the '.'. 
+- ``target_segment``. A sub-component of the ```target_file``, such as the worksheet in a spreadsheet.
+- ``fragment_query``. Holds additional parts of the fragment.
+
+Several of these parts can be overridden by URL arguments, which appear after the fragment. The system will accept any URL arguments, but the ones it recognizes are: 
+
+- ``resource_file`` Used to force the name resource to download, if it is not available as the last component of the URL path.
+- ``resource_format`` Used to force the file type of the resource, if the resource extension is not correct. 
+- ``target_file`` Use to force the name of a target file, if it can't be infered from the URL
+- ``target_format`` Used to force the format of the target file, by specifing an alternate file extension to use. 
+- ``encoding``. Text encoding to be used when reading the target.
+- ``headers``. For row-oriented data, the row numbers of the headers, as a comma-seperated list of integers.
+- ``start``. For row-oriented data, the row number of the first row of data ( as opposed to headers. )
+- ``end``. For row-oriented data, the row number of the last row of data.
+
+
+Here are a few example URLS that are common in Metapack metadata: 
+
+http://example.com/sources/file.csv
+	A simple URL to a CSV file
+	
+http://example.com/sources/file.txt#&target_format=csv
+	A simple URL to a CSV file that has the wrong extension, so force using ``csv``
+	
+http://example.com/sources/file.csv#&encoding=latin-1
+	A simple URL to a CSV file, but with latin1 encoding. 
+	
+http://example.com/test_data.zip#renter_cost_excel07.xlsx
+	An Excel file within a ZIP file, defaulting to the first spreadsheet in the workbook. 
+
+http://example.com/test_data.zip#renter_cost_excel07.xlsx;1
+	The second workbook in an Excel file within a ZIP file.
+	
+python:pylib#func
+	References a row generating python function in the pyblic module
+	
+gs://1VGEkgXXmpWya7KLkrAPHp3BLGbXibxHqZvfn9zA800w
+	The first tab of a google spreadsheet, referenced by its ID number. 
+
+metatab+http://library.metatab.org/example.com-simple_example-2017-us-1#random-names
+	A resource in a Metapack package. 
+
+socrata+http://chhs.data.ca.gov/api/views/tthg-z4mf
+	A file in a Socrata data repository
+
+Most of these URL forms will only bee seen in source packages for resources,
+but may appear in the references section of any package type. .Other packages
+only have resource URLS that refer to well-formed CSV files that have been
+loaded into the package.
+
+The :program:`rowgen` program, part of the :py:mod:`rowgenerators` module, will convert the row data referenced by a URL into CSV or a table, so it's handy for testing URLs: 
+
+.. code-block:: bash
+
+	$ rowgen http://public.source.civicknowledge.com/example.com/sources/test_data.zip#simple-example.csv
+	id,uuid,int,float
+	1,eb385c36-9298-4427-8925-fe09294dbd5f,30,99.7346915319786
+	2,fbe2ba34-b130-49b7-bd84-3dc6efb63266,79,18.7600680401673
+	3,b63c1b4c-0d48-43ae-9f1d-83b0291462b5,21,34.2058855203307
+	4,bcf29f19-79f3-427d-b068-898e21bdc933,52,85.1947994474281
+	...
 
 Schemas: The Data Dictionary
 ----------------------------
@@ -240,10 +327,22 @@ information about each of the tables and each column in the table. Like a
 typical Data Dictionary, this information usually ( or should, anyway )
 includes a description of each column.
 
+The schema will have, at least, these values: 
+
+* Column name
+* Datatype
+
+And will often also include: 
+
+* Column description
+* An alternate name for the column
+
+Alternate names are the main column name, with no spaces, funny characters or uppercase letters. 
+
+
+
+
 Continue to the next section, :doc:`using`, for basic use patterns.
 
 
-.. rubric:: Footnotes
-
-.. [#other_formats] Metatab can also be expressed in a line oriented format, which is easier to edit in the terminal and can be included in a Jupyter notebooks
 

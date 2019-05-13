@@ -43,7 +43,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinxarg.ext',
-    'sphinxcontrib.autoprogram'
+    'sphinxcontrib.autoprogram',
+    'sphinx.ext.intersphinx', 
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -170,6 +171,11 @@ texinfo_documents = [
      author, 'Metapack', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+intersphinx_mapping = {
+    'mpbuild': (' https://metatab.github.io/metapack-build/', None)
+}
+
 
 
 # -- Extension configuration -------------------------------------------------

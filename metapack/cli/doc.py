@@ -92,7 +92,7 @@ def doc_args(subparsers):
         cmdp.set_defaults(run_command=cmd)
 
         if arg in ('html', 'markdown'):
-            cmdp.add_argument('-t', '--template', default='short',
+            cmdp.add_argument('-t', '--template', default='short_documentation.md',
                           help="Set the template.")
 
         cmdp.add_argument('metatabfile', nargs='?',

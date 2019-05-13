@@ -6,8 +6,8 @@ Metapack CLI program for creating new metapack package directories
 """
 
 import sys
-
 import argparse
+
 from metapack import Downloader
 from metapack.cli.core import prt, MetapackCliMemo, list_rr
 
@@ -29,7 +29,7 @@ def open_args(subparsers):
         'open',
         help='open a CSV resource with a system application',
         description=open_args.__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     parser.set_defaults(run_command=open_cmd)

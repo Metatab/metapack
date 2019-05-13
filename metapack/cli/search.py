@@ -2,6 +2,7 @@
 # MIT License, included in this distribution as LICENSE
 
 import sys
+import argparse
 from metapack import Downloader
 from metapack.cli.core import prt, err
 
@@ -14,17 +15,17 @@ import json
 downloader = Downloader.get_instance()
 
 def search(subparsers):
+    """Index packages for searching. 
 
+    The index file is a JSON file, which is by default index.json in the cache. 
+    The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
+
+
+    """
     parser = subparsers.add_parser(
         'search',
-        description=dedent("""
-        Index packages for searching. 
-
-        The index file is a JSON file, which is by default index.json in the cache. 
-        The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
-
-
-        """))
+        description=search.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-l', '--list', default=False, action='store_true',
                         help="List the packages in the index")

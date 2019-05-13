@@ -7,7 +7,7 @@ CLI program for storing pacakges in CKAN
 The program uses the Root.Distributions in the source package to locate packages to link into a CKAN record.
 
 """
-
+import argparse
 from metapack.cli.core import prt, err
 from metapack.package import *
 from .core import MetapackCliMemo as _MetapackCliMemo
@@ -26,13 +26,15 @@ class MetapackCliMemo(_MetapackCliMemo):
 
 
 def info_args(subparsers):
-
+    """
+    Entry program for running Metapack commands. 
+    """
+    
     parser = subparsers.add_parser(
         'info',
         help='Print info about a package ',
-        description=dedent("""
-               Entry program for running Metapack commands. 
-               """)
+        description=info_args.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     parser.set_defaults(run_command=info)

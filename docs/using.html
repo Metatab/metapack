@@ -34,22 +34,163 @@
             
   <div class="section" id="using-metapack-packages">
 <h1>Using Metapack Packages<a class="headerlink" href="#using-metapack-packages" title="Permalink to this headline">¶</a></h1>
+<p>This section will use and example package, which is available online in three forms at:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1.zip">http://library.metatab.org/example.com-full-2017-us-1.zip</a></p></li>
+<li><p><a class="reference external" href="http://library.metatab.org./example.com-full-2017-us-1.xlsx">http://library.metatab.org./example.com-full-2017-us-1.xlsx</a></p></li>
+<li><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1.csv">http://library.metatab.org/example.com-full-2017-us-1.csv</a></p></li>
+</ul>
+<p>Additionally, the section will refer to the filesystem package, which is just the ZIP package unpacked:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ wget http://library.metatab.org/example.com-full-2017-us-1.zip
+$ unzip example.com-full-2017-us-1.zip
+</pre></div>
+</div>
 <div class="section" id="command-line-operations">
 <h2>Command Line Operations<a class="headerlink" href="#command-line-operations" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a class="reference internal" href="commands.html"><span class="doc">the commands page</span></a> for detailed documentation of the
+commands in the base metapack package.</p>
+</div>
 <p>Command line programs that operate on packages take a URL to a local or remote
 package, with a URL fragment to refer to a resource.</p>
+<p>Metapack has a single CLI entrypoint, <strong class="program">mp</strong>, to run commands. The
+entrypoint is exensible, so other python modules can install additinoal
+commands. You can see the commands that are avilable, and their version
+numebrs, with <strong class="program">mp config</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ mp config
+
+Package        Version
+-------------  ---------
+metapack       <span class="m">0</span>.9.1
+metatab        <span class="m">0</span>.7.16
+metatabdecl    <span class="m">1</span>.6
+rowgenerators  <span class="m">0</span>.8.31
+publicdata     <span class="m">0</span>.3.8
+tableintuit    <span class="m">0</span>.1.5
+
+Subcommand    Package
+------------  -------------------------------------
+config        metapack <span class="m">0</span>.9.1
+doc           metapack <span class="m">0</span>.9.1
+index         metapack <span class="m">0</span>.9.1
+info          metapack <span class="m">0</span>.9.1
+open          metapack <span class="m">0</span>.9.1
+run           metapack <span class="m">0</span>.9.1
+search        metapack <span class="m">0</span>.9.1
+build         metapack-build <span class="m">0</span>.0.2
+edit          metapack-build <span class="m">0</span>.0.2
+new           metapack-build <span class="m">0</span>.0.2
+s3            metapack-build <span class="m">0</span>.0.2
+stats         metapack-build <span class="m">0</span>.0.2
+update        metapack-build <span class="m">0</span>.0.2
+url           metapack-build <span class="m">0</span>.0.2
+wp            metapack-wp <span class="m">0</span>.0.6.post0.dev1+g4c7a6bc
+</pre></div>
 </div>
+<p>Commands which operate on packages take a URL as the last argument. There are a
+few common forms for these URLs:</p>
+<table class="colwidths-given docutils align-center">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Full url</p></td>
+<td><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1.zip">http://library.metatab.org/example.com-full-2017-us-1.zip</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Local file</p></td>
+<td><p>example.com-full-2017-us-1.zip</p></td>
+</tr>
+<tr class="row-odd"><td><p>Metatab.csv in current directory</p></td>
+<td><p>. or ‘’</p></td>
+</tr>
+</tbody>
+</table>
+<p>Commands that operate on resources use URLs that have a fragment and the name of the resource:</p>
+<table class="colwidths-given docutils align-center">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 79%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Full url</p></td>
+<td><p><a class="reference external" href="http://library.metatab.org/example.com-full-2017-us-1.zip#renter_cost">http://library.metatab.org/example.com-full-2017-us-1.zip#renter_cost</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Local file</p></td>
+<td><p>example.com-full-2017-us-1.zip#renter_cost</p></td>
+</tr>
+<tr class="row-odd"><td><p>Metatab.csv in current directory</p></td>
+<td><p>.#renter_cost</p></td>
+</tr>
+</tbody>
+</table>
+<p>For instance, to list the resources in a package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remote Package</span>
+$ mp info http://library.metatab.org/example.com-full-2017-us-1.zip
+
+<span class="c1"># Local filesystem package</span>
+$ <span class="nb">cd</span> example.com-full-2017-us-1
+$ mp info -r
+</pre></div>
+</div>
+<p>To display the resources:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remote Package</span>
+$ mp info http://library.metatab.org/example.com-full-2017-us-1.zip#renter_cost
+
+<span class="c1"># Local filesystem package</span>
+$ <span class="nb">cd</span> example.com-full-2017-us-1
+$ mp info -r .#renter_cost
+</pre></div>
+</div>
+<p>Note that in a filesystem package, the reference to the package (‘.’) can be
+omitted when referencing the package, but is included when referencing a
+resource. This is because the shell considers strings that start with ‘#’ to be
+comments. To avoid this, the ‘#’ can also be escaped, <strong class="program">mp info -r
+\#renter_cost</strong>, but this form is not commonly used.</p>
 <div class="section" id="opening-packages">
-<h2>Opening Packages<a class="headerlink" href="#opening-packages" title="Permalink to this headline">¶</a></h2>
+<h3>Opening Packages<a class="headerlink" href="#opening-packages" title="Permalink to this headline">¶</a></h3>
+<p>Opening packages with the CLI primarily means opening the CSV files included in
+the package, which you can do from direct reference. Just open the metadata
+file and read the resource URLs. However, you can also use the <strong class="program">mp
+run</strong> program to dump the data in a variety of formats. The URL requires a
+resource fragment, but if you don’t include it, <strong class="program">mp run</strong> will show the
+resources.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ mp run example.com-full-2017-us-1.zip
+Select a resource to run:
+Type       Ref                       Url
+---------  ------------------------  --------------------------------------
+Resource   <span class="c1">#renter_cost              data/renter_cost.csv</span>
+Resource   <span class="c1">#simple-example-altnames  data/simple-example-altnames.csv</span>
+Resource   <span class="c1">#simple-example           data/simple-example.csv</span>
+...
+
+$ mp run example.com-full-2017-us-1.zip#renter_cost
+id,col2,renter_cost_gt_30,renter_cost_gt_30_cv, ...
+<span class="m">1</span>,,1447,13.6176070905,42.2481751825,8.272140707
+<span class="m">2</span>,,5581,6.235932071,49.2803532009,4.9333693054
+<span class="m">3</span>,,525,17.6481586483,45.2196382429,13.2887199931
+</pre></div>
 </div>
-<div class="section" id="finding-resources">
-<h2>Finding Resources<a class="headerlink" href="#finding-resources" title="Permalink to this headline">¶</a></h2>
+<p>If you just want to list all of the resources and references, use <strong class="program">mp info -r</strong>.</p>
 </div>
-<div class="section" id="iterating-data">
-<h2>Iterating Data<a class="headerlink" href="#iterating-data" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="pandas-and-geopandas">
-<h2>Pandas and GeoPandas<a class="headerlink" href="#pandas-and-geopandas" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="using-packages-in-python">
+<h2>Using Packages In Python<a class="headerlink" href="#using-packages-in-python" title="Permalink to this headline">¶</a></h2>
+<p>Using packages in Python involves opening the package, and then acessing a resource.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">metapack</span> <span class="kn">as</span> <span class="nn">mp</span>
+
+<span class="c1"># Open the package.</span>
+<span class="n">pkg</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">open_package</span><span class="p">(</span><span class="s1">&#39;http://library.metatab.org/example.com-full-2017-us-1.csv&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">pkg</span><span class="p">)</span> <span class="c1"># display documentation</span>
+
+<span class="c1"># Get a handle on a resource</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">pkg</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;renter_cost&#39;</span><span class="p">)</span>
+
+<span class="c1"># Get a dataframe for the resource</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">dataframe</span><span class="p">()</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -66,11 +207,11 @@ package, with a URL fragment to refer to a resource.</p>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Using Metapack Packages</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#command-line-operations">Command Line Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#opening-packages">Opening Packages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#finding-resources">Finding Resources</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#iterating-data">Iterating Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pandas-and-geopandas">Pandas and GeoPandas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-operations">Command Line Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#opening-packages">Opening Packages</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-packages-in-python">Using Packages In Python</a></li>
 </ul>
 </li>
 </ul>

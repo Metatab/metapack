@@ -278,6 +278,83 @@ more complex data, such as geographic shape files:</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">shape+</span></code> protocol is defined in the <a class="reference external" href="https://github.com/Metatab/rowgenerators">rowgenerators module</a>. The full set of url patterns that
 the rowgenerators module recognizes can be found from running the
 <strong class="command">rowgen-urls -l</strong> program</p>
+<div class="section" id="resource-urls">
+<h3>Resource Urls<a class="headerlink" href="#resource-urls" title="Permalink to this headline">¶</a></h3>
+<p>We’ve see a few URLs in the previous sections, but they should be describes in more detail, because URLs are so central to the system. These urls have a few extra commponents that are not common on web urls. The parts of these URLs are;</p>
+<ul>
+<li><p>An options protocol, the part of the scheme before a ‘=’ character.</p></li>
+<li><p>A normal URL, or a file path.</p></li>
+<li><p>A fragment, indicated with a ‘#’ character. Fragments can contain:</p>
+<blockquote>
+<div><p>** One or two segments, after the fragment, to indicate files within a resource container
+** Multiple argments, seperates with &amp; characters.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>The _protocol_ describes additional handling for the URL, such as the <code class="docutils literal notranslate"><span class="pre">shape+</span></code>
+protocol, which indicates a shapefile. The _segments_ refer to files in a
+contain, such as file in a ZIP archive, or a spreadsheet in an Excel workbook.
+There are two segments, so you can refer to a spreadsheet in an Excel workbooks
+that’s inside a ZIP file. The _argument_ can override information about the
+resoruce describe by the URL, such as forcing a file that ends in ‘.txt’ to be
+interpreted as a CSV file.</p>
+<p>When Resource URLs are processed in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">rowgenerator.appurl</span></code> module, the processing distinguishes several important application-specific parts of the URL:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">proto</span></code>. This is set to the <code class="docutils literal notranslate"><span class="pre">scheme_extension</span></code> if it exists, the scheme otherwise.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resource_file</span></code>. The filename of the resource to download. It is usually the last part of the URL, but can be overidden in the fragment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resource_format</span></code>. The format name of the resource, normally drawn from the <code class="docutils literal notranslate"><span class="pre">resource_file</span></code> extension, but can be overidden in the fragment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_file</span></code>. The filename of the file that will be produced by :py:meth`Url.get_target`, but may be overidden.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_format</span></code>. The format of the <code class="docutils literal notranslate"><span class="pre">target_file</span></code>, but may be overidden. The format is just a file extension string, with out the ‘.’.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_segment</span></code>. A sub-component of the <code class="docutils literal notranslate"><span class="pre">`target_file</span></code>, such as the worksheet in a spreadsheet.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fragment_query</span></code>. Holds additional parts of the fragment.</p></li>
+</ul>
+<p>Several of these parts can be overridden by URL arguments, which appear after the fragment. The system will accept any URL arguments, but the ones it recognizes are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">resource_file</span></code> Used to force the name resource to download, if it is not available as the last component of the URL path.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resource_format</span></code> Used to force the file type of the resource, if the resource extension is not correct.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_file</span></code> Use to force the name of a target file, if it can’t be infered from the URL</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_format</span></code> Used to force the format of the target file, by specifing an alternate file extension to use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">encoding</span></code>. Text encoding to be used when reading the target.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">headers</span></code>. For row-oriented data, the row numbers of the headers, as a comma-seperated list of integers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code>. For row-oriented data, the row number of the first row of data ( as opposed to headers. )</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">end</span></code>. For row-oriented data, the row number of the last row of data.</p></li>
+</ul>
+<p>Here are a few example URLS that are common in Metapack metadata:</p>
+<dl class="simple">
+<dt><a class="reference external" href="http://example.com/sources/file.csv">http://example.com/sources/file.csv</a></dt><dd><p>A simple URL to a CSV file</p>
+</dd>
+<dt><a class="reference external" href="http://example.com/sources/file.txt#&amp;target_format=csv">http://example.com/sources/file.txt#&amp;target_format=csv</a></dt><dd><p>A simple URL to a CSV file that has the wrong extension, so force using <code class="docutils literal notranslate"><span class="pre">csv</span></code></p>
+</dd>
+<dt><a class="reference external" href="http://example.com/sources/file.csv#&amp;encoding=latin-1">http://example.com/sources/file.csv#&amp;encoding=latin-1</a></dt><dd><p>A simple URL to a CSV file, but with latin1 encoding.</p>
+</dd>
+<dt><a class="reference external" href="http://example.com/test_data.zip#renter_cost_excel07.xlsx">http://example.com/test_data.zip#renter_cost_excel07.xlsx</a></dt><dd><p>An Excel file within a ZIP file, defaulting to the first spreadsheet in the workbook.</p>
+</dd>
+<dt><a class="reference external" href="http://example.com/test_data.zip#renter_cost_excel07.xlsx;1">http://example.com/test_data.zip#renter_cost_excel07.xlsx;1</a></dt><dd><p>The second workbook in an Excel file within a ZIP file.</p>
+</dd>
+<dt>python:pylib#func</dt><dd><p>References a row generating python function in the pyblic module</p>
+</dd>
+<dt>gs://1VGEkgXXmpWya7KLkrAPHp3BLGbXibxHqZvfn9zA800w</dt><dd><p>The first tab of a google spreadsheet, referenced by its ID number.</p>
+</dd>
+<dt>metatab+http://library.metatab.org/example.com-simple_example-2017-us-1#random-names</dt><dd><p>A resource in a Metapack package.</p>
+</dd>
+<dt>socrata+http://chhs.data.ca.gov/api/views/tthg-z4mf</dt><dd><p>A file in a Socrata data repository</p>
+</dd>
+</dl>
+<p>Most of these URL forms will only bee seen in source packages for resources,
+but may appear in the references section of any package type. .Other packages
+only have resource URLS that refer to well-formed CSV files that have been
+loaded into the package.</p>
+<p>The <strong class="program">rowgen</strong> program, part of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">rowgenerators</span></code> module, will convert the row data referenced by a URL into CSV or a table, so it’s handy for testing URLs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ rowgen http://public.source.civicknowledge.com/example.com/sources/test_data.zip#simple-example.csv
+id,uuid,int,float
+<span class="m">1</span>,eb385c36-9298-4427-8925-fe09294dbd5f,30,99.7346915319786
+<span class="m">2</span>,fbe2ba34-b130-49b7-bd84-3dc6efb63266,79,18.7600680401673
+<span class="m">3</span>,b63c1b4c-0d48-43ae-9f1d-83b0291462b5,21,34.2058855203307
+<span class="m">4</span>,bcf29f19-79f3-427d-b068-898e21bdc933,52,85.1947994474281
+...
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="schemas-the-data-dictionary">
 <h2>Schemas: The Data Dictionary<a class="headerlink" href="#schemas-the-data-dictionary" title="Permalink to this headline">¶</a></h2>
@@ -285,13 +362,18 @@ the rowgenerators module recognizes can be found from running the
 information about each of the tables and each column in the table. Like a
 typical Data Dictionary, this information usually ( or should, anyway )
 includes a description of each column.</p>
+<p>The schema will have, at least, these values:</p>
+<ul class="simple">
+<li><p>Column name</p></li>
+<li><p>Datatype</p></li>
+</ul>
+<p>And will often also include:</p>
+<ul class="simple">
+<li><p>Column description</p></li>
+<li><p>An alternate name for the column</p></li>
+</ul>
+<p>Alternate names are the main column name, with no spaces, funny characters or uppercase letters.</p>
 <p>Continue to the next section, <a class="reference internal" href="using.html"><span class="doc">Using Metapack Packages</span></a>, for basic use patterns.</p>
-<p class="rubric">Footnotes</p>
-<dl class="footnote brackets">
-<dt class="label" id="other-formats"><span class="brackets">1</span></dt>
-<dd><p>Metatab can also be expressed in a line oriented format, which is easier to edit in the terminal and can be included in a Jupyter notebooks</p>
-</dd>
-</dl>
 </div>
 </div>
 
@@ -307,7 +389,10 @@ includes a description of each column.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Metapack Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#just-enough-metatab">Just Enough Metatab</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#root-documentation-and-contact-metadata">Root, Documentation and Contact Metadata</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#resources-and-references">Resources and References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resources-and-references">Resources and References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#resource-urls">Resource Urls</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#schemas-the-data-dictionary">Schemas: The Data Dictionary</a></li>
 </ul>
 </li>

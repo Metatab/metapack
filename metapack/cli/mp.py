@@ -22,13 +22,12 @@ except DistributionNotFound:
 from metapack.cli.core import cli_init
 
 def base_parser():
-
+    """Entry program for running Metapack commands. 
+    """
     parser = argparse.ArgumentParser(
         prog='mp',
-
-        description=dedent("""
-            Entry program for running Metapack commands. 
-            """)
+        description=base_parser.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
 

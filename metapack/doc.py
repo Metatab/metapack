@@ -244,6 +244,12 @@ class MetapackDoc(MetatabDoc):
 
         return convert_markdown(self.markdown, extensions)
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.markdown)
+
+    def __str__(self):
+        return self.markdown
+
     @property
     def html(self):
         from .html import html

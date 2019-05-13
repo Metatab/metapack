@@ -20,7 +20,7 @@ from .core import err, prt
 from metapack.constants import PACKAGE_PREFIX
 import tempfile
 from os.path import join
-
+import argparse
 from tabulate import tabulate
 
 downloader = Downloader.get_instance()
@@ -28,16 +28,16 @@ downloader = Downloader.get_instance()
 from textwrap import dedent
 
 def index_args(subparsers):
+    """Index packages for searching. 
+
+    The index file is a JSON file, which is by default index.json in the cache. 
+    The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
+
+    """
     parser = subparsers.add_parser(
         'index',
-        description=dedent("""
-        Index packages for searching. 
-        
-        The index file is a JSON file, which is by default index.json in the cache. 
-        The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
-        
-        
-        """)
+        description=index_args.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.set_defaults(run_command=index)
