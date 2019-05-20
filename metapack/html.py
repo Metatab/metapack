@@ -340,9 +340,6 @@ def _bibliography(doc, terms, converters=[], format='html'):
 
         cd = {k: mk_cite(v, i) for i, (k, v) in enumerate(doc.items())}
 
-    # for k, v in cd.items():
-    #    print (k, v)
-
     return PybtexEngine().format_from_string(safe_dump({'entries': cd}),
                                              style=MetatabStyle,
                                              output_backend=output_backend,
@@ -474,14 +471,19 @@ def process_contact(d):
             'parts': []
         }
 
+def process_contacts_html(d):
+
+    pc = process_contact(d)
+
+    pc['html'] = convert_markdown(', '.join(pc['parts']) )
+
+    return pc
+
 def display_context(doc):
     """Create a Jinja context for display"""
     from rowgenerators.exceptions import DownloadError
 
     context = {s.name.lower(): s.as_dict() for s in doc if s.name.lower() != 'schema'}
-
-    #import json
-    #print(json.dumps(context, indent=4))
 
     mandatory_sections = ['documentation', 'contacts']
 
@@ -583,11 +585,11 @@ def display_context(doc):
         else:
             for t in terms:
                 try:
-                    t.update(process_contact(t))
+                    t.update(process_contacts_html(t))
                 except AttributeError:
                     pass # Probably got a scalar
     if origin:
-        origin.update(process_contact(origin))
+        origin.update(process_contacts_html(origin))
         context['contacts']['origin'] = [origin]
 
 

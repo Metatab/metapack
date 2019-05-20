@@ -105,12 +105,15 @@ def make_dir_structure(base_dir):
 
 
 def make_metatab_file(template='metatab'):
-    from os.path import dirname
+    from os.path import dirname, exists
     from rowgenerators.util import fs_join as join
     import metatab.templates
     from metapack import MetapackDoc
 
-    template_path = join(dirname(metatab.templates.__file__), template + '.csv')
+    if exists(template):
+        template_path = template
+    else:
+        template_path = join(dirname(metatab.templates.__file__), template + '.csv')
 
     doc = MetapackDoc(template_path)
 

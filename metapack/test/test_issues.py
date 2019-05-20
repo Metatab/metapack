@@ -1,6 +1,9 @@
 import unittest
 import metapack as mp
 from rowgenerators import parse_app_url
+from metapack import Downloader
+
+downloader = Downloader()
 
 class TestIssues(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
@@ -185,6 +188,24 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         print(u, u.fspath.resolve(), mpu)
 
+
+    def test_broken_metatab_urls(self):
+        from metapack.appurl import  MetapackDocumentUrl
+
+        # Filesystem
+        us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/'
+        ud = parse_app_url(us)
+
+        self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv',
+                         str(ud))
+
+    def test_broken_package_urls(self):
+        from metapack.appurl import MetapackPackageUrl
+
+        u = MetapackPackageUrl('http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv',
+                               downloader=downloader)
+
+        print(u)
 
 if __name__ == '__main__':
     unittest.main()

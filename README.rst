@@ -33,10 +33,10 @@ to install it into a virtual environment. To set up a virtual environment:
     cd metapack
     source bin/activate
 
-Since we're stil in development, you'll get the latest code by installing package
-from github, but you can also install from pip. In either case, you should create
-the virtualenv, and afterward, you'll have to reinstall the six package because
-of an odd conflict
+Since we're stil in development, you'll get the latest code by installing
+package from github, but you can also install from pip. In either case, you
+should create the virtualenv, and afterward, you'll have to reinstall the six
+package because of an odd conflict
 
 To install the package with pip:
 
@@ -73,15 +73,15 @@ parse. You can either clone the repo and parse them from the files, or from the
 Github page for the file, click on the ``raw`` button to get raw view of the
 flie, then copy the URL.
 
-The main program for metapack is `mt`, which has a number of ( extensible) sub commands.
-See the commands with: ``mt -h``.
+The main program for metapack is `mt`, which has a number of ( extensible) sub
+commands. See the commands with: ``mt -h``.
 
 Getting Started
 ---------------
 
-See `Getting Started <https://github.com/CivicKnowledge/metatab-py/blob/master/docs/GettingStarted.rst>`_
-for an initial tutorial, or the other guides in the
-`docs directory on Github <https://github.com/CivicKnowledge/metatab-py/tree/master/docs>`_
+See `Getting Started
+<https://github.com/CivicKnowledge/metatab-py/blob/master/docs/GettingStarted.rst>`_ for an initial tutorial, or the other guides in the `docs directory on
+Github <https://github.com/CivicKnowledge/metatab-py/tree/master/docs>`_
 
 Development Notes
 -----------------
@@ -89,8 +89,9 @@ Development Notes
 Clearing the Cache
 ++++++++++++++++++
 
-Some tests can pass despite errors if the file the test  is looking for is cached. The cache can be set with
-an evironmental variable and cleared before the tests to solve this problem
+Some tests can pass despite errors if the file the test is looking for is
+cached. The cache can be set with an evironmental variable and cleared before
+the tests to solve this problem
 
 
 .. code-block:: bash
@@ -104,11 +105,13 @@ an evironmental variable and cleared before the tests to solve this problem
 Development Testing with Docker
 +++++++++++++++++++++++++++++++
 
-Testing during development for other versions of Python is a bit of a pain, since you have
-to install the alternate version, and Tox will run all of the tests, not just the one you want.
+Testing during development for other versions of Python is a bit of a pain,
+since you have to install the alternate version, and Tox will run all of the
+tests, not just the one you want.
 
-One way to deal with this is to install Docker locally, then run the docker test container
-on the source directory. This is done automatically from the Makefile in appurl/tests
+One way to deal with this is to install Docker locally, then run the docker
+test container on the source directory. This is done automatically from the
+Makefile in appurl/tests
 
 
 .. code-block:: bash
@@ -117,20 +120,23 @@ on the source directory. This is done automatically from the Makefile in appurl/
     $ make build # to create the container image
     $ make shell # to run bash the container
 
-You now have a docker container where the /code directory is the appurl source dir. Since the Docker
-container is running code from your host machine, you can edit it normally.
+You now have a docker container where the /code directory is the appurl source
+dir. Since the Docker container is running code from your host machine, you can
+edit it normally.
 
-Now, run tox to build the tox virtual environments, then enter the specific version you want to
-run tests for and activate the virtual environment.
+Now, run tox to build the tox virtual environments, then enter the specific
+version you want to run tests for and activate the virtual environment.
 
 To run one environment. for example, Python 3.4
 
 .. code-block:: bash
+
     # tox -e py34
 
 To run one test in one environment environment. for example, Python 3.4
 
 .. code-block:: bash
+
     # tox -e py34 -- -s
 
 

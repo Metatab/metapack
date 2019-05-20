@@ -20,7 +20,6 @@ def search(subparsers):
     The index file is a JSON file, which is by default index.json in the cache. 
     The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.
 
-
     """
     parser = subparsers.add_parser(
         'search',
@@ -43,6 +42,12 @@ def search(subparsers):
 
     parser.add_argument('-j', '--json', default=False, action='store_true',
                        help="Output json for some commands")
+
+    parser.add_argument('-n', '--name', default=False, action='store_true',
+                       help="Output only the first column, the name of the package")
+
+    parser.add_argument('-r', '--ref', default=False, action='store_true',
+                       help="Output only the third column, the url of the package")
 
     parser.set_defaults(run_command=run_search)
 
@@ -81,7 +86,14 @@ def run_search(args):
             packages = [(e['name'], e['format'], maybe_path(args, e['url'])) for e in idx.list()
                         if args.format is None or args.format == e['format']]
 
-            print(tabulate(packages, headers='Name Format Url'.split()))
+            if args.name:
+                for name, _, _ in packages:
+                    print(name)
+            elif args.ref:
+                for _, _, url in packages:
+                    print(url)
+            else:
+                print(tabulate(packages, headers='Name Format Url'.split()))
 
     elif args.one:
 
@@ -102,7 +114,6 @@ def run_search(args):
 
         idx = SearchIndex(search_index_file())
 
-        prt('Index file:', idx.path)
 
         p = idx.search(args.search, args.format)
 
@@ -110,7 +121,14 @@ def run_search(args):
         for e in p:
             packages.append((e['name'], e['format'], e['url']))
 
-        print(tabulate(packages, headers='Name Format Url'.split()))
+        if args.name:
+            for name, _, _ in packages:
+                print(name)
+        elif args.ref:
+            for _, _, url in packages:
+                print(url)
+        else:
+            print(tabulate(packages, headers='Name Format Url'.split()))
 
 
 

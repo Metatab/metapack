@@ -141,6 +141,26 @@ class TestUrls(unittest.TestCase):
         self.assertIsInstance(r, MetapackDocumentUrl)
         self.assertIsInstance(r.inner, ZipUrl)
 
+
+    def test_document_urls(self):
+
+        urls = [
+            ('metapack+http://example.com/packagename/', 'metadata.csv', 'metadata.csv'),
+            ('metapack+http://example.com/packagename/metadata.csv', 'metadata.csv', 'metadata.csv'),
+            ('metapack+http://example.com/packagename/metadata.txt', 'metadata.txt', 'metadata.txt'),
+            ('metapack+http://example.com/packagename/metadata.ipynb', 'metadata.ipynb', 'metadata.ipynb'),
+            ('metapack+http://example.com/packagename.csv', 'packagename.csv', 'packagename.csv'),
+            ('metapack+http://example.com/packagename.txt', 'packagename.txt', 'packagename.txt'),
+            ('metapack+http://example.com/packagename.ipynb', 'packagename.ipynb', 'packagename.ipynb'),
+            ('metapack+http://example.com/packagename.xlsx', 'packagename.xlsx', 'meta')
+        ]
+        for us, rf, tf in urls:
+            u = parse_app_url(us)
+            self.assertEqual(rf, u.resource_file)
+            self.assertEqual(tf, u.target_file)
+
+
+
     def test_fs_resource(self):
 
         us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/#random_names'
@@ -152,14 +172,13 @@ class TestUrls(unittest.TestCase):
         self.assertEquals('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv',
                           str(u.metadata_url))
 
-        self.assertEquals('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/',
-                          str(u.package_url))
+        pu = u.package_url
+
+        self.assertEquals('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/',str(pu))
 
     def test_xlsx_parse(self):
 
-        ru = parse_app_url('/foo/bar/bax.xlsx',
-                           fragment='fragment',
-                           )
+        ru = parse_app_url('/foo/bar/bax.xlsx',fragment='fragment')
 
         # print (repr(ru))
 
@@ -193,8 +212,11 @@ class TestUrls(unittest.TestCase):
         self.assertIsInstance(u, MetapackResourceUrl)
         self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.xlsx#random-names',
                          str(u))
-        self.assertEqual('random-names', u.fragment[0])
+
         self.assertEqual('random-names', u.target_file)
+
+
+        return
 
         r = u.doc.resource(u.target_file)
         self.assertEqual('random-names',r.value)

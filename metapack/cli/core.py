@@ -1,6 +1,4 @@
 import logging
-from contextlib import contextmanager
-from metapack.package import open_package
 from metapack.doc import MetapackDoc
 from metapack.constants import PACKAGE_PREFIX
 from metatab import DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE
@@ -331,6 +329,9 @@ def process_schemas(mt_file, resource=None, cache=None, clean=False, report_foun
             continue
         except ConnectionError as e:
             warn("Failed to download resource '{}'; {}".format(r.name, e))
+            continue
+        except UnicodeDecodeError as e:
+            warn("Text encoding error for resource '{}'; {}".format(r.name, e))
             continue
 
         if schema_term:
@@ -669,6 +670,9 @@ def list_rr(doc):
 
 
 def find_packages(name, pkg_dir):
+
+    from metapack_build.package import FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder
+
     """Locate pre-built packages in the _packages directory"""
     for c in (FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder):
 
@@ -676,25 +680,6 @@ def find_packages(name, pkg_dir):
 
         if package_path.exists():
             yield c.type_code, package_path, cache_path  # c(package_path, pkg_dir)
-
-
-def generate_packages(m):
-    for ptype, purl, cache_path in find_packages(m.doc.get_value('Root.Name'), m.package_root):
-        yield ptype, purl, cache_path
-
-
-def find_csv_packages(m, downloader):
-    """Locate the build CSV package, which will have distributions if it was generated  as
-    and S3 package"""
-    from metapack.package import CsvPackageBuilder
-
-    pkg_dir = m.package_root
-    name = m.doc.get_value('Root.Name')
-
-    package_path, cache_path = CsvPackageBuilder.make_package_path(pkg_dir, name)
-
-    if package_path.exists():
-        return open_package(package_path, downloader=downloader)
 
 
 def md5_file(filePath):

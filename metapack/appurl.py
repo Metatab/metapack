@@ -17,6 +17,7 @@ from rowgenerators.exceptions import AppUrlError, DownloadError
 
 METATAB_FILES = (DEFAULT_METATAB_FILE, LINES_METATAB_FILE, DEFAULT_METATAB_FILE.replace('.csv', '.ipynb'))
 
+SIMPLE_FILE_FORMATS = ('csv', 'txt', 'ipynb')
 
 class _MetapackUrl(object):
 
@@ -30,87 +31,58 @@ class _MetapackUrl(object):
 
     @property
     def resource_name(self):
-        return self.fragment[0]
+        return self._parts['target_file'] # Must be underlying property
 
+
+    def absolute(self):
+        return self.inner.absolute()
 
 def is_metapack_url(u):
     return isinstance(u, _MetapackUrl)
 
 
 class MetapackDocumentUrl(Url, _MetapackUrl):
-    simple_file_formats = ('csv', 'txt', 'ipynb')
+
 
     def __init__(self, url=None, downloader=None, **kwargs):
-        kwargs['proto'] = 'metapack'
-
-        u = Url(url, **kwargs)
 
         assert downloader
 
-        # If there is no file with an extension in the path, assume that this
-        # is a filesystem package, and that the path should have DEFAULT_METATAB_FILE
-        if file_ext(basename(u.path)) not in ('zip', 'xlsx') + self.simple_file_formats:
-            u.path = join(u.path, DEFAULT_METATAB_FILE)
-
-        super().__init__(str(u), downloader=downloader, **kwargs)
+        super().__init__(url, downloader=downloader, **kwargs)
 
         self.scheme_extension = 'metapack'
 
-        if basename(self.path) in METATAB_FILES:
-            frag = ''
-        elif self.resource_format in self.simple_file_formats:
-            frag = ''
-        elif self.resource_format == 'xlsx':
-            frag = 'meta'
-        elif self.resource_format == 'zip':
-            frag = DEFAULT_METATAB_FILE
+        if not self._target_file():
+            self.path = join(self.path, DEFAULT_METATAB_FILE)
 
-        self.fragment = [frag, None]
+        if self.target_file != self._target_file() or not file_ext(self.target_file):
+
+            self.target_file = self._target_file()
+
 
     @classmethod
     def _match(cls, url, **kwargs):
-        raise MetapackError("This class should not be contructed through matching")
+        raise MetapackError("This class should not be constructed through matching")
 
-    @property
-    def resource_format(self):
+    def _target_file(self):
 
-        resource_format = file_ext(basename(self.path))
-
-        assert resource_format, self.path  # Should have either a definite file, or have added one in __init__
-
-        return resource_format
-
-    @property
-    def resource_file(self):
-
-        assert basename(self.resource_url)
-
-        return basename(self.resource_url)
-
-    @property
-    def target_file(self):
-
-        if self.fspath.name in METATAB_FILES:
-            return self.fspath.name
-        elif self.resource_format in self.simple_file_formats:
+        if self.resource_file in METATAB_FILES:
             return self.resource_file
+
+        elif self.resource_format in SIMPLE_FILE_FORMATS:
+            return self.resource_file
+
         elif self.resource_format == 'xlsx':
             return 'meta'
+
         elif self.resource_format == 'zip':
             return DEFAULT_METATAB_FILE
+
+        elif not file_ext(self.resource_file):
+            return None
+
         else:
             return self.resource_file
-
-    @property
-    def target_format(self):
-        if self.resource_format in self.simple_file_formats:
-            return self.resource_format
-        elif self.resource_format == 'xlsx':
-            return 'xlsx'
-        elif self.resource_format == 'zip':
-            return 'csv'
-        else:
-            return 'csv'
 
     @property
     def doc(self):
@@ -163,11 +135,11 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
         if self.resource_file == DEFAULT_METATAB_FILE or self.target_format in ('txt','ipynb'):
             u = self.inner.clone().clear_fragment()
             u.path = dirname(self.path) + '/'
-            u.scheme_extension = 'metapack'
-        else:
-            u = self
 
-        return MetapackPackageUrl(str(u.clear_fragment()), downloader=self._downloader)
+        else:
+            u = self.clear_fragment()
+
+        return MetapackPackageUrl(str(u), downloader=self._downloader)
 
     def get_resource(self):
 
@@ -194,7 +166,7 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def resource(self):
         """Return the Metapack resource, different from the URL resource returned by get_resource"""
 
-        r = self.doc.resource(self.fragment[0])
+        r = self.doc.resource(self.resource_name)
         return r
 
 
@@ -202,13 +174,11 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
     """Special version of MetapackUrl for package urls, which never have a fragment"""
 
     def __init__(self, url=None, downloader=None, **kwargs):
-        kwargs['proto'] = 'metapack'
+
+        kwargs['scheme_extension'] = 'metapack'
 
         super().__init__(url, downloader=downloader, **kwargs)
-        self.scheme_extension = 'metapack'
 
-        self.fragment = None
-        self.query = None
 
         assert self._downloader
 
@@ -226,14 +196,13 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
         """Return the metatab document for the URL"""
         return self.metadata_url.doc
 
-    def rebuild_fragment(self):
-        self.fragment = ''
+
 
     def join_resource_name(self, v):
         """Return a MetapackResourceUrl that includes a reference to the resource. Returns a
         MetapackResourceUrl, which will have a fragment """
         d = self.dict
-        d['fragment'] = [v, None]
+        self.target_file = v
         return MetapackResourceUrl(downloader=self._downloader, **d)
 
     def join_resource_path(self, v):
@@ -317,7 +286,9 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
 
         # Using .clone() causes recursion
         d = self.dict
-        d['fragment'] = None
+        # Remove the resource
+        d['target_file'] = None
+        d['target_segment'] =None
 
         md = MetapackDocumentUrl(None, downloader=downloader, **d)
         self.path = md.path
@@ -328,13 +299,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be contructed through matching")
 
-    @property
-    def target_file(self):
 
-        if self.fragment[0]:
-            return self.fragment[0]
-
-        return None
 
     @property
     def doc(self):
@@ -371,10 +336,10 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     @property
     def resource(self):
 
-        r = self.doc.resource(self.fragment[0])
+        r = self.doc.resource(self.resource_name)
 
         if not r:
-            r = self.doc.reference(self.fragment[0])
+            r = self.doc.reference(self.resource_name)
 
         return r
 
@@ -391,7 +356,7 @@ class MetapackUrl(Url):
 
         u = Url(url, **kwargs)
 
-        if u.fragment[0]:
+        if u._parts['target_file']: # must be underlying property, not .target_file
             return MetapackResourceUrl(url, downloader, **kwargs)
         else:
             return MetapackDocumentUrl(url, downloader, **kwargs)
@@ -461,7 +426,7 @@ class SearchUrl(Url):
             package = packages.pop(0)
 
             try:
-                resource_str = '#' + url.target_file if url.fragment[0] else ''
+                resource_str = '#' + url.target_file if url.targte_file else ''
 
                 return parse_app_url(package['url'] + resource_str, downloader=url.downloader)
             except KeyError as e:
@@ -499,11 +464,4 @@ class SearchUrl(Url):
     def get_target(self):
         return self
 
-    def target_dataframe(self):
-        if self._target_file:
-            return self._target_file
 
-        if self.fragment[0]:
-            return self.fragment[0]
-
-        return None

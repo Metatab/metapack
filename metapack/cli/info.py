@@ -15,6 +15,7 @@ from tabulate import tabulate
 import sys
 from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
 from textwrap import dedent
+from tabulate import tabulate
 
 downloader = Downloader.get_instance()
 
@@ -62,10 +63,10 @@ def info_args(subparsers):
                        help="Print the package root url")
 
 
-    parser.add_argument('-T', '--value-types', default=False, action='store_true',
+    group.add_argument('-T', '--value-types', default=False, action='store_true',
                         help='Print a list of available value types')
 
-    parser.add_argument('-t', '--transforms', default=False, action='store_true',
+    group.add_argument('-t', '--transforms', default=False, action='store_true',
                         help='Print a list of available transform functions')
 
 
@@ -101,11 +102,7 @@ def info(args):
             dump_rptable(m)
 
         elif m.resource:
-            r = m.get_resource()
-            prt('Resolved:     ', r.resolved_url)
-            prt('URL Resource: ', r.resolved_url.get_resource())
-            prt('URL path    : ', r.resolved_url.get_resource().get_target())
-            prt('Target Path:  ', r.resolved_url.get_resource().get_target().fspath)
+           resource_info(m)
 
         elif args.value_types:
             print_value_types(m)
@@ -121,12 +118,32 @@ def info(args):
         err('No metatab file found')
 
 
+def resource_info(m):
+    r = m.get_resource()
 
+    ru = r.resolved_url
+    rsu = ru.get_resource()
+    tu = rsu.get_target()
+    rows = [
+        ('Value', r.url),
+        ("Expanded", r.expanded_url),
+        ('Resolved', ru),
+        ('URL Resource', rsu),
+        ('URL path', tu),
+        ('Target Path', tu.fspath)
+    ]
 
+    props = ['fragment_query','resource_file', 'resource_format',
+             'target_file', 'target_format',
+             'encoding', 'headers', 'start', 'end']
+
+    rows += [(p, getattr(tu, p, '')) for p in props]
+
+    prt(tabulate(rows))
 
 def print_versions(m):
     from pkg_resources import EntryPoint
-    from tabulate import tabulate
+
 
     main_packages = ('metapack', 'metatab', 'metatabdecl', 'rowgenerators', 'publicdata', 'tableintuit')
 

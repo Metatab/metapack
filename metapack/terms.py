@@ -103,11 +103,23 @@ class Resource(Term):
                 u = self.doc.package_url.join_target(u.path)
 
         return u
-            
+
+
     @property
     def resolved_url(self):
 
         ru = self._resolved_url()
+
+        # source_url will be None for Sql terms.
+        if ru:
+            for p in ('target_format', 'target_file', 'encoding', 'headers', 'start', 'end'):
+
+                pns = ''.join(p.split('_'))  # attr names have '_', but Metatab props dont
+
+                v = self.get_value(pns)
+
+                if v:
+                    setattr(ru, p, v)
 
         return ru
 
@@ -316,6 +328,8 @@ class Resource(Term):
         else:
             return None
 
+
+
     @property
     def raw_row_generator(self):
         """Like rowgenerator, but does not try to create a row processor table"""
@@ -336,10 +350,6 @@ class Resource(Term):
 
         # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)
-
-        # source_url will be None for Sql terms.
-
-        ut.encoding = self.get_value('encoding') or (source_url.encoding if source_url else None)
 
         g = get_generator(ut,  resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
@@ -377,11 +387,8 @@ class Resource(Term):
 
         ut = rur.get_target()
 
-        # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)
 
-        # source_url will be None for Sql terms.
-        ut.encoding = source_url.encoding if source_url and source_url.encoding else self.get_value('encoding')
 
         table = self.row_processor_table()
 
