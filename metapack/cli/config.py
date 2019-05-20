@@ -8,11 +8,9 @@ The program uses the Root.Distributions in the source package to locate packages
 
 """
 
-from metapack.cli.core import prt, err
+from metapack.cli.core import prt, err, MetapackCliMemo as _MetapackCliMemo
 from metapack.package import *
-from .core import MetapackCliMemo as _MetapackCliMemo
 from tabulate import tabulate
-import sys
 from pkg_resources import get_distribution, DistributionNotFound, iter_entry_points
 
 downloader = Downloader.get_instance()
@@ -86,6 +84,7 @@ def print_versions():
     from pkg_resources import EntryPoint
     from tabulate import tabulate
 
+
     main_packages = ('metapack', 'metatab', 'metatabdecl', 'rowgenerators', 'publicdata', 'tableintuit')
 
     packages = []
@@ -96,8 +95,7 @@ def print_versions():
 
         except (DistributionNotFound, ModuleNotFoundError) as e:
             # package is not installed
-
-            pass
+            print(e)
 
     prt(tabulate(packages, headers='Package Version'.split()))
     prt('')
@@ -138,7 +136,3 @@ def print_value_types():
     rows = [ (k,v.__name__, v.__doc__) for k,v in value_types.items() ]
 
     print(tabulate(sorted(rows), headers='Code Class Description'.split()))
-
-
-
-

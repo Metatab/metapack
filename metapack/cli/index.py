@@ -84,10 +84,12 @@ def walk_packages(args, u):
 
         return
 
+
     for root, dirs, files in walk(u.path):
 
         try:
             p = open_package(root)
+
             # This was a package, so only recurse if it is a source package and has a _packages dir
 
             if PACKAGE_PREFIX in dirs:
@@ -98,6 +100,7 @@ def walk_packages(args, u):
 
             if str(p.ref) not in seen:
                 yield p
+
             seen.add(str(p.ref))
             continue
 
@@ -108,6 +111,7 @@ def walk_packages(args, u):
         for f in files:
             if not islink(join(root,f)):
                 try:
+
                     p = open_package(join(root,f))
                     if str(p.ref) not in seen:
                         yield p
@@ -166,7 +170,7 @@ def index(args):
     elif isinstance(u, FileUrl):
         entries = []
         for p in walk_packages(args, u):
-            prt(p.ref)
+            prt('Adding: ', p.ref)
             idx.add_package(p)
             entries.append(p.name)
 

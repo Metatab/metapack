@@ -521,6 +521,7 @@ def display_context(doc):
 
         if u.target_format == 'md':  # The README.md file
             inline = ''
+
             if u.proto == 'file':
                 # File really ought to be relative
                 t = doc.package_url.join_target(u).get_resource().get_target()
@@ -530,8 +531,8 @@ def display_context(doc):
                 except DownloadError as e:
                     raise e
 
-
             try:
+
                 with open(t.fspath) as f:
                     inline += f.read()
 

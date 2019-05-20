@@ -48,6 +48,7 @@ class MetapackDoc(MetatabDoc):
         if not isinstance(ref, (MetapackDocumentUrl)) and not isinstance(ref, Source) and ref is not None:
             ref = MetapackDocumentUrl(str(ref), downloader=self.downloader)
 
+
         self.register_term_class('root.resource', 'metapack.terms.Resource')
         self.register_term_class('root.reference', 'metapack.terms.Reference')
         self.register_term_class('root.distribution', 'metapack.terms.Distribution')

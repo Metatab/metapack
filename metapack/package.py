@@ -29,10 +29,10 @@ def open_package(ref, downloader=None):
     if downloader is None:
         downloader = Downloader()
 
-    resource = None
-
     if isinstance(ref, MetapackUrl):
-        u = ref
+        p = MetapackDoc(ref, downloader=downloader)
+        p.default_resource = None
+        return p
 
     else:
 
@@ -45,8 +45,6 @@ def open_package(ref, downloader=None):
 
         u = MetapackUrl(ref, downloader=downloader)
 
-        resource = u.resource
-
-    p = MetapackDoc(u, downloader=downloader)
-    p.default_resource = resource
-    return p
+        p = MetapackDoc(u, downloader=downloader)
+        p.default_resource = u.resource_name
+        return p

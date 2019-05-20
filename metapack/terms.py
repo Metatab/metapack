@@ -1,14 +1,15 @@
 from itertools import islice
-
 from os.path import join
+
 from metapack.appurl import MetapackPackageUrl
 from metapack.doc import EMPTY_SOURCE_HEADER
 from metapack.exc import MetapackError, ResourceError
 from metatab import Term
 from rowgenerators import parse_app_url
-from rowgenerators.exceptions import  DownloadError
+from rowgenerators.exceptions import DownloadError
 from rowgenerators.rowpipe import RowProcessor
 from rowgenerators.rowproxy import RowProxy
+
 
 class Resource(Term):
     # These property names should return null if they aren't actually set.
@@ -36,7 +37,6 @@ class Resource(Term):
 
     @property
     def _envvar_env(self):
-        from os.path import join
 
         return {
             # These become their own env vars when calling a program.
@@ -104,7 +104,6 @@ class Resource(Term):
 
         return u
 
-
     @property
     def resolved_url(self):
 
@@ -116,13 +115,12 @@ class Resource(Term):
 
                 pns = ''.join(p.split('_'))  # attr names have '_', but Metatab props dont
 
-                v = self.get_value(pns)
-
-                if v:
-                    setattr(ru, p, v)
+                if self.get_value(pns):
+                    setattr(ru, p, self.get_value(pns))
+                elif self.get_value(p):  # Legacy version with '_'
+                    setattr(ru, p, self.get_value(p))
 
         return ru
-
 
     def _resolved_url(self):
         """Return a URL that properly combines the base_url and a possibly relative
@@ -250,8 +248,6 @@ class Resource(Term):
         else:
             return None
 
-
-
     def columns(self):
         """Return column information from the schema or from an upstreram package"""
 
@@ -272,7 +268,6 @@ class Resource(Term):
 
         columns = []
 
-
         if t:
             for i, c in enumerate(t.children):
 
@@ -281,7 +276,6 @@ class Resource(Term):
                     p['pos'] = i
                     p['name'] = c.value
                     p['header'] = self._name_for_col_term(c, i)
-                    
 
                     columns.append(p)
 
@@ -328,8 +322,6 @@ class Resource(Term):
         else:
             return None
 
-
-
     @property
     def raw_row_generator(self):
         """Like rowgenerator, but does not try to create a row processor table"""
@@ -340,7 +332,7 @@ class Resource(Term):
         ru = self.resolved_url
 
         try:
-            resource = ru.resource # For Metapack urls
+            resource = ru.resource  # For Metapack urls
 
             return resource.row_generator
         except AttributeError:
@@ -351,7 +343,7 @@ class Resource(Term):
         # Encoding is supposed to be preserved in the URL but isn't
         source_url = parse_app_url(self.url)
 
-        g = get_generator(ut,  resource=self,
+        g = get_generator(ut, resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
                           env=self.env)
 
@@ -374,7 +366,7 @@ class Resource(Term):
             raise ResourceError("Failed to resolve url for  '{}' ".format(self))
 
         try:
-            resource = ru.resource # For Metapack urls
+            resource = ru.resource  # For Metapack urls
 
             return resource.row_generator
         except AttributeError:
@@ -388,7 +380,6 @@ class Resource(Term):
         ut = rur.get_target()
 
         source_url = parse_app_url(self.url)
-
 
         table = self.row_processor_table()
 
@@ -434,7 +425,6 @@ class Resource(Term):
         except (ValueError, TypeError) as e:
             end = None
 
-
         base_row_gen = self.row_generator
         assert base_row_gen is not None
 
@@ -446,7 +436,7 @@ class Resource(Term):
             rg = RowProcessor(islice(base_row_gen, start, end),
                               self.row_processor_table(),
                               source_headers=self.source_headers,
-                              manager = self,
+                              manager=self,
                               env=self.env,
                               code_path=self.code_path)
 
@@ -457,15 +447,12 @@ class Resource(Term):
             yield headers
             rg = islice(base_row_gen, start, None)
 
-
-
         yield from rg
 
         try:
             self.errors = rg.errors if rg.errors else {}
         except AttributeError:
             self.errors = {}
-
 
         self.post_iter_meta = base_row_gen.meta
 
@@ -487,8 +474,6 @@ class Resource(Term):
     @property
     def iterrows(self):
         """Iterate over the resource as row proxy objects, which allow acessing colums as attributes"""
-
-
 
         row_proxy = None
 
@@ -531,7 +516,7 @@ class Resource(Term):
 
         json_headers = self.json_headers
 
-        for row in islice(self, 1, None): # islice skips header
+        for row in islice(self, 1, None):  # islice skips header
             d = {}
             for pos, jh in json_headers:
                 add_to_struct(d, jh, row[pos])
@@ -559,7 +544,7 @@ class Resource(Term):
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
 
-    def dataframe(self, dtype=False, parse_dates=True,  *args, **kwargs):
+    def dataframe(self, dtype=False, parse_dates=True, *args, **kwargs):
         """Return a pandas datafrome from the resource"""
 
         import pandas as pd
@@ -574,7 +559,7 @@ class Resource(Term):
         # Maybe generator has it's own Dataframe method()
         try:
 
-            return rg.dataframe( *args, **kwargs)
+            return rg.dataframe(*args, **kwargs)
         except AttributeError:
             pass
 
@@ -582,7 +567,7 @@ class Resource(Term):
         headers = next(islice(self, 0, 1))
         data = islice(self, 1, None)
 
-        df = pd.DataFrame(list(data), columns=headers,  *args, **kwargs)
+        df = pd.DataFrame(list(data), columns=headers, *args, **kwargs)
 
         self.errors = df.metatab_errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
@@ -647,15 +632,15 @@ class Resource(Term):
 
 
             except KeyError as e:
-                raise ResourceError("Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
-            except (KeyError,TypeError) as e:
+                raise ResourceError(
+                    "Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
+            except (KeyError, TypeError) as e:
                 raise ResourceError("Failed to create GeoDataFrame for resource '{}': {}".format(self.name, str(e)))
 
         assert gdf.crs is not None
         return gdf
 
-
-    def _update_pandas_kwargs(self,  dtype=False, parse_dates=True, kwargs= {}):
+    def _update_pandas_kwargs(self, dtype=False, parse_dates=True, kwargs={}):
         """ Construct args suitable for pandas read_csv
         :param dtype: If true, create a dtype type map. Otherwise, pass argument value to read_csv
         :param parse_dates: If true, create a list of date/time columns for the parse_dates argument of read_csv
@@ -678,13 +663,13 @@ class Resource(Term):
         }
 
         if dtype is True:
-            kwargs['dtype'] = { c['name']:type_map.get(c['datatype'], c['datatype']) for c in self.columns() }
+            kwargs['dtype'] = {c['name']: type_map.get(c['datatype'], c['datatype']) for c in self.columns()}
         elif dtype:
             kwargs['dtype'] = dtype
 
         if parse_dates is True:
-             date_cols = [ c['name'] for c in self.columns() if c['datatype'] in ('date','datetime','time') ]
-             kwargs['parse_dates'] = date_cols or True
+            date_cols = [c['name'] for c in self.columns() if c['datatype'] in ('date', 'datetime', 'time')]
+            kwargs['parse_dates'] = date_cols or True
         elif parse_dates:
             kwargs['parse_dates'] = parse_dates
 
@@ -738,7 +723,6 @@ class Resource(Term):
 
     def _repr_html_(self):
 
-
         try:
             return self.sub_resource._repr_html_()
         except AttributeError:
@@ -764,6 +748,7 @@ class Resource(Term):
         from .html import ckan_resource_markdown
         return ckan_resource_markdown(self)
 
+
 class Reference(Resource):
     @property
     def env(self):
@@ -778,9 +763,9 @@ class Reference(Resource):
             # For Metapack references
 
             if self.resolved_url.resource is None:
-                raise ResourceError("Reference '{}' doesn't specify a valid resource in the URL. ".format(self.name)+
+                raise ResourceError("Reference '{}' doesn't specify a valid resource in the URL. ".format(self.name) +
                                     "\n Maybe need to add '#<resource_name>' to the end of the url '{}'".format(
-                                        self.url) )
+                                        self.url))
 
             yield from self.resolved_url.resource
         except AttributeError:
@@ -846,7 +831,7 @@ class SqlQuery(Resource):
             if c.term_is("Table.Column"):
                 p = c.all_props
 
-                if p.get('sqlselect'): # has a value for SqlSqlect
+                if p.get('sqlselect'):  # has a value for SqlSqlect
                     sql_columns.append(p.get('sqlselect'))
 
                 all_columns.append(c.name)
@@ -864,14 +849,14 @@ class SqlQuery(Resource):
 
         # SQL Urls can be split into a Dsn part ( connection info ) and the SQL
         #  so the Sql urls have special handling for the references.
-        dsns = {t.name:t.value for t in self.doc.find('Root.Dsn') }
+        dsns = {t.name: t.value for t in self.doc.find('Root.Dsn')}
 
         try:
             u = parse_app_url(dsns[self.get_value('dsn')])
         except KeyError:
             raise MetapackError(f"Sql term '{self.name}' does not have a Dsn property")
 
-        if self.query.startswith('file:'): # .query resolves to value
+        if self.query.startswith('file:'):  # .query resolves to value
             qu = parse_app_url(self.query, working_dir=self._doc.doc_dir).get_resource().get_target()
 
             with open(qu.fspath) as f:
@@ -887,13 +872,9 @@ class SqlQuery(Resource):
 
 class Distribution(Term):
 
-
-
     def __init__(self, term, value, term_args=False, row=None, col=None, file_name=None, file_type=None, parent=None,
                  doc=None, section=None):
         super().__init__(term, value, term_args, row, col, file_name, file_type, parent, doc, section)
-
-        from metapack.util import dump_stack
 
     @property
     def type(self):
@@ -914,12 +895,10 @@ class Distribution(Term):
     @property
     def package_url(self):
         from metapack import MetapackPackageUrl
-       
+
         return MetapackPackageUrl(self.value, downloader=self.doc.downloader)
 
     @property
     def metadata_url(self):
         from metapack import MetapackDocumentUrl
         return MetapackDocumentUrl(self.value, downloader=self.doc.downloader)
-
-

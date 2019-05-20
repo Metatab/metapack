@@ -2,6 +2,7 @@ import unittest
 import metapack as mp
 from rowgenerators import parse_app_url
 from metapack import Downloader
+from pprint import pprint
 
 downloader = Downloader()
 
@@ -199,13 +200,28 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv',
                          str(ud))
 
+
+        u = MetapackDocumentUrl('/Users/eric/proj/data-projects/metatab-packages/census.foobtomtoob', downloader=downloader)
+        print(str(u))
+
     def test_broken_package_urls(self):
+        from metapack import open_package
         from metapack.appurl import MetapackPackageUrl
 
-        u = MetapackPackageUrl('http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv',
-                               downloader=downloader)
+        p = open_package('metapack+file:///Users/eric/proj/data-projects/cde.ca.gov/cde.ca.gov-current_expense/metadata.csv')
 
-        print(u)
+        u  = parse_app_url('file:README.md')
+
+        r = p.package_url.join_target(u).get_resource()
+
+        print(p.package_url)
+        print(r)
+        del r._parts['fragment']
+        del r._parts['fragment_query']
+        print(r.get_target())
+        pprint(r._parts)
+
+
 
 if __name__ == '__main__':
     unittest.main()

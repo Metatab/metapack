@@ -52,34 +52,30 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
 
         self.scheme_extension = 'metapack'
 
-        if not self._target_file():
-            self.path = join(self.path, DEFAULT_METATAB_FILE)
-
-        if self.target_file != self._target_file() or not file_ext(self.target_file):
-
-            self.target_file = self._target_file()
-
+        self._set_target_file()
 
     @classmethod
     def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be constructed through matching")
 
-    def _target_file(self):
+    def _set_target_file(self):
 
         if self.resource_file in METATAB_FILES:
-            return self.resource_file
+            return #self.resource_file
 
         elif self.resource_format in SIMPLE_FILE_FORMATS:
-            return self.resource_file
+            return #self.resource_file
 
         elif self.resource_format == 'xlsx':
-            return 'meta'
+            self.target_file = 'meta'
+            return
 
         elif self.resource_format == 'zip':
-            return DEFAULT_METATAB_FILE
+            self.target_file =  DEFAULT_METATAB_FILE
+            return
 
-        elif not file_ext(self.resource_file):
-            return None
+        elif file_ext(self.resource_file) not in SIMPLE_FILE_FORMATS:
+            self.path = join(self.path, DEFAULT_METATAB_FILE)
 
         else:
             return self.resource_file
