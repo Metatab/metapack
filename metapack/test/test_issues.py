@@ -204,23 +204,6 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         u = MetapackDocumentUrl('/Users/eric/proj/data-projects/metatab-packages/census.foobtomtoob', downloader=downloader)
         print(str(u))
 
-    def test_broken_package_urls(self):
-        from metapack import open_package
-        from metapack.appurl import MetapackPackageUrl
-
-        p = open_package('metapack+file:///Users/eric/proj/data-projects/cde.ca.gov/cde.ca.gov-current_expense/metadata.csv')
-
-        u  = parse_app_url('file:README.md')
-
-        r = p.package_url.join_target(u).get_resource()
-
-        print(p.package_url)
-        print(r)
-        del r._parts['fragment']
-        del r._parts['fragment_query']
-        print(r.get_target())
-        pprint(r._parts)
-
 
 
 if __name__ == '__main__':
