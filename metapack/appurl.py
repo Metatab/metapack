@@ -5,10 +5,10 @@
 
 """
 
+from os.path import basename, join, dirname
+
 from metapack.exc import MetapackError, ResourceError
 from metatab import DEFAULT_METATAB_FILE, LINES_METATAB_FILE
-from os.path import basename, join, dirname
-from pathlib import Path
 from rowgenerators import Url, parse_app_url
 from rowgenerators.appurl.file.file import FileUrl
 from rowgenerators.appurl.util import file_ext
@@ -18,6 +18,7 @@ from rowgenerators.exceptions import AppUrlError, DownloadError
 METATAB_FILES = (DEFAULT_METATAB_FILE, LINES_METATAB_FILE, DEFAULT_METATAB_FILE.replace('.csv', '.ipynb'))
 
 SIMPLE_FILE_FORMATS = ('csv', 'txt', 'ipynb')
+
 
 class _MetapackUrl(object):
 
@@ -31,18 +32,17 @@ class _MetapackUrl(object):
 
     @property
     def resource_name(self):
-        return self._parts['target_file'] # Must be underlying property
-
+        return self._parts['target_file']  # Must be underlying property
 
     def absolute(self):
         return self.inner.absolute()
+
 
 def is_metapack_url(u):
     return isinstance(u, _MetapackUrl)
 
 
 class MetapackDocumentUrl(Url, _MetapackUrl):
-
 
     def __init__(self, url=None, downloader=None, **kwargs):
 
@@ -61,17 +61,17 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def _set_target_file(self):
 
         if self.resource_file in METATAB_FILES:
-            return #self.resource_file
+            return  # self.resource_file
 
         elif self.resource_format in SIMPLE_FILE_FORMATS:
-            return #self.resource_file
+            return  # self.resource_file
 
         elif self.resource_format == 'xlsx':
             self.target_file = 'meta'
             return
 
         elif self.resource_format == 'zip':
-            self.target_file =  DEFAULT_METATAB_FILE
+            self.target_file = DEFAULT_METATAB_FILE
             return
 
         elif file_ext(self.resource_file) not in SIMPLE_FILE_FORMATS:
@@ -128,7 +128,7 @@ class MetapackDocumentUrl(Url, _MetapackUrl):
     def package_url(self):
         """Return the package URL associated with this metadata"""
 
-        if self.resource_file == DEFAULT_METATAB_FILE or self.target_format in ('txt','ipynb'):
+        if self.resource_file == DEFAULT_METATAB_FILE or self.target_format in ('txt', 'ipynb'):
             u = self.inner.clone().clear_fragment()
             u.path = dirname(self.path) + '/'
 
@@ -175,7 +175,6 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
 
         super().__init__(url, downloader=downloader, **kwargs)
 
-
         assert self._downloader
 
     @property
@@ -191,8 +190,6 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
     def doc(self):
         """Return the metatab document for the URL"""
         return self.metadata_url.doc
-
-
 
     def join_resource_name(self, v):
         """Return a MetapackResourceUrl that includes a reference to the resource. Returns a
@@ -284,7 +281,7 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
         d = self.dict
         # Remove the resource
         d['target_file'] = None
-        d['target_segment'] =None
+        d['target_segment'] = None
 
         md = MetapackDocumentUrl(None, downloader=downloader, **d)
         self.path = md.path
@@ -294,8 +291,6 @@ class MetapackResourceUrl(FileUrl, _MetapackUrl):
     @classmethod
     def _match(cls, url, **kwargs):
         raise MetapackError("This class should not be contructed through matching")
-
-
 
     @property
     def doc(self):
@@ -352,7 +347,7 @@ class MetapackUrl(Url):
 
         u = Url(url, **kwargs)
 
-        if u._parts['target_file']: # must be underlying property, not .target_file
+        if u._parts['target_file']:  # must be underlying property, not .target_file
             return MetapackResourceUrl(url, downloader, **kwargs)
         else:
             return MetapackDocumentUrl(url, downloader, **kwargs)
@@ -361,8 +356,6 @@ class MetapackUrl(Url):
     def _match(cls, url, **kwargs):
         """Return True if this handler can handle the input URL"""
         return url.proto in ('metapack', 'metatab')
-
-
 
 
 class SearchUrl(Url):
@@ -391,7 +384,7 @@ class SearchUrl(Url):
     @classmethod
     def initialize(cls):
         if SearchUrl._search_initialized is False:
-            from metapack.package import Downloader # Breaks inclusion cycle
+            from metapack.package import Downloader  # Breaks inclusion cycle
             try:
                 search_func = cls.search_json_indexed_directory(Downloader.get_instance().cache.getsyspath('/'))
                 SearchUrl.register_search(search_func)
@@ -459,5 +452,3 @@ class SearchUrl(Url):
 
     def get_target(self):
         return self
-
-

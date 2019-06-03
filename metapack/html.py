@@ -2,7 +2,8 @@
 # Revised BSD License, included in this distribution as LICENSE
 
 """
-Create Markdown and HTML of datasets.
+Create Markdown and HTML of datasets. most importantly, Create a documentation context data structure,
+a data structure that can be used to generate documentation, such as a jira2 context
 """
 
 import datetime
@@ -483,6 +484,7 @@ def display_context(doc):
     """Create a Jinja context for display"""
     from rowgenerators.exceptions import DownloadError
 
+    # Make a naive dictionary conversion
     context = {s.name.lower(): s.as_dict() for s in doc if s.name.lower() != 'schema'}
 
     mandatory_sections = ['documentation', 'contacts']
@@ -618,6 +620,13 @@ def display_context(doc):
 
     if doc.find('Root.Giturl'):
         context['distributions']['source'] = doc.get_value('Root.Giturl')
+
+    context['schema'] = {}
+    if 'Schema' in doc:
+        for t in doc['Schema'].find('Root.Table'):
+            context['schema'][t.name] = []
+            for c in t.find('Table.Column'):
+                context['schema'][t.name].append(c.as_dict())
 
     return context
 

@@ -139,11 +139,10 @@ class Resource(Term):
 
             return u
         elif u.resource_format == 'ipynb':
-
             # This shouldn't be a special case, but ...
             t = self.doc.package_url.inner.join_dir(self.url)
             t = t.as_type(type(u))
-            t.fragment = u.fragment
+            t.target_file = u.target_file
 
             return t
 
@@ -329,7 +328,7 @@ class Resource(Term):
 
         self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
 
-        ru = self.resolved_url
+        ru = self.resolved_url8
 
         try:
             resource = ru.resource  # For Metapack urls

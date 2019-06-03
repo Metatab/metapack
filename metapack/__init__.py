@@ -11,6 +11,8 @@ from .package import open_package, Downloader
 from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl
 from .terms import Resource
 
+import metapack.jupyter
+
 #from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
 
 from rowgenerators import set_default_cache_name
