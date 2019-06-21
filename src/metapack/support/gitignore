@@ -1,0 +1,8 @@
+.ipynb_checkpoints
+*-save.ipynb
+*-errors.ipynb
+*-executed.ipynb
+**/notebooks/*.csv
+new-notebook.ipynb
+metadata.txt
+_packages
