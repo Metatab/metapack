@@ -5,25 +5,20 @@
 Extensions to the MetatabDoc, Resources and References, etc.
 """
 
-EMPTY_SOURCE_HEADER = '_NONE_'  # Marker for a column that is in the destination table but not in the source
-
 from pathlib import Path
 
 from metatab import MetatabDoc, WebResolver
 from rowgenerators import Source, parse_app_url
-from rowgenerators.exceptions import AppUrlError, RowGeneratorError
+from rowgenerators.exceptions import RowGeneratorError
 
-from metapack.appurl import (
-    MetapackDocumentUrl,
-    MetapackResourceUrl,
-    MetapackUrl
-)
+from metapack.appurl import MetapackDocumentUrl
 from metapack.exc import MetatabFileNotFound
 from metapack.package import Downloader
 from metapack.util import datetime_now
 
-from .html import linkify
 from .util import slugify
+
+EMPTY_SOURCE_HEADER = '_NONE_'  # Marker for a column that is in the destination table but not in the source
 
 
 class Resolver(WebResolver):
@@ -55,7 +50,6 @@ class MetapackDoc(MetatabDoc):
         if not isinstance(ref, (MetapackDocumentUrl)) and not isinstance(ref, Source) and ref is not None:
             ref = MetapackDocumentUrl(str(ref), downloader=self.downloader)
 
-
         self.register_term_class('root.resource', 'metapack.terms.Resource')
         self.register_term_class('root.reference', 'metapack.terms.Reference')
         self.register_term_class('root.distribution', 'metapack.terms.Distribution')
@@ -75,7 +69,7 @@ class MetapackDoc(MetatabDoc):
         try:
 
             super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
-        except RowGeneratorError as e:
+        except RowGeneratorError:
             raise MetatabFileNotFound("Failed to get Metatabfile for reference: '{}' ".format(ref))
 
         self.default_resource = None  # Set externally in open_package when the URL has a resource.
@@ -158,7 +152,7 @@ class MetapackDoc(MetatabDoc):
     def abstract(self):
         return self.wrappable_term('Root.Abstract')
 
-    @description.setter
+    @abstract.setter
     def abstract(self, v):
         return self.set_wrappable_term(v, 'Root.Abstract')
 
@@ -186,7 +180,7 @@ class MetapackDoc(MetatabDoc):
 
         for lib_dir_name in self.lib_dir_names:
             if isdir(join(doc_dir, lib_dir_name)):
-                if not 'docdir' in sys.path:
+                if 'docdir' not in sys.path:
                     sys.path.insert(0, doc_dir)
                 return True
 
@@ -197,7 +191,6 @@ class MetapackDoc(MetatabDoc):
         for rowpipe transforms. This only works filesystem packages"""
 
         from importlib import import_module
-
 
         if not self.ref:
             return {}
@@ -213,18 +206,16 @@ class MetapackDoc(MetatabDoc):
 
                 try:
                     m = import_module(module_name)
-                    d =  {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
+                    d = {k: v for k, v in m.__dict__.items() if not k.startswith('__')}
                     return d
 
                 except ModuleNotFoundError as e:
                     # We need to know if it is the datapackage's module that is missing
                     # or if it is a module that it imported
-                    if not module_name in str(e):
-                        raise # If not our module, it's a real error.
+                    if module_name not in str(e):
+                        raise  # If not our module, it's a real error.
 
                     continue
-
-
         else:
             return {}
 
@@ -242,7 +233,6 @@ class MetapackDoc(MetatabDoc):
 
     def _repr_html_(self, **kwargs):
         """Produce HTML for Jupyter Notebook"""
-        from jinja2 import Template
         from markdown import markdown as convert_markdown
 
         extensions = [
@@ -250,7 +240,7 @@ class MetapackDoc(MetatabDoc):
             'markdown.extensions.admonition'
         ]
 
-        return convert_markdown(self.markdown, extensions)
+        return convert_markdown(self.markdown, extensions=extensions)
 
     def _repr_pretty_(self, p, cycle):
         p.text(self.markdown)
@@ -295,7 +285,6 @@ class MetapackDoc(MetatabDoc):
             'Root.Distribution'
         ])
 
-
     def write_csv(self, path=None):
         """Write CSV file. Sorts the sections before calling the superclass write_csv"""
 
@@ -319,11 +308,10 @@ class MetapackDoc(MetatabDoc):
 
         return super().write_csv(str(path))
 
-    def write_ipynb(self, path:Path=None):
+    def write_ipynb(self, path: Path = None):
         from metapack_jupyter.convert import write_metatab_notebook
 
         write_metatab_notebook(self, path)
-
 
     def write(self, path=None):
         from metatab.exc import FormatError
