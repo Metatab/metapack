@@ -9,10 +9,7 @@ from tabulate import tabulate
 logger = logging.getLogger('user')
 logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
-download_logger = logging.getLogger('debug')
-
-from rowgenerators.appurl.web.download import logger as download_logger
-
+download_logger = logging.getLogger('rowgenerators.appurl.web.download')
 
 def cli_init(log_level=logging.INFO):
     import sys
@@ -31,17 +28,17 @@ def cli_init(log_level=logging.INFO):
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
 
-    out_hdlr = logging.StreamHandler(sys.stdout)
-    out_hdlr.setFormatter(logging.Formatter('DEBUG: %(message)s'))
-    out_hdlr.setLevel(log_level)
-    debug_logger.addHandler(out_hdlr)
-    debug_logger.setLevel(log_level)
+    def set_debug_out_handler(logger, log_level):
+        out_hdlr = logging.StreamHandler(sys.stdout)
+        out_hdlr.setFormatter(logging.Formatter('DEBUG: %(message)s'))
+        out_hdlr.setLevel(log_level)
+        logger.addHandler(out_hdlr)
+        logger.setLevel(log_level)
 
-    out_hdlr = logging.StreamHandler(sys.stdout)
-    out_hdlr.setFormatter(logging.Formatter('DEBUG: %(message)s'))
-    out_hdlr.setLevel(log_level)
-    download_logger.addHandler(out_hdlr)
-    download_logger.setLevel(log_level)
+
+    set_debug_out_handler(debug_logger, log_level)
+    set_debug_out_handler(download_logger, log_level)
+
 
     SearchUrl.initialize()  # Setup the JSON index search.
 
@@ -334,9 +331,10 @@ def _process_normal_resource(doc, r, force):
         warn("Failed to build row processor table, using raw row generator")
 
     slice = islice(rg, 5000)
-    si = SelectiveRowGenerator(slice,
-                               headers=[int(i) for i in r.get_value('headerlines', '0').split(',')],
-                               start=int(r.get_value('startline', 1)))
+
+    headers, start, end = r._get_start_end_header()
+
+    si = SelectiveRowGenerator(slice,headers=headers, start=start, end=end)
 
     try:
         ti = TypeIntuiter().run(si)

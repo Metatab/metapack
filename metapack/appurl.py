@@ -415,7 +415,7 @@ class SearchUrl(Url):
             package = packages.pop(0)
 
             try:
-                resource_str = '#' + url.target_file if url.targte_file else ''
+                resource_str = '#' + url.resource_name if url.resource_name else ''
 
                 return parse_app_url(package['url'] + resource_str, downloader=url.downloader)
             except KeyError as e:
@@ -442,7 +442,7 @@ class SearchUrl(Url):
         if not u:
             raise AppUrlError("Search URL failed to resolve reference to {} ".format(str(self)))
 
-        u.set_fragment(self.fragment)
+        #u.set_fragment(self.fragment)
 
         return u
 
@@ -452,3 +452,10 @@ class SearchUrl(Url):
 
     def get_target(self):
         return self
+
+
+    @property
+    def resource_name(self):
+        """Name of a Metatab resource ( not the URL resource ) which is specified in the fragment"""
+
+        return self._parts.get('target_file')

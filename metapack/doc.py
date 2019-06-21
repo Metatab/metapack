@@ -313,7 +313,7 @@ class MetapackDoc(MetatabDoc):
         return super().write_csv(str(path))
 
     def write_ipynb(self, path:Path=None):
-        from metapack.jupyter.convert import write_metatab_notebook
+        from metapack_jupyter.convert import write_metatab_notebook
 
         write_metatab_notebook(self, path)
 

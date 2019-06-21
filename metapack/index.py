@@ -179,7 +179,7 @@ class SearchIndex(object):
 
         if format == 'all':
             format = None
-        elif format == 'issued': # 'iisued' means  'not source'
+        elif format == 'issued': # 'issued' means  'not source'
             format = ['zip','csv','xlsx','fs','web']
 
         if format and not isinstance(format, (list, tuple)):
@@ -211,6 +211,7 @@ class SearchIndex(object):
                 e = self._db[e['ref']]
 
             for pkey, p in e['packages'].items():
+
 
                 if (match_type == 'exact' and p[match_key] == match_value) or \
                    (match_type == 'subset' and search_term in p[match_key]):

@@ -205,6 +205,26 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         print(str(u))
 
 
+    def test_index(self):
+
+        from metapack.appurl import SearchUrl
+
+        SearchUrl.initialize()  # This makes the 'index:" urls work
+
+        u = parse_app_url('index:cityiq.io-objects-san_diego')
+        print(u.resolve())
+
+    def test_start_headers(self):
+
+        us = 'https://www.cde.ca.gov/ds/sh/sn/documents/apcacfpcentersites2019.xlsx#&headers=4&start=5'
+
+        u = parse_app_url(us)
+
+        from itertools import islice
+
+        for e in islice(u.generator, 10):
+            print(e)
+
 
 if __name__ == '__main__':
     unittest.main()

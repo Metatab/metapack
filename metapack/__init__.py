@@ -21,15 +21,15 @@ from rowgenerators import set_default_cache_name
 from pkg_resources import get_distribution, DistributionNotFound
 
 try:
-    # Change here if project is renamed and does not equal the package name
-    dist_name = __name__
-    __version__ = get_distribution(dist_name).version
+    __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     __version__ = 'unknown'
 finally:
     del get_distribution, DistributionNotFound
 
 set_default_cache_name('metapack')
+
+from metapack.appurl import is_metapack_url
 
 import rowgenerators.appurl.url
 

@@ -41,7 +41,7 @@ setup_d = dict(
         'tableintuit',
         #
         # For generating documentation
-        'markdown==2.6.11',
+        'markdown>=2.6.11',
         'nameparser',
         'pybtex',
         'jinja2',
