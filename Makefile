@@ -14,6 +14,7 @@ develop:
 
 publish:
 	$(MAKE) clean
+	git push --tags origin
 	python setup.py sdist
 	twine upload dist/*
 	$(MAKE) clean
@@ -30,11 +31,3 @@ rev:
 
 showrev:
 	@echo this=$(THIS_REV) next=$(NEXT_REV)
-
-publish:
-	git push --tags origin
-	python setup.py sdist
-	twine upload dist/*
-
-develop:
-	python setup.py develop
