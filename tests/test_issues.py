@@ -1,5 +1,4 @@
 import unittest
-from pprint import pprint
 
 from rowgenerators import parse_app_url
 
@@ -7,6 +6,7 @@ import metapack as mp
 from metapack import Downloader
 
 downloader = Downloader()
+
 
 class TestIssues(unittest.TestCase):
     """Test Metapack AppUrls and Row Generators"""
@@ -23,14 +23,12 @@ class TestIssues(unittest.TestCase):
 
         self.assertEqual(1, len(list(r for r in p['Resources'].find('Root.Resource'))))
 
-
     def test_no_reference_descriptions(self):
 
         from metapack import MetapackDoc
-        from support import test_data
         from metatab.rowgenerators import TextRowGenerator
 
-        mt_lines="""
+        mt_lines = """
 Declare: metatab-latest
 Identifier: foobar
 Name: sandiegodata.org-cra_demo-1
@@ -56,7 +54,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
     def test_refs_not_using_schemas(self):
 
-        from metapack import  MetapackDoc
+        from metapack import MetapackDoc
         from rowgenerators.valuetype import ShapeValue
         from support import test_data
         from metatab.rowgenerators import TextRowGenerator
@@ -68,14 +66,14 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         r = doc.reference('sra_geo')
 
-        self.assertEqual('civicknowledge.com-rcfe_affordability-2015-4',r.doc.name)
+        self.assertEqual('civicknowledge.com-rcfe_affordability-2015-4', r.doc.name)
         self.assertEqual('sangis.org-census_regions-2010-sandiego-7', r.resolved_url.resource.doc.name)
 
         rs = r.resolved_url.resource
 
         self.assertIsNotNone(rs.row_processor_table())
 
-        self.assertEqual([int,int,str,ShapeValue],  list(type(c) for c in list(rs)[1]))
+        self.assertEqual([int, int, str, ShapeValue], list(type(c) for c in list(rs)[1]))
 
         self.assertIsNone(r.row_processor_table())
 
@@ -89,10 +87,7 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         for c in r.columns():
             print(c.get('description'))
 
-
     def x_test_csv_join(self):
-
-
 
         import metapack as mp
 
@@ -102,12 +97,11 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             u = parse_app_url(t.value)
 
             t = pkg.package_url.join_target(u).get_resource().get_target()
-            print("u=",u)
-            print("pu=",pkg.package_url)
-            print("jt=",pkg.package_url.join_target(u))
-            print("R=",pkg.package_url.join_target(u).get_resource() )
+            print("u=", u)
+            print("pu=", pkg.package_url)
+            print("jt=", pkg.package_url.join_target(u))
+            print("R=", pkg.package_url.join_target(u).get_resource())
             print('A', t._fragment)
-
 
     def x_test_wack_doc_urls(self):
         """Getting inline documentation fails when the package URL is for an online CSV package"""
@@ -122,12 +116,11 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
             u = parse_app_url(t.value)
 
             t = pkg.package_url.join_target(u).get_resource().get_target()
-            print("u=",u)
-            print("pu=",pkg.package_url)
-            print("jt=",pkg.package_url.join_target(u))
-            print("R=",pkg.package_url.join_target(u).get_resource() )
+            print("u=", u)
+            print("pu=", pkg.package_url)
+            print("jt=", pkg.package_url.join_target(u))
+            print("R=", pkg.package_url.join_target(u).get_resource())
             print('A', t._fragment)
-
 
         pkg = mp.open_package('http://library.metatab.org/noaa.gov-localclimate-200808_201807-san-3.zip')
 
@@ -149,8 +142,6 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
     def x_test_multi_load_geoframe(self):
 
-
-
         pkg = mp.open_package('/Users/eric/proj/virt-proj/data-project/gis-projects/sandiegodata.org-stormdrains/')
 
         comm = pkg.reference('communities').geoframe()
@@ -170,15 +161,15 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         rr = r.resolved_url
 
-        self.assertEqual('metapack+http://library.metatab.org/sandiegodata.org-geography-2018-1.csv#tract_boundaries', str(rr))
+        self.assertEqual('metapack+http://library.metatab.org/sandiegodata.org-geography-2018-1.csv#tract_boundaries',
+                         str(rr))
 
         print(rr.resource)
 
-        df = r.dataframe()
+        r.dataframe()
 
     def test_mp_url_drop_frag(self):
 
-        from metapack import MetapackUrl
         from metapack import MetapackUrl, Downloader
 
         downloader = Downloader()
@@ -191,9 +182,8 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
 
         print(u, u.fspath.resolve(), mpu)
 
-
     def test_broken_metatab_urls(self):
-        from metapack.appurl import  MetapackDocumentUrl
+        from metapack.appurl import MetapackDocumentUrl
 
         # Filesystem
         us = 'metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/'
@@ -202,19 +192,9 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         self.assertEqual('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1/metadata.csv',
                          str(ud))
 
-
-        u = MetapackDocumentUrl('/Users/eric/proj/data-projects/metatab-packages/census.foobtomtoob', downloader=downloader)
+        u = MetapackDocumentUrl('/Users/eric/proj/data-projects/metatab-packages/census.foobtomtoob',
+                                downloader=downloader)
         print(str(u))
-
-
-    def test_index(self):
-
-        from metapack.appurl import SearchUrl
-
-        SearchUrl.initialize()  # This makes the 'index:" urls work
-
-        u = parse_app_url('index:cityiq.io-objects-san_diego')
-        print(u.resolve())
 
     def test_start_headers(self):
 
