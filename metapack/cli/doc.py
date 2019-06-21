@@ -86,7 +86,6 @@ def doc_args(subparsers):
         ('markdown', 'Output the package markdown documentation', dump_markdown),
         ('html', 'Output the package html documentation', dump_html),
         ('json', 'Output the package documentation context in json format', dump_json),
-        ('jsonld', 'Output the package description in Schema.org JSONLD format', dump_jsonld),
         ('yaml', 'Output the package documentation context in yaml format', dump_yaml)
     ]:
         cmdp = cmdsp.add_parser(arg,help=help)
@@ -459,15 +458,6 @@ def dump_json(args):
     m = MetapackCliMemo(args, downloader)
 
     print(json.dumps(display_context(m.doc), indent=4))
-
-
-def dump_jsonld(args):
-    from metapack.html import jsonld
-    import json
-
-    m = MetapackCliMemo(args, downloader)
-
-    print(json.dumps(jsonld(m.doc), indent=4))
 
 
 

@@ -11,20 +11,6 @@ from rowgenerators.rowpipe import RowProcessor
 from rowgenerators.rowproxy import RowProxy
 
 
-def int_maybe(v):
-    try:
-        return int(float(v))
-    except:
-        return None
-
-
-def first_not_none(*a):
-    try:
-        return next(e for e in a if e is not None)
-    except StopIteration:
-        return None
-
-
 class Resource(Term):
     # These property names should return null if they aren't actually set.
     _common_properties = 'url name description schema'.split()
@@ -342,7 +328,7 @@ class Resource(Term):
 
         self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
 
-        ru = self.resolved_url
+        ru = self.resolved_url8
 
         try:
             resource = ru.resource  # For Metapack urls
@@ -404,33 +390,14 @@ class Resource(Term):
 
         return g
 
-    def _get_start_end_header(self):
-
-        # There are several args for SelectiveRowGenerator, but only
-        # start is really important.
-        start = first_not_none(int_maybe(self.get_value('startline')),
-                               int_maybe(self.resolved_url.start),
-                               1)
-
-        end = first_not_none(int_maybe(self.get_value('endline')),
-                             int_maybe(self.resolved_url.end))
-
-        headers = first_not_none(self.get_value('headerlines'),
-                                 self.resolved_url.headers,
-                                 0)
-
-        try:
-            header_lines = [int(e) for e in str(headers).split(',')]
-        except ValueError as e:
-            header_lines = [0]
-
-        return header_lines, start, end
-
     def _get_header(self):
-        """Get the header from the defined header rows, for use  on references or resources where the schema
+        """Get the header from the deinfed header rows, for use  on references or resources where the schema
         has not been run"""
 
-        header_lines, _, _ = self._get_start_end_header()
+        try:
+            header_lines = [int(e) for e in str(self.get_value('headerlines', 0)).split(',')]
+        except ValueError as e:
+            header_lines = [0]
 
         # We're processing the raw datafile, with no schema.
         header_rows = islice(self.row_generator, min(header_lines), max(header_lines) + 1)
@@ -445,7 +412,17 @@ class Resource(Term):
 
         headers = self.headers
 
-        _, start, end = self._get_start_end_header()
+        # There are several args for SelectiveRowGenerator, but only
+        # start is really important.
+        try:
+            start = int(self.get_value('startline', 1))
+        except ValueError as e:
+            start = 1
+
+        try:
+            end = int(self.get_value('endline', self.parsed_url.end))
+        except (ValueError, TypeError) as e:
+            end = None
 
         base_row_gen = self.row_generator
         assert base_row_gen is not None
@@ -477,7 +454,6 @@ class Resource(Term):
             self.errors = {}
 
         self.post_iter_meta = base_row_gen.meta
-
 
     @property
     def iterdict(self):
@@ -576,26 +552,23 @@ class Resource(Term):
 
         t = self.resolved_url.get_resource().get_target()
 
-        if t.target_format == 'csv' and not self.resolved_url.start and not  self.resolved_url.headers:
+        if t.target_format == 'csv':
             return self.read_csv(dtype, parse_dates, *args, **kwargs)
 
         # Maybe generator has it's own Dataframe method()
-        if  not self.resolved_url.start and not  self.resolved_url.headers:
-            # The if clause is b/c the generators don't respect the start, end and headers
-            # url arguments.
-            try:
-                return rg.dataframe(*args, **kwargs)
-            except AttributeError:
-                pass
+        try:
+
+            return rg.dataframe(*args, **kwargs)
+        except AttributeError:
+            pass
 
         # Just normal data, so use the iterator in this object.
-
         headers = next(islice(self, 0, 1))
         data = islice(self, 1, None)
 
         df = pd.DataFrame(list(data), columns=headers, *args, **kwargs)
 
-        self.errors  = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
+        self.errors = df.metatab_errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
         return df
 
@@ -769,12 +742,6 @@ class Resource(Term):
                '</table>'
 
     @property
-    def hash(self):
-        """Return a hash from th source_generator"""
-
-        return self.row_generator.hash
-
-    @property
     def markdown(self):
 
         from .html import ckan_resource_markdown
@@ -802,7 +769,17 @@ class Reference(Resource):
             yield from self.resolved_url.resource
         except AttributeError:
 
-            _, start, end = self._get_start_end_header()
+            # There are several args for SelectiveRowGenerator, but only
+            # start is really important.
+            try:
+                start = int(self.get_value('startline', 1))
+            except ValueError as e:
+                start = 1
+
+            try:
+                end = int(self.get_value('endline', self.parsed_url.end))
+            except (ValueError, TypeError) as e:
+                end = None
 
             headers = self._get_header()
 

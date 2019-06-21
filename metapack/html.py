@@ -20,7 +20,6 @@ from pybtex.style.template import (
 from yaml import safe_dump
 
 from metatab.doc import MetatabDoc
-from metapack.exc import PackageError
 
 dl_templ = "{}\n:   {}\n\n"
 
@@ -560,7 +559,7 @@ def display_context(doc):
     for term_name, terms in context['documentation'].items():
         if term_name == 'note':
             context['notes'] = terms
-        elif terms:
+        else:
             for i, term in enumerate(terms):
                 try:
                     if term_name == 'image':
@@ -689,71 +688,3 @@ def html(doc, template='short_documentation.md'):
         title=doc.find_first_value('Root.Title'),
         body=convert_markdown(markdown(doc, template=template), extensions)
     )
-
-def jsonld(doc):
-
-    """Produce JSONLD with a Dataset schema, to have web pages with the
-    dataset properly indexed by Google"""
-
-    context = display_context(doc)
-
-    """
-<script type="application/ld+json">
-{
-  "@context" : "http://schema.org",
-  "@type" : "Dataset",
-  "name" : "Child",
-  "description" : "The Child and Adult Care Food Program (CACFP) provides federal funding to participating child care and adult day care centers, allowing the centers to serve nutritious meals to enrolled participants",
-  "version" : "cde.ca.gov-cacfp_sites-2",
-  "distribution" : {
-    "@type" : "DataDownload",
-    "encodingFormat" : "csv",
-    "contentUrl" : "http://library.metatab.org/cde.ca.gov-cacfp_sites-2/data/cacfp_sites.csv"
-  },
-  "sourceOrganization" : "Eric",
-  "datePublished" : "2019-06-18T04:34:22"
-}
-</script>
-"""
-
-    root = context.get('root')
-
-    if not root:
-        raise PackageError('Could not get root from display context')
-
-
-    d = {
-        "@context": "http://schema.org",
-        "@type": "Dataset",
-        "name": root.get('title'),
-        "version": root.get('name'),
-        "alternateName": root.get('name'),
-        "description": root.get('description'),
-        "identifier": [
-            root.get('identifier'),
-            root.get('name')
-        ]
-    }
-
-    issued = root.get('issued')
-
-    if issued:
-        d['datePublished'] = issued
-
-    distributions = []
-
-    for typ, url in context.get('distributions', {}).items():
-        if typ in ('csv','zip'):
-            distributions.append({
-                '@type': 'DataDownload',
-                'encodingFormat':typ,
-                'contentUrl': url
-            })
-
-    # Do it later
-    for typ, v in context.get('contacts',{}).items():
-        pass
-
-    d['distribution'] = distributions
-
-    return d
