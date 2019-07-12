@@ -10,6 +10,8 @@ from genericpath import exists
 from os import makedirs
 from os.path import join
 
+from metatab.util import slugify
+
 
 def declaration_path(name):
     """Return the path to an included declaration"""
