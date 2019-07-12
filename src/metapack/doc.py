@@ -36,8 +36,6 @@ class MetapackDoc(MetatabDoc):
     def __init__(self, ref=None, decl=None, cache=None, resolver=None, package_url=None, clean_cache=False,
                  downloader=None):
 
-        # assert isinstance(ref, (MetapackDocumentUrl, MetapackResourceUrl)), (type(ref), ref)
-
         if downloader:
             self.downloader = downloader
         elif cache:
@@ -159,11 +157,17 @@ class MetapackDoc(MetatabDoc):
     @property
     def env(self):
         """Return the module associated with a package's python library"""
+        import importlib
 
         try:
             r = self.get_lib_module_dict()
         except ImportError:
             r = {}
+
+        m = importlib.import_module('metapack.env')
+
+        for f in m.__all__:
+            r[f.__name__] = f
 
         return r
 

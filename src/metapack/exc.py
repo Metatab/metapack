@@ -11,11 +11,22 @@ from metatab.exc import MetatabError
 class MetapackError(MetatabError):
     pass
 
+
 class MetatabFileNotFound(MetatabError):
     pass
+
 
 class PackageError(MetapackError):
     pass
 
+
 class ResourceError(MetapackError):
+    pass
+
+
+class NoResourceError(ResourceError):
+    pass
+
+
+class NoRowProcessor(ResourceError):
     pass

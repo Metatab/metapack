@@ -14,7 +14,6 @@ from pkg_resources import (
     get_distribution,
     iter_entry_points
 )
-from textwrap import dedent
 
 from tabulate import tabulate
 
@@ -24,6 +23,7 @@ from metapack.package import *
 from .core import MetapackCliMemo as _MetapackCliMemo
 
 downloader = Downloader.get_instance()
+
 
 class MetapackCliMemo(_MetapackCliMemo):
 
@@ -49,7 +49,7 @@ def info_args(subparsers):
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument('-n', '--name', default=False, action='store_true',
-                             help="Print the name, with version")
+                       help="Print the name, with version")
     group.add_argument('-N', '--root-name', default=False, action='store_true',
                        help="Print the name, without the version")
 
@@ -68,22 +68,20 @@ def info_args(subparsers):
     group.add_argument('-P', '--package-root', default=False, action='store_true',
                        help="Print the package root url")
 
-
     group.add_argument('-T', '--value-types', default=False, action='store_true',
-                        help='Print a list of available value types')
+                       help='Print a list of available value types')
 
     group.add_argument('-t', '--transforms', default=False, action='store_true',
-                        help='Print a list of available transform functions')
-
+                       help='Print a list of available transform functions')
 
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
+
 
 def info(args):
     from metapack.exc import MetatabFileNotFound
 
     m = MetapackCliMemo(args, downloader)
-
 
     try:
         if m.args.name:
@@ -108,7 +106,7 @@ def info(args):
             dump_rptable(m)
 
         elif m.resource:
-           resource_info(m)
+            resource_info(m)
 
         elif args.value_types:
             print_value_types(m)
@@ -117,7 +115,7 @@ def info(args):
             print_transforms(m)
 
         else:
-           prt(m.doc.name)
+            prt(m.doc.name)
 
 
     except MetatabFileNotFound:
@@ -125,6 +123,8 @@ def info(args):
 
 
 def resource_info(m):
+    from rowgenerators.exceptions import RowGeneratorError
+
     r = m.get_resource()
 
     ru = r.resolved_url
@@ -139,18 +139,23 @@ def resource_info(m):
         ('Target Path', tu.fspath)
     ]
 
-    props = ['fragment_query','resource_file', 'resource_format',
-             'target_file', 'target_format',
+    props = ['fragment_query', 'resource_file', 'resource_format',
+             'target_file', 'segment', 'target_format',
              'encoding', 'headers', 'start', 'end']
 
     rows += [(p, getattr(tu, p, '')) for p in props]
 
+    rows.append(('URL Type', type(ru)))
+
+    try:
+        rows.append(('Generator', type(ru.generator)))
+    except RowGeneratorError:
+        rows.append(('Generator', "Error: Can't locate"))
+
     prt(tabulate(rows))
 
+
 def print_versions(m):
-    from pkg_resources import EntryPoint
-
-
     main_packages = ('metapack', 'metatab', 'metatabdecl', 'rowgenerators', 'publicdata', 'tableintuit')
 
     packages = []
@@ -167,11 +172,10 @@ def print_versions(m):
     prt(tabulate(packages, headers='Package Version'.split()))
     prt('')
     prt(tabulate([(ep.name, ep.dist) for ep in iter_entry_points(group='mt.subcommands')],
-                                                                headers='Subcommand Package Version'.split()))
+                 headers='Subcommand Package Version'.split()))
 
 
 def list_rr(doc):
-
     d = []
     for r in doc.resources():
         d.append(('Resource', r.name, r.url))
@@ -189,8 +193,8 @@ def list_rr(doc):
         prt('== References ==')
         prt(tabulate(d, 'Type Name Url'.split()))
 
-def get_resource(m):
 
+def get_resource(m):
     r = m.doc.resource(m.resource)
 
     if not r:
@@ -204,8 +208,8 @@ def get_resource(m):
 
     return r
 
-def dump_schemas(m):
 
+def dump_schemas(m):
     r = get_resource(m)
 
     st = r.schema_term
@@ -220,7 +224,7 @@ def dump_schemas(m):
     if has_vt:
         headers = 'Name AltName DataType ValueType Description'.split()
         cols = lambda c: (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('valuetype'),
-                                   c.get_value('description'))
+                          c.get_value('description'))
     else:
         headers = 'Name AltName DataType Description'.split()
         cols = lambda c: (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description'))
@@ -232,34 +236,31 @@ def dump_schemas(m):
 
 
 def dump_rptable(m):
-
     r = get_resource(m)
 
     print(r.row_processor_table())
 
-def print_declare(m):
 
+def print_declare(m):
     from metatab.util import declaration_path
 
     prt(declaration_path('metatab-latest'))
 
-def print_value_types(m):
 
+def print_value_types(m):
     from rowgenerators.valuetype import value_types
 
-    rows = [ (k,v.__name__, v.__doc__) for k,v in value_types.items() ]
+    rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
 
     print(tabulate(sorted(rows), headers='Code Class Description'.split()))
 
 
 def print_transforms(m):
-    from rowgenerators.valuetype import value_types
-
     env = m.doc.env
 
     print(env)
     return
 
-    rows = [ (k,v.__name__, v.__doc__) for k,v in value_types.items() ]
+    rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
 
     print(tabulate(sorted(rows), headers='Code Class Description'.split()))

@@ -256,235 +256,6 @@ def write_doc(doc: MetapackDoc, mt_file=None):
         # warn("Not writing back to url ", mt_file)
 
 
-def process_schemas(mt_file, resource=None, cache=None, clean=False, report_found=True, force=False):
-    from metapack import MetapackDoc, MetapackResourceUrl, MetapackDocumentUrl
-
-    if isinstance(mt_file, MetapackDoc):
-        doc = mt_file
-        write_doc_to_file = False
-    else:
-        doc = MetapackDoc(mt_file)
-        write_doc_to_file = True
-
-    try:
-        if clean:
-            doc['Schema'].clean()
-        else:
-            doc['Schema']
-
-    except KeyError:
-        doc.new_section('Schema', ['DataType', 'AltName', 'Description'])
-
-    schemas_processed = 0
-
-    for r in doc['Resources'].find('Root.Resource'):
-
-        if resource and r.name != resource:
-            continue
-
-        schema_term = r.schema_term
-
-        col_count = len(list(r.columns()))
-        datatype_count = sum(1 for c in r.columns() if c['datatype'])
-
-        if schema_term and col_count == datatype_count and force == False:
-            if report_found:
-                prt("Found table for '{}'; skipping".format(r.schema_name))
-            continue
-
-        if col_count != datatype_count:
-            prt("Found table for '{}'; but {} columns don't have datatypes"
-                .format(r.schema_name, col_count - datatype_count))
-
-        prt("Processing {}".format(r.name))
-
-        schemas_processed += 1
-
-        rr = r.resolved_url
-
-        if isinstance(rr, MetapackDocumentUrl):
-            warn('{} is a MetapackDocumentUrl; skipping', r.name)
-        elif isinstance(rr, MetapackResourceUrl):
-            _process_metapack_resource(doc, r, force)
-        else:
-            _process_normal_resource(doc, r, force)
-
-    if write_doc_to_file and schemas_processed:
-        write_doc(doc, mt_file)
-
-
-def _process_normal_resource(doc, r, force):
-    """Process a resource that requires reading the file; not a metatab resource"""
-
-    from rowgenerators.exceptions import SourceError, SchemaError
-    from requests.exceptions import ConnectionError
-    from itertools import islice
-
-    from rowgenerators.source import SelectiveRowGenerator
-    from tableintuit import TypeIntuiter
-
-    schema_term = r.schema_term
-
-    try:
-        if force:
-            rg = r.raw_row_generator
-        else:
-            rg = r.row_generator
-
-    except SchemaError:
-        rg = r.raw_row_generator
-        warn("Failed to build row processor table, using raw row generator")
-
-    slice = islice(rg, 5000)
-
-    headers, start, end = r._get_start_end_header()
-
-    si = SelectiveRowGenerator(slice,headers=headers, start=start, end=end)
-
-    try:
-        ti = TypeIntuiter().run(si)
-    except SourceError as e:
-        warn("Failed to process resource '{}'; {}".format(r.name, e))
-        return
-    except ConnectionError as e:
-        warn("Failed to download resource '{}'; {}".format(r.name, e))
-        return
-    except UnicodeDecodeError as e:
-        warn("Text encoding error for resource '{}'; {}".format(r.name, e))
-        return
-
-    if schema_term:
-
-        prt("Updating table '{}' ".format(r.schema_name))
-
-        # Existing columns
-        orig_columns = {e['name'].lower() if e['name'] else '': e for e in r.schema_columns or {}}
-
-        # Remove existing columns, so add them back later, possibly in a new order
-        for child in list(schema_term.children):
-            schema_term.remove_child(child)
-
-    else:
-        prt("Adding table '{}' ".format(r.schema_name))
-        schema_term = doc['Schema'].new_term('Table', r.schema_name)
-        orig_columns = {}
-
-    for i, c in enumerate(ti.to_rows()):
-
-        raw_alt_name = alt_col_name(c['header'], i)
-        alt_name = raw_alt_name if raw_alt_name != c['header'] else ''
-
-        kwargs = {}
-
-        if alt_name:
-            kwargs['AltName'] = alt_name
-
-        schema_term.new_child('Column', c['header'],
-                              datatype=type_map.get(c['resolved_type'], c['resolved_type']),
-                              # description = get_col_value(c['header'].lower(),'description'),
-                              **kwargs)
-
-    update_resource_properties(r, orig_columns=orig_columns, force=force)
-
-
-def _process_metapack_resource(doc, r, force):
-
-    remote_resource = r.resolved_url.resource
-
-    if not remote_resource:
-        warn('Metatab resource could not be resolved from {}'.format(r.resolved_url))
-        return
-
-    remote_st = remote_resource.schema_term
-
-    schema_term = r.schema_term
-
-    if schema_term:
-
-        prt("Updating table '{}' ".format(r.schema_name))
-
-        # Remove existing columns, so add them back later, possibly in a new order
-        for child in list(schema_term.children):
-            schema_term.remove_child(child)
-
-    else:
-        prt("Adding table '{}' ".format(r.schema_name))
-        schema_term = doc['Schema'].new_term('Table', r.schema_name)
-
-    for c in remote_st.children:
-        schema_term.add_child(c)
-
-
-def update_schema_properties(doc, force=False):
-    for r in doc['Resources'].find('Root.Resource'):
-        update_resource_properties(r, force=False)
-
-
-def update_resource_properties(r, orig_columns={}, force=False):
-    """Get descriptions and other properties from this, or upstream, packages, and add them to the schema. """
-
-    added = []
-
-    schema_term = r.schema_term
-
-    if not schema_term:
-        warn("No schema term for ", r.name)
-        return
-
-    rg = r.raw_row_generator
-
-    # Get columns information from the schema, or, if it is a package reference,
-    # from the upstream schema
-
-    upstream_columns = {e['name'].lower() if e['name'] else '': e for e in r.columns() or {}}
-
-    # Just from the local schema
-    schema_columns = {e['name'].lower() if e['name'] else '': e for e in r.schema_columns or {}}
-
-    # Ask the generator if it can provide column descriptions and types
-    generator_columns = {e['name'].lower() if e['name'] else '': e for e in rg.columns or {}}
-
-    def get_col_value(col_name, value_name):
-
-        v = None
-
-        if not col_name:
-            return None
-
-        for d in [generator_columns, upstream_columns, orig_columns, schema_columns]:
-            v_ = d.get(col_name.lower(), {}).get(value_name)
-            if v_:
-                v = v_
-
-        return v
-
-    # Look for new properties
-    extra_properties = set()
-    for d in [generator_columns, upstream_columns, orig_columns, schema_columns]:
-        for k, v in d.items():
-            for kk, vv in v.items():
-                extra_properties.add(kk)
-
-    # Remove the properties that are already accounted for
-    extra_properties = extra_properties - {'pos', 'header', 'name', ''}
-
-    # Add any extra properties, such as from upstream packages, to the schema.
-
-    for ep in extra_properties:
-        r.doc['Schema'].add_arg(ep)
-
-    for c in schema_term.find('Table.Column'):
-
-        for ep in extra_properties:
-            t = c.get_or_new_child(ep)
-            v = get_col_value(c.name, ep)
-            if v:
-                t.value = v
-                added.append((c.name, ep, v))
-
-    prt('Updated schema for {}. Set {} properties'.format(r.name, len(added)))
-
-
 def extract_path_name(ref):
     from os.path import basename
     from os.path import splitext, abspath
@@ -506,15 +277,6 @@ def extract_path_name(ref):
         name = basename(splitext(v)[0])
 
     return path, name
-
-
-def alt_col_name(name, i):
-    import re
-
-    if not name:
-        return 'col{}'.format(i)
-
-    return re.sub('_+', '_', re.sub('[^\w_]', '_', str(name)).lower()).rstrip('_')
 
 
 type_map = {
@@ -564,6 +326,9 @@ class MetapackCliMemo(object):
 
             if not Path(mtf).exists():
                 mtf = join(self.cwd, IPYNB_METATAB_FILE)
+
+            if not Path(mtf).exists():
+                mtf = '.'
 
         self.init_stage2(mtf, frag)
 
@@ -617,9 +382,18 @@ class MetapackCliMemo(object):
 
 
 def get_resource(m):
+
     if m.resource:
         r = m.doc.resource(m.resource)
-        return r if r else m.doc.reference(m.resource)
+
+        if r:
+            return r
+
+        r = m.doc.reference(m.resource)
+
+        if r:
+            return r
+
     elif hasattr(m.args, 'resource') and m.args.resource:
         return m.doc.resource(m.args.resource)
     elif hasattr(m.args, 'reference') and m.args.reference:
@@ -661,41 +435,6 @@ def get_config():
                 return config
 
     return None
-
-
-def update_index(packages, package_path, suffix=''):
-    from os import listdir
-    from os.path import join, exists, isdir, splitext
-
-    raise DeprecationWarning()
-
-    if packages:
-        # Just update one packages
-        add_package_to_index(package_path, packages, suffix=suffix)
-
-    else:
-        # Build the whole package index
-        packages = []
-
-        def yield_packages(d):
-
-            for e in listdir(d):
-                path = join(d, e)
-                bn, ext = splitext(path)
-                if isdir(path):
-                    if exists(join(path, 'metadata.csv')):
-                        yield join(path, 'metadata.csv')
-                elif ext in ('.xls', '.xlsx', '.zip'):
-                    yield path
-
-        for p in yield_packages(package_path):
-            add_package_to_index(p, packages, suffix=None)
-
-    return packages
-
-
-def new_search_index():
-    return []
 
 
 def list_rr(doc):

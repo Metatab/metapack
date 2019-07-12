@@ -9,13 +9,19 @@ from rowgenerators.rowproxy import RowProxy
 
 from metapack.appurl import MetapackPackageUrl
 from metapack.doc import EMPTY_SOURCE_HEADER
-from metapack.exc import MetapackError, ResourceError
+from metapack.exc import (
+    MetapackError,
+    NoResourceError,
+    NoRowProcessor,
+    PackageError,
+    ResourceError
+)
 
 
 def int_maybe(v):
     try:
         return int(float(v))
-    except:
+    except Exception:
         return None
 
 
@@ -76,7 +82,7 @@ class Resource(Term):
 
         env.update(self._envvar_env)
 
-        env.update(self.all_props)
+        # env.update(self.all_props)
 
         return env
 
@@ -188,10 +194,6 @@ class Resource(Term):
         """For compatibility with the Appurl interface"""
         return self.resolved_url.get_resource().get_target().inner
 
-    @property
-    def parsed_url(self):
-        return parse_app_url(self.url)
-
     def _name_for_col_term(self, c, i):
 
         altname = c.get_value('altname')
@@ -221,31 +223,11 @@ class Resource(Term):
             raise MetapackError("Resource for url '{}' doe not have name".format(self.url))
 
         t = self.doc.find_first('Root.Table', value=self.get_value('name'))
-        frm = 'name'
 
         if not t:
             t = self.doc.find_first('Root.Table', value=self.get_value('schema'))
-            frm = 'schema'
-
-        if not t:
-            frm = None
 
         return t
-
-    @property
-    def headers(self):
-        """Return the headers for the resource. Returns the AltName, if specified; if not, then the
-        Name, and if that is empty, a name based on the column position. These headers
-        are specifically applicable to the output table, and may not apply to the resource source. FOr those headers,
-        use source_headers"""
-
-        t = self.schema_term
-
-        if t:
-            return [self._name_for_col_term(c, i)
-                    for i, c in enumerate(t.children, 1) if c.term_is("Table.Column")]
-        else:
-            return None
 
     @property
     def source_headers(self):
@@ -262,6 +244,83 @@ class Resource(Term):
         else:
             return None
 
+    @property
+    def header_map(self):
+        """Return a list of tuples that translates column names"""
+
+        from collections import namedtuple
+        HeaderPair = namedtuple('HeaderPair', 'source dest')
+
+        import csv
+        from pathlib import Path
+
+        cm_name = self.get_value('colmap')
+
+        if not cm_name:
+            return None
+
+        if not self.doc.ref.scheme == 'file':
+            return None
+
+        # Path(str()) to convert PurePosixPath to PosixPath
+        path = Path(str(self.doc.ref.fspath)).parent.joinpath(f"colmap-{cm_name}.csv")
+
+        if not path.exists():
+            return None
+
+        with path.open() as f:
+            cm = []
+            for row in csv.DictReader(f):
+                if row['index']:
+                    cm.append(HeaderPair(source=row[self.name], dest=row['index']))
+
+        return cm
+
+    def _get_start_end_header(self):
+        """Identify the start row, end row and header rows from the url or resource"""
+
+        # There are several args for SelectiveRowGenerator, but only
+        # start is really important.
+        start = first_not_none(int_maybe(self.get_value('startline')),
+                               int_maybe(self.resolved_url.start),
+                               1)
+
+        end = first_not_none(int_maybe(self.get_value('endline')),
+                             int_maybe(self.resolved_url.end))
+
+        headers = first_not_none(self.get_value('headerlines'),
+                                 self.resolved_url.headers,
+                                 0)
+
+        try:
+            header_lines = [int(e) for e in str(headers).split(',')]
+        except ValueError:
+            header_lines = [0]
+
+        return header_lines, start, end
+
+    def _get_header(self):
+        """Get the header from the defined header rows, for use  on references or resources where the schema
+        has not been run"""
+
+        return next(iter(self.selective_row_generator), 1)
+
+    @property
+    def headers(self):
+        """Return the headers for the resource. Returns the AltName, if specified; if not, then the
+        Name, and if that is empty, a name based on the column position. These headers
+        are specifically applicable to the output table, and may not apply to the resource source. For those headers,
+        use source_headers"""
+
+        t = self.schema_term
+
+        if t:
+            # Get the header from the schema
+            return [self._name_for_col_term(c, i)
+                    for i, c in enumerate(t.children, 1) if c.term_is("Table.Column")]
+        else:
+            return self._get_header()
+
     def columns(self):
         """Return column information from the schema or from an upstreram package"""
 
@@ -269,7 +328,7 @@ class Resource(Term):
             # For resources that are metapack packages.
             r = self.expanded_url.resource.columns()
             return list(r)
-        except AttributeError as e:
+        except AttributeError:
 
             pass
 
@@ -277,7 +336,7 @@ class Resource(Term):
 
     @property
     def schema_columns(self):
-        """Return column informatino only from this schema"""
+        """Return column information only from this schema"""
         t = self.schema_term
 
         columns = []
@@ -337,36 +396,13 @@ class Resource(Term):
             return None
 
     @property
-    def raw_row_generator(self):
-        """Like rowgenerator, but does not try to create a row processor table"""
-        from rowgenerators import get_generator
+    def row_generator(self, rptable=None):
+        '''
+        Return a row generator for the URL
 
-        self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
-
-        ru = self.resolved_url
-
-        try:
-            resource = ru.resource  # For Metapack urls
-
-            return resource.row_generator
-        except AttributeError:
-            pass
-
-        ut = ru.get_resource().get_target()
-
-        # Encoding is supposed to be preserved in the URL but isn't
-        source_url = parse_app_url(self.url)
-
-        g = get_generator(ut, resource=self,
-                          doc=self._doc, working_dir=self._doc.doc_dir,
-                          env=self.env)
-
-        assert g, ut
-
-        return g
-
-    @property
-    def row_generator(self):
+        :param table: Row Processor table, for the  rowgenerators.generator.fixed.FixedSource generator
+        :return:
+        '''
         from rowgenerators import get_generator
 
         self.doc.set_sys_path()  # Set sys path to package 'lib' dir in case of python function generator
@@ -389,15 +425,13 @@ class Resource(Term):
         rur = ru.get_resource()
 
         if not rur:
-            raise ResourceError("Failed to get resource for '{}' ".format(ru))
+            raise NoResourceError("Failed to get resource for '{}' ".format(ru))
 
         ut = rur.get_target()
 
-        source_url = parse_app_url(self.url)
+        rptable = rptable or self.row_processor_table()
 
-        table = self.row_processor_table()
-
-        g = get_generator(ut, table=table, resource=self,
+        g = get_generator(ut, table=rptable, resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
                           env=self.env, source_url=self.expanded_url)
 
@@ -405,80 +439,138 @@ class Resource(Term):
 
         return g
 
-    def _get_start_end_header(self):
+    @property
+    def selective_row_generator(self):
+        """Like row_generator, but respects start, end and header URL parameters"""
 
-        # There are several args for SelectiveRowGenerator, but only
-        # start is really important.
-        start = first_not_none(int_maybe(self.get_value('startline')),
-                               int_maybe(self.resolved_url.start),
-                               1)
+        from rowgenerators.source import SelectiveRowGenerator
 
-        end = first_not_none(int_maybe(self.get_value('endline')),
-                             int_maybe(self.resolved_url.end))
+        header_lines, start, end = self._get_start_end_header()
 
-        headers = first_not_none(self.get_value('headerlines'),
-                                 self.resolved_url.headers,
-                                 0)
+        return SelectiveRowGenerator(self.row_generator, header_lines=header_lines, start=start, end=end)
+
+    @property
+    def iterselectiverows(self):
+        """Most basic iterator that respects start, end and header"""
+        yield from self.selective_row_generator
+
+    @property
+    def itermetatabrows(self):
 
         try:
-            header_lines = [int(e) for e in str(headers).split(',')]
-        except ValueError as e:
-            header_lines = [0]
+            yield from self.resolved_url.resource
+            # For Metapack references, just iterate over the upstream resource
+        except AttributeError as e:
+            raise PackageError(f"Resource '{self.name}' is not a metatab package") from e
 
-        return header_lines, start, end
+        except TypeError as e:  # resource is None:
+            # The URL type has a resource property, so it should be iterable, but
+            # the resource is None
+            raise NoResourceError("Reference '{}' doesn't specify a valid resource in the URL. ".format(self.name) +
+                                  "\n Maybe need to add '#<resource_name>' to the end of the url '{}'".format(
+                                      self.url)) from e
 
-    def _get_header(self):
-        """Get the header from the defined header rows, for use  on references or resources where the schema
-        has not been run"""
+    @property
+    def iterprocessedrows(self):
+        """Iterate using a row processor table, which requires a schema"""
 
-        header_lines, _, _ = self._get_start_end_header()
-
-        # We're processing the raw datafile, with no schema.
-        header_rows = islice(self.row_generator, min(header_lines), max(header_lines) + 1)
-
-        from tableintuit import RowIntuiter
-        headers = RowIntuiter.coalesce_headers(header_rows)
-
-        return headers
-
-    def __iter__(self):
-        """Iterate over the resource's rows"""
-
-        headers = self.headers
+        assert type(self.env) == dict
 
         _, start, end = self._get_start_end_header()
 
+        rptable = self.row_processor_table()  # Requires a schema term
+
+        if not rptable:
+            raise NoRowProcessor("No row processor for resource (")
+
         base_row_gen = self.row_generator
-        assert base_row_gen is not None
 
-        if headers:  # There are headers, so use them, and create a RowProcess to set data types
-            yield headers
+        rg = RowProcessor(islice(base_row_gen, start, end),
+                          rptable,
+                          source_headers=self.source_headers,
+                          manager=self,
+                          env=self.env,
+                          code_path=self.code_path)
 
-            assert type(self.env) == dict
-
-            rg = RowProcessor(islice(base_row_gen, start, end),
-                              self.row_processor_table(),
-                              source_headers=self.source_headers,
-                              manager=self,
-                              env=self.env,
-                              code_path=self.code_path)
-
-
-        else:
-            headers = self._get_header()  # Try to get the headers from defined header lines
-
-            yield headers
-            rg = islice(base_row_gen, start, None)
-
+        yield self.headers
         yield from rg
+
+        self.post_iter_meta = base_row_gen.meta
 
         try:
             self.errors = rg.errors if rg.errors else {}
         except AttributeError:
             self.errors = {}
 
+    @property
+    def iterrawrows(self):
+        """Iterate without a row processor table"""
+        try:
+            yield from self.itermetatabrows
+
+        except PackageError:  # self.resolved_url has no attribute 'resource'
+
+            _, start, end = self._get_start_end_header()
+
+            headers = self._get_header()
+
+            yield headers
+
+            base_row_gen = self.row_generator
+
+            yield from islice(base_row_gen, start, end)
+
+            self.post_iter_meta = base_row_gen.meta
+
+    def __iter__(self):
+        """General data iterator. Tries to iterate as a Metatab package, then with
+        a row processor ( schema ) and finally, raw rows. """
+        #
+        # Maybe it is a metatab resource
+        from rowgenerators.source import SelectiveRowGenerator
+
+        headers = None
+        base_row_gen = None
+
+        try:
+            yield from self.resolved_url.resource
+            return
+        except AttributeError:
+            base_row_gen = self.row_generator
+
+        except TypeError as e:  # resource is None:
+            # The URL type has a resource property, so it should be iterable, but
+            # the resource is None
+            raise NoResourceError("Reference '{}' doesn't specify a valid resource in the URL. ".format(self.name) +
+                                  "\n Maybe need to add '#<resource_name>' to the end of the url '{}'".format(
+                                      self.url)) from e
+
+        header_lines, start, end = self._get_start_end_header()
+
+        rptable = self.row_processor_table()  # Requires a schema term
+
+        if rptable:
+
+            rg = iter(RowProcessor(islice(base_row_gen, start, end),
+                                   rptable,
+                                   source_headers=self.source_headers,
+                                   manager=self,
+                                   env=self.env,
+                                   code_path=self.code_path))
+            headers = self.headers
+        else:
+            rg = iter(SelectiveRowGenerator(base_row_gen, header_lines=header_lines, start=start, end=end))
+            headers = next(rg)
+
+        yield headers
+        yield from rg
+
         self.post_iter_meta = base_row_gen.meta
 
+        try:
+            self.errors = rg.errors if rg.errors else {}
+        except AttributeError:
+            self.errors = {}
 
     @property
     def iterdict(self):
@@ -499,18 +591,7 @@ class Resource(Term):
     def iterrows(self):
         """Iterate over the resource as row proxy objects, which allow acessing colums as attributes"""
 
-        row_proxy = None
-
-        headers = None
-
-        for row in self:
-
-            if not headers:
-                headers = row
-                row_proxy = RowProxy(headers)
-                continue
-
-            yield row_proxy.set_row(row)
+        yield from self.iterrowproxy()
 
     def iterrowproxy(self, cls=RowProxy):
         """Iterate over the resource as row proxy objects, which allow acessing colums as attributes. Like iterrows,
@@ -577,11 +658,11 @@ class Resource(Term):
 
         t = self.resolved_url.get_resource().get_target()
 
-        if t.target_format == 'csv' and not self.resolved_url.start and not  self.resolved_url.headers:
+        if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
             return self.read_csv(dtype, parse_dates, *args, **kwargs)
 
         # Maybe generator has it's own Dataframe method()
-        if  not self.resolved_url.start and not  self.resolved_url.headers:
+        if not self.resolved_url.start and not self.resolved_url.headers:
             # The if clause is b/c the generators don't respect the start, end and headers
             # url arguments.
             try:
@@ -596,9 +677,13 @@ class Resource(Term):
 
         df = pd.DataFrame(list(data), columns=headers, *args, **kwargs)
 
-        self.errors  = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
+        self.errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
         return df
+
+    @property
+    def isgeo(self):
+        return 'geometry' in [c['name'] for c in self.columns()]
 
     def geoframe(self, *args, **kwargs):
         """Return a Geo dataframe"""
@@ -657,8 +742,7 @@ class Resource(Term):
                 if gdf.crs is None:
                     gdf.crs = {'init': 'epsg:4326'}
 
-
-            except KeyError as e:
+            except KeyError:
                 raise ResourceError(
                     "Failed to create GeoDataFrame for resource '{}': No geometry column".format(self.name))
             except (KeyError, TypeError) as e:
@@ -789,28 +873,6 @@ class Reference(Resource):
         e['reference'] = self
         return e
 
-    def __iter__(self):
-        """Iterate over the resource's rows"""
-
-        try:
-            # For Metapack references
-
-            if self.resolved_url.resource is None:
-                raise ResourceError("Reference '{}' doesn't specify a valid resource in the URL. ".format(self.name) +
-                                    "\n Maybe need to add '#<resource_name>' to the end of the url '{}'".format(
-                                        self.url))
-
-            yield from self.resolved_url.resource
-        except AttributeError:
-
-            _, start, end = self._get_start_end_header()
-
-            headers = self._get_header()
-
-            yield headers
-
-            yield from islice(self.row_generator, start, end)
-
     @property
     def resource(self):
         return self.expanded_url.resource
@@ -822,16 +884,22 @@ class Reference(Resource):
             return super()._repr_html_()
 
     def read_csv(self, dtype=False, parse_dates=True, *args, **kwargs):
+
+        kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
+
         try:
             return self.resource.read_csv(dtype, parse_dates, *args, **kwargs)
         except AttributeError as e:
             return super().read_csv(dtype=dtype, parse_dates=parse_dates, *args, **kwargs)
 
-    def dataframe(self, limit=None):
+    def dataframe(self, dtype=False, parse_dates=True, *args, **kwargs):
+
+        kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
+
         try:
-            return self.resource.dataframe(limit)
+            return self.resource.dataframe(*args, **kwargs)
         except AttributeError:
-            return super().dataframe(limit)
+            return super().dataframe(*args, **kwargs)
 
 
 class SqlQuery(Resource):

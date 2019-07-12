@@ -553,7 +553,6 @@ def display_context(doc):
 
     # Strip off the leading title, if it exists, because it will be re-applied
     # by the templates
-    import re
 
     lines = inline.strip().splitlines()
     if lines and lines[0].startswith('# '):
@@ -622,6 +621,12 @@ def display_context(doc):
             if new_term_vals:
                 context[section][term_key] = new_term_vals
 
+    # Add in other properties to the resoruces
+    for term in context.get('resources',{}).get('datafile',[]):
+        r = doc.resource(term['name'])
+        term['isgeo'] = r.isgeo
+
+
     context['distributions'] = {}
     for dist in doc.find('Root.Distribution'):
         context['distributions'][dist.type] = dist.value
@@ -641,7 +646,7 @@ def display_context(doc):
 def markdown(doc, title=True, template='short_documentation.md'):
     """Markdown, specifically for the Notes field in a CKAN dataset"""
 
-    from jinja2 import Environment, PackageLoader, select_autoescape
+    from jinja2 import Environment, PackageLoader
     env = Environment(
         loader=PackageLoader('metapack', 'support/templates')
         #autoescape=select_autoescape(['html', 'xml'])

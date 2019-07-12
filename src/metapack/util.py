@@ -8,10 +8,7 @@ import os
 import shutil
 from genericpath import exists
 from os import makedirs
-from os.path import basename, dirname, join
-
-from rowgenerators.util import \
-    slugify  # Unused here, but imported from elsewhere.
+from os.path import join
 
 
 def declaration_path(name):
@@ -35,7 +32,6 @@ def declaration_path(name):
 
 def linkify(v, description=None, cwd_url=None):
     from rowgenerators import Url
-    from os.path import abspath
     if not v:
         return None
 
@@ -87,24 +83,6 @@ PACKAGE_DIR = join(MP_DIR, 'package')
 OLD_DIR = join(MP_DIR, 'old')
 
 
-def make_dir_structure(base_dir):
-    """Make the build directory structure. """
-
-    def maybe_makedir(*args):
-
-        p = join(base_dir, *args)
-
-        if exists(p) and not isdir(p):
-            raise IOError("File '{}' exists but is not a directory ".format(p))
-
-        if not exists(p):
-            makedirs(p)
-
-    maybe_makedir(DOWNLOAD_DIR)
-    maybe_makedir(PACKAGE_DIR)
-    maybe_makedir(OLD_DIR)
-
-
 def make_metatab_file(template='metatab'):
     from os.path import dirname, exists
     from rowgenerators.util import fs_join as join
@@ -123,8 +101,9 @@ def make_metatab_file(template='metatab'):
 
 def scrape_urls_from_web_page(page_url):
     from bs4 import BeautifulSoup
+    from urllib.error import HTTPError
     from urllib.parse import urlsplit, urlunsplit
-    from urllib.request import urlopen
+    from urllib.request import urlopen, Request
     import os
     from os.path import dirname
 
@@ -133,7 +112,15 @@ def scrape_urls_from_web_page(page_url):
     parts[2] = ''
     root_url = urlunsplit(parts)
 
-    html_page = urlopen(page_url)
+    try:
+        # Some sites return 403 without minimal header
+        r = Request(page_url, headers={'User-Agent': 'Mozilla/5.0'})
+        html_page = urlopen(r).read()
+
+    except HTTPError as e:
+
+        return {'sources': {}, 'links': {}, 'external_documentation': {}, 'error': e}
+
     soup = BeautifulSoup(html_page, "lxml")
 
     d = dict(external_documentation={}, sources={}, links={})
@@ -194,7 +181,6 @@ def scrape_urls_from_web_page(page_url):
     return d
 
 
-
 mimetypes.init()
 mime_map = {v: k.strip('.') for k, v in mimetypes.types_map.items()}
 mime_map['application/x-zip-compressed'] = 'zip'
@@ -233,7 +219,6 @@ def guess_format(url):
 
 
 def enumerate_contents(url, cache, callback=None):
-    import requests
     from rowgenerators import enumerate_contents as rg_ec
 
     mt, format = guess_format(url)
@@ -290,7 +275,6 @@ def walk_up(bottom):
 
 
 def ensure_dir(path):
-
     if path and not exists(path):
         makedirs(path)
 
@@ -306,6 +290,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def write_csv(path_or_flo, headers, gen):
+    import csv
     try:
         f = open(path_or_flo, "wb")
 
@@ -320,7 +305,7 @@ def write_csv(path_or_flo, headers, gen):
         try:
             for row in gen:
                 w.writerow(row)
-        except:
+        except Exception:
             import sys
             print("write_csv: ERROR IN ROW", row, file=sys.stderr)
             raise
@@ -339,6 +324,7 @@ def datetime_now():
 
     return datetime.datetime.utcnow().replace(microsecond=0).isoformat()
 
+
 def get_materialized_data_cache(doc=None):
     """Return the cache directory where data can be written during a build, usually for
     a Jupyter notebook that generates many files for each execution"""
@@ -356,6 +342,7 @@ def get_materialized_data_cache(doc=None):
         ensure_dir(dr)
 
         return dr
+
 
 def dump_stack(n=4):
     import traceback
