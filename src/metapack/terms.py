@@ -977,6 +977,8 @@ class Distribution(Term):
             return "zip"
         elif self.metadata_url.target_file == 'metadata.csv':
             return 'fs'
+        elif self.package_url.scheme == 's3':
+            return "s3"
         elif self.package_url.target_format == 'csv':
             return "csv"
 

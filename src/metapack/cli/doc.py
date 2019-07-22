@@ -100,6 +100,10 @@ def doc_args(subparsers):
             cmdp.add_argument('-t', '--template', default='short_documentation.md',
                           help="Set the template.")
 
+        if arg in ('json', 'yaml', 'jsonld'):
+            cmdp.add_argument('-c', '--contact', action='store_true',
+                              help='Show only the contact information')
+
         cmdp.add_argument('metatabfile', nargs='?',
                           help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
@@ -510,6 +514,10 @@ def dump_yaml(args):
     m = MetapackCliMemo(args, downloader)
 
     o = display_context(m.doc)
+
+    if args.contact:
+       o = o['contacts']
+
     y = yaml.safe_dump(o, default_flow_style=False)
 
     print(y)
