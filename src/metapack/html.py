@@ -441,6 +441,10 @@ def process_contact(d):
         return {
             'parts': ["{}".format(name),"[{}]({})".format(url, url)]
         }
+    elif name and email:
+        return {
+            'parts': ["[{}]({})".format(name, 'mailto:'+email)]
+        }
     elif name:
         return {
             'parts': ["{}".format(name)]
