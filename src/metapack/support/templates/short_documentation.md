@@ -46,9 +46,13 @@ _{{root.description}}_
 {% endif %}
 {% if references %}
 ## References
-{% for term_name, terms in references.items() -%}
-    {% for reference in terms %}
-* **[{{reference.name}}]({{reference.url}})**. {{reference.description}}
-{%- endfor %}
+<ul>{% for term_name, terms in references.items() -%}
+{% for reference in terms %}
+{%- if reference.url.startswith('http') -%}
+    <li> <strong><a href="{{reference.url}}">{{reference.name}}</a></strong>. {{reference.description}}</li>
+{%-else-%}
+    <li> <strong>{{reference.url}}</strong>. {{reference.description}}</li>
+{%-endif-%}
 {%- endfor -%}
+{%- endfor -%}<ul>
 {% endif %}

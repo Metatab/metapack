@@ -396,7 +396,14 @@ class Resource(Term):
             return None
 
     @property
-    def row_generator(self, rptable=None):
+    def row_generator(self):
+        return self._row_generator()
+
+    @property
+    def raw_row_generator(self):
+        return self._row_generator(rptable=None)
+
+    def _row_generator(self, rptable=True):
         '''
         Return a row generator for the URL
 
@@ -429,7 +436,10 @@ class Resource(Term):
 
         ut = rur.get_target()
 
-        rptable = rptable or self.row_processor_table()
+        if rptable is True:
+            rptable = self.row_processor_table()
+        elif rptable is False:
+            rptable = None
 
         g = get_generator(ut, table=rptable, resource=self,
                           doc=self._doc, working_dir=self._doc.doc_dir,
@@ -649,26 +659,30 @@ class Resource(Term):
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
 
-    def dataframe(self, dtype=False, parse_dates=True, *args, **kwargs):
+    def dataframe(self, dtype=True, parse_dates=True, *args, **kwargs):
         """Return a pandas datafrome from the resource"""
 
         import pandas as pd
 
         rg = self.row_generator
 
-        t = self.resolved_url.get_resource().get_target()
+        mod_kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
-        if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
-            return self.read_csv(dtype, parse_dates, *args, **kwargs)
+        t = self.resolved_url.get_resource().get_target()
 
         # Maybe generator has it's own Dataframe method()
         if not self.resolved_url.start and not self.resolved_url.headers:
             # The if clause is b/c the generators don't respect the start, end and headers
             # url arguments.
             try:
-                return rg.dataframe(*args, **kwargs)
+                df = rg.dataframe(*args, **mod_kwargs)
+                return df
             except AttributeError:
                 pass
+
+        if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
+            df = self.read_csv(*args, **mod_kwargs)
+            return df
 
         # Just normal data, so use the iterator in this object.
 
@@ -759,7 +773,7 @@ class Resource(Term):
         :return:
         """
 
-        from datetime import datetime, time, date
+        kwargs = dict(kwargs.items())
 
         type_map = {
             None: None,
@@ -767,9 +781,9 @@ class Resource(Term):
             'text': str,
             'number': float,
             'integer': int,
-            'datetime': datetime,
-            'time': time,
-            'date': date
+            'datetime': str,  # datetime,
+            'time': str,  # time,
+            'date': str,  # date
 
         }
 
@@ -841,29 +855,29 @@ class Resource(Term):
         except DownloadError:
             pass
 
-        return (
-                   "<h3><a name=\"resource-{name}\"></a>{name}</h3><p><a target=\"_blank\" href=\"{url}\">{url}</a></p>" \
-                       .format(name=self.name, url=self.resolved_url)) + \
-               "<table>\n" + \
-               "<tr><th>Header</th><th>Type</th><th>Description</th></tr>" + \
-               '\n'.join(
-                   "<tr><td>{}</td><td>{}</td><td>{}</td></tr> ".format(c.get('header', ''),
-                                                                        c.get('datatype', ''),
-                                                                        c.get('description', ''))
-                   for c in self.columns()) + \
-               '</table>'
+        return (("<h3><a name=\"resource-{name}\"></a>{name}</h3><p><a target=\"_blank\" href=\"{url}\">{url}</a></p>"
+                 .format(name=self.name, url=self.resolved_url)) +
+                "<table>\n" +
+                "<tr><th>Header</th><th>Type</th><th>Description</th></tr>" +
+                '\n'.join(
+                    "<tr><td>{}</td><td>{}</td><td>{}</td></tr> ".format(c.get('header', ''),
+                                                                         c.get('datatype', ''),
+                                                                         c.get('description', ''))
+                    for c in self.columns()) +
+                '</table>')
 
-    @property
-    def hash(self):
-        """Return a hash from th source_generator"""
 
-        return self.row_generator.hash
+@property
+def hash(self):
+    """Return a hash from th source_generator"""
 
-    @property
-    def markdown(self):
+    return self.row_generator.hash
 
-        from .html import ckan_resource_markdown
-        return ckan_resource_markdown(self)
+
+@property
+def markdown(self):
+    from .html import ckan_resource_markdown
+    return ckan_resource_markdown(self)
 
 
 class Reference(Resource):
@@ -888,18 +902,20 @@ class Reference(Resource):
         kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
         try:
-            return self.resource.read_csv(dtype, parse_dates, *args, **kwargs)
-        except AttributeError as e:
-            return super().read_csv(dtype=dtype, parse_dates=parse_dates, *args, **kwargs)
+            return self.resource.read_csv(*args, **kwargs)
+        except AttributeError:
+            pass
+
+        return super().read_csv(*args, **kwargs)
 
     def dataframe(self, dtype=False, parse_dates=True, *args, **kwargs):
-
-        kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
         try:
             return self.resource.dataframe(*args, **kwargs)
         except AttributeError:
-            return super().dataframe(*args, **kwargs)
+            pass
+
+        return super().dataframe(*args, **kwargs)
 
 
 class SqlQuery(Resource):
@@ -995,3 +1011,20 @@ class Distribution(Term):
     def metadata_url(self):
         from metapack import MetapackDocumentUrl
         return MetapackDocumentUrl(self.value, downloader=self.doc.downloader)
+
+    def resource_url(self, r):
+        """Return a resource URL for this distribution"""
+
+        if self.package_url.target_format == 'xlsx':
+            return r.url
+        elif self.package_url.resource_format == 'zip':
+            return r.url
+        elif self.metadata_url.target_file == 'metadata.csv':
+            return r.url
+        elif self.package_url.scheme == 's3':
+            return r.s3url
+        elif self.package_url.target_format == 'csv':
+            return r.url
+
+        else:
+            return r.url
