@@ -15,22 +15,22 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Using Metapack Packages" href="using.html" />
-   
+
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
+
+
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-  
+
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
+
 
           <div class="body" role="main">
-            
+
   <div class="section" id="metpack-cli-commands">
 <h1>Metpack CLI Commands<a class="headerlink" href="#metpack-cli-commands" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="mp-main-program">
@@ -39,7 +39,7 @@
 <h3>mp<a class="headerlink" href="#mp" title="Permalink to this headline">¶</a></h3>
 <p>Entry program for running Metapack commands.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp [-h] [--exceptions] [--debug] [--no-cache]</span>
-<span class="go">          {config,doc,index,info,open,run,search,build,edit,new,s3,stats,update,url,wp}</span>
+<span class="go">          {build,colmap,edit,mk,new,s3,stats,update,url,notebook,wp,db,sql,config,doc,index,info,open,run,search}</span>
 <span class="go">          ...</span>
 </pre></div>
 </div>
@@ -124,7 +124,7 @@
 <h2><strong>doc</strong>: Display package documentation<a class="headerlink" href="#doc-display-package-documentation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="mp-doc">
 <h3>mp doc<a class="headerlink" href="#mp-doc" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc [-h] {graph,deps,schema,markdown,html,json,yaml} ...</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc [-h] {graph,deps,schema,markdown,html,json,jsonld,yaml} ...</span>
 </pre></div>
 </div>
 <dl class="option">
@@ -237,7 +237,7 @@
 </div>
 <div class="section" id="mp-doc-json">
 <h4>mp doc json<a class="headerlink" href="#mp-doc-json" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc json [-h] [metatabfile]</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc json [-h] [-c] [metatabfile]</span>
 </pre></div>
 </div>
 <dl class="option">
@@ -250,6 +250,36 @@
 <dt id="cmdoption-mp-doc-json-h">
 <code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mp-doc-json-c">
+<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--contact</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show only the contact information</p>
+</dd></dl>
+
+</div>
+<div class="section" id="mp-doc-jsonld">
+<h4>mp doc jsonld<a class="headerlink" href="#mp-doc-jsonld" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc jsonld [-h] [-c] [metatabfile]</span>
+</pre></div>
+</div>
+<dl class="option">
+<dt id="cmdoption-mp-doc-jsonld-arg-metatabfile">
+<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mp-doc-jsonld-h">
+<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-h" title="Permalink to this definition">¶</a></dt>
+<dd><p>show this help message and exit</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mp-doc-jsonld-c">
+<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--contact</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show only the contact information</p>
 </dd></dl>
 
 </div>
@@ -303,7 +333,7 @@
 </div>
 <div class="section" id="mp-doc-yaml">
 <h4>mp doc yaml<a class="headerlink" href="#mp-doc-yaml" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc yaml [-h] [metatabfile]</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc yaml [-h] [-c] [metatabfile]</span>
 </pre></div>
 </div>
 <dl class="option">
@@ -318,6 +348,12 @@
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
+<dl class="option">
+<dt id="cmdoption-mp-doc-yaml-c">
+<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--contact</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show only the contact information</p>
+</dd></dl>
+
 </div>
 </div>
 </div>
@@ -327,7 +363,7 @@
 <h3>mp index<a class="headerlink" href="#mp-index" title="Permalink to this headline">¶</a></h3>
 <p>Index packages for searching.</p>
 <blockquote>
-<div><p>The index file is a JSON file, which is by default index.json in the cache. 
+<div><p>The index file is a JSON file, which is by default index.json in the cache.
 The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.</p>
 </div></blockquote>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp index [-h] [-l] [-c] [-C] [-f FILE] [-w] [-D DUMP] [-L LOAD]</span>
@@ -404,7 +440,7 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <blockquote>
 <div><p>Entry program for running Metapack commands.</p>
 </div></blockquote>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp info [-h] [-n | -N | -r | -s | -R | -p | -P] [-T] [-t] [metatabfile]</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp info [-h] [-n | -N | -r | -s | -R | -p | -P | -T | -t] [metatabfile]</span>
 </pre></div>
 </div>
 <dl class="option">
@@ -612,10 +648,10 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <h3>mp search<a class="headerlink" href="#mp-search" title="Permalink to this headline">¶</a></h3>
 <p>Index packages for searching.</p>
 <blockquote>
-<div><p>The index file is a JSON file, which is by default index.json in the cache. 
+<div><p>The index file is a JSON file, which is by default index.json in the cache.
 The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.</p>
 </div></blockquote>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp search [-h] [-l] [-f FORMAT] [-1] [-p] [-c] [-j] [search]</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp search [-h] [-l] [-f FORMAT] [-1] [-p] [-c] [-j] [-n] [-r] [search]</span>
 </pre></div>
 </div>
 <dl class="option">
@@ -666,13 +702,25 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <dd><p>Output json for some commands</p>
 </dd></dl>
 
+<dl class="option">
+<dt id="cmdoption-mp-search-n">
+<code class="descname">-n</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--name</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output only the first column, the name of the package</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-mp-search-r">
+<code class="descname">-r</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--ref</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output only the third column, the url of the package</p>
+</dd></dl>
+
 </div>
 </div>
 </div>
 
 
           </div>
-          
+
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -721,18 +769,18 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
     </div>
     <div class="footer">
       &copy;2018, Eric Busboom.
-      
+
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
+
       |
       <a href="_sources/commands.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
-    
 
-    
+
+
   </body>
 </html>
