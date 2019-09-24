@@ -20,7 +20,7 @@ filesystem data packages.
 This repository has a Python module and executable. For a Javascript version,
 see the `metatab-js <https://github.com/CivicKnowledge/metatab-js>`_ repository.
 
-See the `documentation for full details<http://docs.metatab.org/>`_
+See the `documentation for full details <http://docs.metatab.org/>`_
 
 
 Install
