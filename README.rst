@@ -20,61 +20,28 @@ filesystem data packages.
 This repository has a Python module and executable. For a Javascript version,
 see the `metatab-js <https://github.com/CivicKnowledge/metatab-js>`_ repository.
 
+See the `documentation for full details<http://docs.metatab.org/>`_
+
 
 Install
 -------
 
-Metapack only works with Python 3.5 or later, and you'll almost certainly want
-to install it into a virtual environment. To set up a virtual environment:
+Metapack requires geographic libraries, most importantly gda, pyproj, shapely
+and geopandas. These libraries can be difficult to install, often requiring
+compilation. By far, the easiest way to install them properly is with Anaconda.
+And, because, metapack has a lot of dependencies, you'll want to install it in
+a virtual environment. Metapack only works with Python 3.5 or later:
 
 .. code-block:: bash
 
-    python3 -mvenv metapack
-    cd metapack
-    source bin/activate
-
-Since we're stil in development, you'll get the latest code by installing
-package from github, but you can also install from pip. In either case, you
-should create the virtualenv, and afterward, you'll have to reinstall the six
-package because of an odd conflict
-
-To install the package with pip:
-
-.. code-block:: bash
-
-    pip install metapack
-
-Because the fs package has an odd version requirement on `six`, you'll have to
-fix the version:
-
-.. code-block:: bash
-
-    pip uninstall -y six
-    pip install six==1.10.0
-
-To run the tests, you'll also need to install some support modules;
-
-.. code-block:: bash
-
-    $ pip install fiona shapely pyproj terminaltables geopandas
+    $ conda create --name metapack python=3.7
+    $ conda activate metapack
+    $ conda install numpy pandas gdal geos pyproj=1.9.5.1 fiona shapely geopandas
+    $ pip install metapack
 
 
-Then test parsing using a remote file with the ``metatab`` program, from the
-``metatab`` module:
+Verify that the install worked by running `` mp config``
 
-.. code-block:: bash
-
-    $ metatab -j https://raw.githubusercontent.com/CivicKnowledge/metatab-py/master/test-data/example1.csv
-
-Run ``metatab -h`` to get other program options.
-
-The ``test-data`` directory has test files that also serve as examples to
-parse. You can either clone the repo and parse them from the files, or from the
-Github page for the file, click on the ``raw`` button to get raw view of the
-flie, then copy the URL.
-
-The main program for metapack is `mt`, which has a number of ( extensible) sub
-commands. See the commands with: ``mt -h``.
 
 Getting Started
 ---------------

@@ -51,7 +51,7 @@ _{{root.description}}_
 {%- if reference.url.startswith('http') -%}
     <li> <strong><a href="{{reference.url}}">{{reference.name}}</a></strong>. {{reference.description}}</li>
 {%-else-%}
-    <li> <strong>{{reference.url}}</strong>. {{reference.description}}</li>
+    <li> <strong>{{reference.name}}</string>, <em>{{reference.url}}</em>. {{reference.description}}</li>
 {%-endif-%}
 {%- endfor -%}
 {%- endfor -%}<ul>
