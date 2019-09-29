@@ -14,8 +14,10 @@ develop:
 
 publish:
 	$(MAKE) clean
-	git push --tags origin
-	python setup.py sdist && twine check dist/* && twine upload dist/*
+	python setup.py sdist && \
+	twine check dist/* && \
+	git push --tags origin && \
+	twine upload dist/*
 	$(MAKE) clean
 
 clean:

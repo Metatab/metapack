@@ -679,6 +679,20 @@ class Resource(Term):
                 return df
             except AttributeError:
                 pass
+            except ValueError:
+
+                # Hopefully a type conversion error, because, for instance,
+                # dtypes arg in mod_kwargs specifies an int, but the colum has
+                # Nans.
+                # OTOH, maybe we should never actually use the dtype --
+                # Pandas is reall good at conversions, except for dates.
+                if 'dtype' not in mod_kwargs:
+                    raise
+
+                del mod_kwargs['dtype']
+
+                df = rg.dataframe(*args, **mod_kwargs)
+                return df
 
         if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
             df = self.read_csv(*args, **mod_kwargs)
