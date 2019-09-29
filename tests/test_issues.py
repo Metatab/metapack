@@ -207,6 +207,16 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         for e in islice(u.generator, 10):
             print(e)
 
+    def test_int_col_with_string(self):
+
+        pkg = mp.open_package('http://library.metatab.org/sandiegodata.org-dowtown_homeless-1.csv')
+
+        r = pkg.resource('homeless_counts')
+
+        df = r.dataframe()
+
+        print(df.head())
+
 
 if __name__ == '__main__':
     unittest.main()
