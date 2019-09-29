@@ -29,17 +29,7 @@ data packages, see the `metapack-build
 Install
 =======
 
-The most consistently reliable way to install Metapack is within Conda, which
-will avoid having to compile the geographic libraries for geos and gdal.
-
-.. code-block:: bash
-
-    conda create --name metapack python=3.7
-    conda activate metapack
-    conda install numpy pandas gdal geos pyproj=1.9.5.1 fiona shapely geopandas
-    pip install metapack
-
-On Linux, you can usually install the Metapack package from PiPy with:
+Install the Metapack package from PiPy with:
 
 .. code-block:: bash
 
