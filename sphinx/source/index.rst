@@ -29,7 +29,19 @@ data packages, see the `metapack-build
 Install
 =======
 
-Install the Metapack package from PiPy with:
+
+The most consistently reliable way to install Metapack is within Conda, which
+will avoid having to compile the geographic libraries for geos and gdal.
+
+.. code-block:: bash
+
+    conda create --name metapack python=3.7
+    conda activate metapack
+    conda install numpy pandas gdal geos pyproj=1.9.5.1 fiona shapely geopandas
+    pip install metapack
+
+On Linux, you can usually install the Metapack package from PiPy with:
+
 
 .. code-block:: bash
 
@@ -40,7 +52,7 @@ Other modules you may want include:
 * `metapack-build <https://github.com/Metatab/metapack-build>`_ for building
   packages.
 * `metapack-jupyter <https://github.com/Metatab/metapack-jupyter>`_. for
-  Jupyter notebook support. 
+  Jupyter notebook support.
 * `metapack-wp <https://github.com/Metatab/metapack-wp>`_. for publising
   packages to the web.
 
@@ -65,7 +77,7 @@ Metatab and Metapack Overview
 .. toctree::
 
     overview
-	
+
 Using Metapack Packages
 =======================
 
@@ -87,7 +99,7 @@ Building Metapack Packages
 
 	Creating Metapack packages requires the
 	`metapack-build <https://github.com/Metatab/metapack-build>`_. module.
-	
+
 * :doc:`Getting Started Tutorial <mpbuild:build/GettingStarted>`
 * :doc:`Generating Rows <mpbuild:build/GeneratingRows>`
 * :doc:`Altering rows with transforms <mpbuild:build/Transforms>`

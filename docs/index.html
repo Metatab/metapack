@@ -15,22 +15,22 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Metapack Overview" href="overview.html" />
-   
+
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
+
+
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-  
+
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
+
 
           <div class="body" role="main">
-            
+
   <div class="section" id="metapack-data-packaging-system">
 <h1>Metapack: Data Packaging System<a class="headerlink" href="#metapack-data-packaging-system" title="Permalink to this headline">¶</a></h1>
 <p>Metapack is a data package format and packging system that uses Metatab
@@ -54,7 +54,15 @@ data packages, see the <a class="reference external" href="https://github.com/Me
 </div>
 <div class="section" id="install">
 <h1>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
-<p>Install the Metapack package from PiPy with:</p>
+<p>The most consistently reliable way to install Metapack is within Conda, which
+will avoid having to compile the geographic libraries for geos and gdal.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name metapack <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
+conda activate metapack
+conda install numpy pandas gdal geos <span class="nv">pyproj</span><span class="o">=</span><span class="m">1</span>.9.5.1 fiona shapely geopandas
+pip install metapack
+</pre></div>
+</div>
+<p>On Linux, you can usually install the Metapack package from PiPy with:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install metapack
 </pre></div>
 </div>
@@ -150,7 +158,7 @@ $ bin/init-develop.sh
 
 
           </div>
-          
+
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -189,18 +197,18 @@ $ bin/init-develop.sh
     </div>
     <div class="footer">
       &copy;2018, Eric Busboom.
-      
+
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
+
       |
       <a href="_sources/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
-    
 
-    
+
+
   </body>
 </html>
