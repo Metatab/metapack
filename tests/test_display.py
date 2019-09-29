@@ -15,12 +15,12 @@ class TestDisplay(unittest.TestCase):
         import json
         from textwrap import dedent
 
-        parts = [ 'email', 'organization', 'url', 'name' ]
+        parts = ['email', 'organization', 'url', 'name']
 
         out = {}
 
-        for l in range(1,5):
-            for c in combinations( zip(parts, parts), l):
+        for l in range(1, 5):
+            for c in combinations(zip(parts, parts), l):
                 out[','.join(sorted(dict(c).keys()))] = ','.join(process_contact(dict(c))['parts'])
 
         outs = json.dumps(out, indent=4)
@@ -33,7 +33,7 @@ class TestDisplay(unittest.TestCase):
             "name": "name",
             "email,organization": "organization,[email](mailto:email)",
             "email,url": "[url](url),[email](mailto:email)",
-            "email,name": "name",
+            "email,name": "[name](mailto:email)",
             "organization,url": "[organization](url)",
             "name,organization": "name,organization",
             "name,url": "name,[url](url)",
