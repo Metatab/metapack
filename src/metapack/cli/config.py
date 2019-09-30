@@ -16,17 +16,13 @@ from pkg_resources import (
 
 from tabulate import tabulate
 
-from metapack.cli.core import MetapackCliMemo as _MetapackCliMemo
 from metapack.cli.core import err, prt
 from metapack.package import *
 
 downloader = Downloader.get_instance()
 
 
-
-
 def config_args(subparsers):
-
     parser = subparsers.add_parser(
         'config',
         help='Print configuration information about the metapack installation'
@@ -34,9 +30,8 @@ def config_args(subparsers):
 
     parser.set_defaults(run_command=config)
 
-
     parser.add_argument('-v', '--version', default=False, action='store_true',
-                             help='Print Metapack versions')
+                        help='Print Metapack versions')
 
     parser.add_argument('-V', '--versions', default=False, action='store_true',
                         help='Print version of several important packages')
@@ -86,13 +81,10 @@ def config(args):
         err('No metatab file found')
 
 
-
 def print_versions():
-    from pkg_resources import EntryPoint
     from tabulate import tabulate
 
-
-    main_packages = ('metapack', 'metatab', 'metatabdecl', 'rowgenerators', 'publicdata', 'tableintuit')
+    main_packages = ('metapack', 'metatab', 'metatabdecl', 'rowgenerators', 'tableintuit')
 
     packages = []
     for pkg_name in main_packages:
@@ -107,10 +99,10 @@ def print_versions():
     prt(tabulate(packages, headers='Package Version'.split()))
     prt('')
     prt(tabulate([(ep.name, ep.dist) for ep in iter_entry_points(group='mt.subcommands')],
-                                                                headers='Subcommand Package Version'.split()))
+                 headers='Subcommand Package Version'.split()))
+
 
 def list_rr(doc):
-
     d = []
     for r in doc.resources():
         d.append(('Resource', r.name, r.url))
@@ -129,17 +121,15 @@ def list_rr(doc):
         prt(tabulate(d, 'Type Name Url'.split()))
 
 
-
 def print_declare():
-
     from metatab.util import declaration_path
 
     prt(declaration_path('metatab-latest'))
 
-def print_value_types():
 
+def print_value_types():
     from rowgenerators.valuetype import value_types
 
-    rows = [ (k,v.__name__, v.__doc__) for k,v in value_types.items() ]
+    rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
 
     print(tabulate(sorted(rows), headers='Code Class Description'.split()))

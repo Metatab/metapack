@@ -31,14 +31,13 @@ from metapack.exc import PackageError
 
 dl_templ = "{}\n:   {}\n\n"
 
+
 def ns(v):
     """Return empty str if bool false"""
     return str(v) if bool(v) else ''
 
 
 def linkify(v, description=None, cwd_url=None):
-
-
     if not v:
         return None
 
@@ -151,12 +150,11 @@ class MetatabStyle(Style):
         ]
 
     def format_dataset(self, e):
-
         template = toplevel[
             optional[sentence[field('origin')]],
             self.format_btitle(e, 'title'),
             optional[sentence[together['Version', field('version')]]],
-            optional[sentence[field('publisher') ]],
+            optional[sentence[field('publisher')]],
             optional[self.format_author_or_editor(e)],
             optional[words[optional_field('month'), field('year')]],
             self.format_web_refs(e),
@@ -270,7 +268,7 @@ def make_metatab_citation_dict(t):
                 return False  # It isn't a resource or reference
 
             creator = doc.find_first('Root.Creator')
-            author_key='author'
+            author_key = 'author'
 
             if not creator:
                 creator = doc.find_first('Root.Wrangler')
@@ -299,11 +297,10 @@ def make_metatab_citation_dict(t):
                 'year': doc.get_value('Root.Year'),
                 'accessDate': '{}'.format(datetime.datetime.now().strftime('%Y-%m-%d')),
                 'url': url,
-                'version': doc.get_value('Root.Version', doc.get_value('Name.Version') ),
+                'version': doc.get_value('Root.Version', doc.get_value('Name.Version')),
             }
 
-            d =  { k:v for k, v in d.items() if v is not None}
-
+            d = {k: v for k, v in d.items() if v is not None}
 
             return d
 
@@ -406,22 +403,20 @@ def modtime_str(doc):
     return modtime_str
 
 
-
 def process_contact(d):
-
-    email = d.get('email',None)
+    email = d.get('email', None)
     org = d.get('organization', None)
-    url = d.get('url',None)
+    url = d.get('url', None)
     name = d.get('name', None)
 
     if name and email and org and url:
         return {
-            'parts':["[{}]({})".format(name,'mailto:'+email),"[{}]({})".format(org,url)]
+            'parts': ["[{}]({})".format(name, 'mailto:' + email), "[{}]({})".format(org, url)]
         }
 
     elif name and email and org:
         return {
-            'parts':["[{}]({})".format(name, 'mailto:' + email),"{}".format(org)]
+            'parts': ["[{}]({})".format(name, 'mailto:' + email), "{}".format(org)]
         }
     elif name and email and url:
         return {
@@ -430,20 +425,20 @@ def process_contact(d):
 
     elif name and org and url:
         return {
-            'parts':["{}".format(name),"[{}]({})".format(org, url)]
+            'parts': ["{}".format(name), "[{}]({})".format(org, url)]
         }
 
     elif name and org:
         return {
-            'parts': ["{}".format(name),"{}".format(org)]
+            'parts': ["{}".format(name), "{}".format(org)]
         }
     elif name and url:
         return {
-            'parts': ["{}".format(name),"[{}]({})".format(url, url)]
+            'parts': ["{}".format(name), "[{}]({})".format(url, url)]
         }
     elif name and email:
         return {
-            'parts': ["[{}]({})".format(name, 'mailto:'+email)]
+            'parts': ["[{}]({})".format(name, 'mailto:' + email)]
         }
     elif name:
         return {
@@ -451,19 +446,19 @@ def process_contact(d):
         }
     elif org and email and url:
         return {
-            'parts': ["[{}]({})".format(org,url),"[{}]({})".format(email,'mailto:'+email)]
+            'parts': ["[{}]({})".format(org, url), "[{}]({})".format(email, 'mailto:' + email)]
         }
     elif org and email:
         return {
-            'parts':["{}".format(org),"[{}]({})".format(email, 'mailto:' + email)]
+            'parts': ["{}".format(org), "[{}]({})".format(email, 'mailto:' + email)]
         }
     elif org and url:
         return {
-            'parts':[ "[{}]({})".format(org, url)]
+            'parts': ["[{}]({})".format(org, url)]
         }
     elif url and email:
         return {
-            'parts':["[{}]({})".format(url, url), "[{}]({})".format(email, 'mailto:' + email)]
+            'parts': ["[{}]({})".format(url, url), "[{}]({})".format(email, 'mailto:' + email)]
         }
 
     elif org:
@@ -484,13 +479,14 @@ def process_contact(d):
             'parts': []
         }
 
-def process_contacts_html(d):
 
+def process_contacts_html(d):
     pc = process_contact(d)
 
-    pc['html'] = convert_markdown(', '.join(pc['parts']) )
+    pc['html'] = convert_markdown(', '.join(pc['parts']))
 
     return pc
+
 
 def display_context(doc):
     """Create a Jinja context for display"""
@@ -503,16 +499,16 @@ def display_context(doc):
 
     # Remove section names
     deletes = []
-    for k,v in context.items():
+    for k, v in context.items():
         try:
             del v['@value']
         except KeyError:
-            pass # Doesn't have the value
+            pass  # Doesn't have the value
         except TypeError:
             # Is actually completely empty, and has a scalar value. Delete and re-create
             deletes.append(k)
 
-        if isinstance(v, str): # Shouldn't ever happen, but who knows ?
+        if isinstance(v, str):  # Shouldn't ever happen, but who knows ?
             deletes.append(k)
 
     for d in deletes:
@@ -529,7 +525,7 @@ def display_context(doc):
     # Load inline documentation
     inline = ''
 
-    for d in context.get('documentation',{}).get('documentation',[]):
+    for d in context.get('documentation', {}).get('documentation', []):
 
         u = parse_app_url(d['url'])
 
@@ -553,7 +549,7 @@ def display_context(doc):
             except FileNotFoundError:
                 pass
 
-            del d['title'] # Will cause it to be ignored in next section
+            del d['title']  # Will cause it to be ignored in next section
 
     # Strip off the leading title, if it exists, because it will be re-applied
     # by the templates
@@ -577,12 +573,12 @@ def display_context(doc):
                         images[term['title']] = term
                     else:
                         doc_links[term['title']] = term
-                except AttributeError: # A scalar
-                    pass # There should not be any scalars in the documentation section
+                except AttributeError:  # A scalar
+                    pass  # There should not be any scalars in the documentation section
                 except KeyError:
-                    pass # ignore entries without titles
+                    pass  # ignore entries without titles
                 except TypeError:
-                    pass # Also probably a ascalar
+                    pass  # Also probably a ascalar
 
     context['doc_links'] = doc_links
     context['images'] = images
@@ -595,23 +591,22 @@ def display_context(doc):
     origin = None
     for term_name, terms in context['contacts'].items():
         if isinstance(terms, dict):
-            origin = terms # Origin is a scalar in roort, must be converted to sequence here
+            origin = terms  # Origin is a scalar in roort, must be converted to sequence here
         else:
             for t in terms:
                 try:
                     t.update(process_contacts_html(t))
                 except AttributeError:
-                    pass # Probably got a scalar
+                    pass  # Probably got a scalar
     if origin:
         origin.update(process_contacts_html(origin))
         context['contacts']['origin'] = [origin]
-
 
     # For resources and references, convert scalars into lists of dicts, which are the
     # default for Datafiles and References.
 
     for section in ('references', 'resources'):
-        for term_key, term_vals in context.get(section,{}).items():
+        for term_key, term_vals in context.get(section, {}).items():
             if isinstance(term_vals, dict):
                 if '@value' in term_vals:
                     term_vals['url'] = term_vals['@value']
@@ -620,16 +615,15 @@ def display_context(doc):
             elif isinstance(term_vals, list):
                 new_term_vals = None
             else:
-                new_term_vals = [ {'url': term_vals, 'name': term_vals}]
+                new_term_vals = [{'url': term_vals, 'name': term_vals}]
 
             if new_term_vals:
                 context[section][term_key] = new_term_vals
 
     # Add in other properties to the resoruces
-    for term in context.get('resources',{}).get('datafile',[]):
+    for term in context.get('resources', {}).get('datafile', []):
         r = doc.resource(term['name'])
         term['isgeo'] = r.isgeo
-
 
     context['distributions'] = {}
     for dist in doc.find('Root.Distribution'):
@@ -647,13 +641,14 @@ def display_context(doc):
 
     return context
 
+
 def markdown(doc, title=True, template='short_documentation.md'):
     """Markdown, specifically for the Notes field in a CKAN dataset"""
 
     from jinja2 import Environment, PackageLoader
     env = Environment(
         loader=PackageLoader('metapack', 'support/templates')
-        #autoescape=select_autoescape(['html', 'xml'])
+        # autoescape=select_autoescape(['html', 'xml'])
     )
 
     context = display_context(doc)
@@ -703,11 +698,11 @@ def html(doc, template='short_documentation.md'):
 </html>
     """.format(
         title=doc.find_first_value('Root.Title'),
-        body=convert_markdown(markdown(doc, template=template), extensions)
+        body=convert_markdown(markdown(doc, template=template), extensions=extensions)
     )
 
-def jsonld(doc):
 
+def jsonld(doc):
     """Produce JSONLD with a Dataset schema, to have web pages with the
     dataset properly indexed by Google"""
 
@@ -737,7 +732,6 @@ def jsonld(doc):
     if not root:
         raise PackageError('Could not get root from display context')
 
-
     d = {
         "@context": "http://schema.org",
         "@type": "Dataset",
@@ -759,15 +753,15 @@ def jsonld(doc):
     distributions = []
 
     for typ, url in context.get('distributions', {}).items():
-        if typ in ('csv','zip'):
+        if typ in ('csv', 'zip'):
             distributions.append({
                 '@type': 'DataDownload',
-                'encodingFormat':typ,
+                'encodingFormat': typ,
                 'contentUrl': url
             })
 
     # Do it later
-    for typ, v in context.get('contacts',{}).items():
+    for typ, v in context.get('contacts', {}).items():
         pass
 
     d['distribution'] = distributions
