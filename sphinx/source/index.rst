@@ -30,15 +30,13 @@ Install
 =======
 
 
-The most consistently reliable way to install Metapack is within Conda, which
-will avoid having to compile the geographic libraries for geos and gdal.
+The most consistently reliable way to install Metapack, especially in MacOs,  is
+within Conda, which will avoid having to compile the geographic libraries for
+geos and gdal.
 
 .. code-block:: bash
 
-    conda create --name metapack python=3.6 \
-        numpy pandas \
-        gdal geos pyproj=1.9.5.1  fiona shapely geopandas \
-        'python-dateutil<2.8.1,>=2.1'
+    conda create --name metapack python=3.6 --file https://raw.githubusercontent.com/Metatab/metapack/master/conda/conda-requirements.txt
     conda activate metapack
     pip install metapack
 
