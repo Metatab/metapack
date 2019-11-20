@@ -35,13 +35,14 @@ will avoid having to compile the geographic libraries for geos and gdal.
 
 .. code-block:: bash
 
-    conda create --name metapack python=3.7
+    conda create --name metapack python=3.6 \
+        numpy pandas \
+        gdal geos pyproj=1.9.5.1  fiona shapely geopandas \
+        'python-dateutil<2.8.1,>=2.1'
     conda activate metapack
-    conda install numpy pandas gdal geos pyproj=1.9.5.1 fiona shapely geopandas
     pip install metapack
 
 On Linux, you can usually install the Metapack package from PiPy with:
-
 
 .. code-block:: bash
 

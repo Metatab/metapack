@@ -1,0 +1,15 @@
+bs4
+codegen
+geoid
+livestats
+meta
+metapack
+metapack-build
+metapack-jupyter
+metapack-wp
+metatab
+metatabdecl
+pre-commit
+python-wordpress-xmlrpc
+rowgenerators
+tableintuit
