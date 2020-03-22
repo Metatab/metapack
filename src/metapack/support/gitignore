@@ -6,3 +6,4 @@
 new-notebook.ipynb
 metadata.txt
 _packages
+*.pyc

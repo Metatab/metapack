@@ -257,7 +257,7 @@ class MetapackPackageUrl(FileUrl, _MetapackUrl):
             try:
                 rs = jt.get_resource()
             except DownloadError:
-                raise ResourceError(
+                raise DownloadError(
                     "Failed to download resource for '{}' for '{}' in '{}'".format(jt, resource_name, self))
             t = rs.get_target()
 
@@ -389,7 +389,7 @@ class SearchUrl(Url):
             try:
                 search_func = cls.search_json_indexed_directory(Downloader.get_instance().cache.getsyspath('/'))
                 SearchUrl.register_search(search_func)
-            except AppUrlError as e:
+            except AppUrlError:
                 pass
 
             SearchUrl._search_initialized = True
@@ -419,7 +419,7 @@ class SearchUrl(Url):
                 resource_str = '#' + url.resource_name if url.resource_name else ''
 
                 return parse_app_url(package['url'] + resource_str, downloader=url.downloader)
-            except KeyError as e:
+            except KeyError:
                 return None
 
         return _search_function
@@ -434,7 +434,7 @@ class SearchUrl(Url):
                 v = cb(self)
                 if v is not None:
                     return v
-            except Exception as e:
+            except Exception:
                 raise
 
     def resolve(self):
@@ -443,7 +443,7 @@ class SearchUrl(Url):
         if not u:
             raise AppUrlError("Search URL failed to resolve reference to {} ".format(str(self)))
 
-        #u.set_fragment(self.fragment)
+        # u.set_fragment(self.fragment)
 
         return u
 
@@ -453,7 +453,6 @@ class SearchUrl(Url):
 
     def get_target(self):
         return self
-
 
     @property
     def resource_name(self):

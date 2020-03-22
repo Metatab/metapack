@@ -792,6 +792,7 @@ class Resource(Term):
         type_map = {
             None: None,
             'string': str,
+            'geometry': str,
             'text': str,
             'number': float,
             'integer': int,
