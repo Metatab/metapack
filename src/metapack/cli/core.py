@@ -16,6 +16,7 @@ logger_err = logging.getLogger('cli-errors')
 debug_logger = logging.getLogger('debug')
 download_logger = logging.getLogger('rowgenerators.appurl.web.download')
 
+
 def cli_init(log_level=logging.INFO):
     import sys
 
@@ -28,7 +29,7 @@ def cli_init(log_level=logging.INFO):
     logger.setLevel(log_level)
 
     out_hdlr = logging.StreamHandler(sys.stderr)
-    out_hdlr.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+    out_hdlr.setFormatter(logging.Formatter('%(message)s'))
     out_hdlr.setLevel(logging.WARN)
     logger_err.addHandler(out_hdlr)
     logger_err.setLevel(logging.WARN)
@@ -40,10 +41,8 @@ def cli_init(log_level=logging.INFO):
         logger.addHandler(out_hdlr)
         logger.setLevel(log_level)
 
-
     set_debug_out_handler(debug_logger, log_level)
     set_debug_out_handler(download_logger, log_level)
-
 
     SearchUrl.initialize()  # Setup the JSON index search.
 
@@ -53,12 +52,12 @@ def prt(*args, **kwargs):
 
 
 def warn(*args, **kwargs):
-    logger_err.warning(' '.join(str(e) for e in args), **kwargs)
+    logger_err.warning('⚠️ ' + ' '.join(str(e) for e in args), **kwargs)
 
 
 def err(*args, **kwargs):
     import sys
-    logger_err.critical(' '.join(str(e) for e in args), **kwargs)
+    logger_err.critical('❌ ' + ' '.join(str(e) for e in args), **kwargs)
     sys.exit(1)
 
 
@@ -192,7 +191,8 @@ def get_table(doc, name):
     return t
 
 
-def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False):
+def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=False,
+                mod_version=False):
     from metapack import MetapackDoc
 
     if isinstance(mt_file, MetapackDoc):
@@ -202,7 +202,8 @@ def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=Fal
 
     o_name = doc.find_first_value("Root.Name", section=['Identity', 'Root'])
 
-    updates = doc.update_name(force=force, report_unchanged=report_unchanged)
+    updates = doc.update_name(force=force, report_unchanged=report_unchanged,
+                              mod_version=mod_version)
 
     for u in updates:
         prt(u)
@@ -364,6 +365,8 @@ class MetapackCliMemo(object):
 
         if hasattr(self.args, 'build_directory') and self.args.build_directory:
             self.package_root = parse_app_url(self.args.build_directory)
+        elif str(self.package_url) == str(self.mt_file):  # specified the metadata file, not metadata.csv in a dir
+            self.package_root = parse_app_url(str(self.package_url.fspath.parent.joinpath(PACKAGE_PREFIX)))
         else:
             self.package_root = self.package_url.join(PACKAGE_PREFIX)
 
@@ -382,7 +385,6 @@ class MetapackCliMemo(object):
 
 
 def get_resource(m):
-
     if m.resource:
         r = m.doc.resource(m.resource)
 
@@ -449,9 +451,10 @@ def list_rr(doc):
 
 
 def find_packages(name, pkg_dir):
+    """Locate pre-built packages in the _packages directory"""
+
     from metapack_build.package import FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder
 
-    """Locate pre-built packages in the _packages directory"""
     for c in (FileSystemPackageBuilder, ZipPackageBuilder, ExcelPackageBuilder):
 
         package_path, cache_path = c.make_package_path(pkg_dir, name)

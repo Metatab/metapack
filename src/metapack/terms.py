@@ -791,6 +791,7 @@ class Resource(Term):
 
         type_map = {
             None: None,
+            'unknown': str,
             'string': str,
             'geometry': str,
             'text': str,
@@ -938,8 +939,6 @@ class SqlQuery(Resource):
     @property
     def context(self):
         """Build the interpolation context from the schemas"""
-
-        # Can't use self.columns b/c of recursion with resolved_url
 
         t = self.schema_term
 

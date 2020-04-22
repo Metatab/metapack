@@ -8,11 +8,9 @@ The program uses the Root.Distributions in the source package to locate packages
 
 """
 
-
 import argparse
 import tempfile
 from os.path import join
-from textwrap import dedent
 
 from rowgenerators import parse_app_url
 from rowgenerators.appurl.file import FileUrl
@@ -23,7 +21,7 @@ from tabulate import tabulate
 from metapack.constants import PACKAGE_PREFIX
 from metapack.exc import MetatabFileNotFound
 from metapack.index import SearchIndex, search_index_file
-from metapack.package import *
+from metapack.package import Downloader, open_package
 
 from .core import err, prt
 
@@ -68,6 +66,9 @@ def index_args(subparsers):
     parser.add_argument('-p', '--profile', help="Name of a BOTO or AWS credentials profile, for S3 indexing",
                         required=False)
 
+    parser.add_argument('-r', '--result', action='store_true', default=False,
+                        help="If mp -q flag set, still report results")
+
     parser.add_argument('metatab_url', nargs='?', default='./',
                         help='URL to a metatab package or container for packages')
 
@@ -82,11 +83,10 @@ def walk_packages(args, u):
     if not isdir(u.path):
         try:
             yield open_package(u.path)
-        except (RowGeneratorError, MetatabFileNotFound) as e:
+        except (RowGeneratorError, MetatabFileNotFound):
             pass
 
         return
-
 
     for root, dirs, files in walk(u.path):
 
@@ -107,25 +107,27 @@ def walk_packages(args, u):
             seen.add(str(p.ref))
             continue
 
-        except (RowGeneratorError, MetatabFileNotFound) as e:
+        except (RowGeneratorError, MetatabFileNotFound):
             # directory is not a package, carry on
             pass
 
         for f in files:
-            if not islink(join(root,f)):
+            if not islink(join(root, f)):
                 try:
 
-                    p = open_package(join(root,f))
+                    p = open_package(join(root, f))
                     if str(p.ref) not in seen:
                         yield p
                     seen.add(str(p.ref))
-                except (RowGeneratorError, MetatabFileNotFound) as e:
+                except (RowGeneratorError, MetatabFileNotFound):
                     # directory is not a package, carry on
                     pass
 
 
 def write_s3(m):
+    raise NotImplementedError()
 
+    path = None
 
     print('Indexing tmp index', path)
 
@@ -136,7 +138,10 @@ def write_s3(m):
     with open(path) as f:
         m.bucket.write(f.read(), 'index.json', m.acl)
 
+
 def index(args):
+    n_indexed = 0
+    write_index = False
 
     if args.write and args.list:
         err("Can't combine --write and --list")
@@ -173,29 +178,39 @@ def index(args):
     elif isinstance(u, FileUrl):
         entries = []
         for p in walk_packages(args, u):
+            if p.ref.get_resource().get_target().target_format == 'ipynb':
+                continue
             prt('Adding: ', p.ref)
             idx.add_package(p)
             entries.append(p.name)
+            n_indexed += 1
 
-        idx.write()
+        write_index = True
+
         prt("Indexed ", len(entries), 'entries')
 
     elif isinstance(u, S3Url):
-       index_s3(u, idx)
+        index_s3(u, idx)
 
-       if args.write:
-           from metapack.package.s3 import S3Bucket
+        if args.write:
+            from metapack.package.s3 import S3Bucket
 
-           acl = 'public-read'
+            acl = 'public-read'
 
-           bucket = S3Bucket(u, acl=acl, profile=args.profile)
+            bucket = S3Bucket(u, acl=acl, profile=args.profile)
 
-           with open(args.file, mode='rb') as f:
-               bucket.write(f.read(), 'index.json', acl=acl)
-
+            with open(args.file, mode='rb') as f:
+                bucket.write(f.read(), 'index.json', acl=acl)
 
     else:
         err(f"Can only index File and S3 urls, not {type(u)}")
+
+    if args.result and n_indexed > 0:
+        print(f"🗂 Indexed {n_indexed} packages")
+
+    if write_index:
+        idx.write()
+
 
 def index_s3(u, idx):
     # S3 package collections are flat, so we don't have to walk recursively.
@@ -227,11 +242,9 @@ def index_s3(u, idx):
 
     prt("Indexed ", len(entries), 'entries to ', idx.path)
 
+
 def dump_index(args, idx):
     """Create a metatab file for the index"""
-
-    import csv
-    import sys
 
     from metatab import MetatabDoc
 
@@ -243,20 +256,18 @@ def dump_index(args, idx):
     r.new_term('Root.Title', 'Package Index')
 
     for p in idx.list():
-
         pack_section.new_term('Package',
-                   p['url'],
-                   identifier=p['ident'],
-                   name=p['name'],
-                   nvname=p['nvname'],
-                   version=p['version'],
-                   format=p['format'])
+                              p['url'],
+                              identifier=p['ident'],
+                              name=p['name'],
+                              nvname=p['nvname'],
+                              version=p['version'],
+                              format=p['format'])
 
     doc.write_csv(args.dump)
 
-def load_index(args, idx):
-    import json
 
+def load_index(args, idx):
     from metatab import MetatabDoc
 
     doc = MetatabDoc(args.load)
@@ -268,4 +279,5 @@ def load_index(args, idx):
         entries.add(t.value)
 
     prt("Loaded {} packages".format(len(entries)))
+
     idx.write()

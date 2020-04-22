@@ -14,7 +14,6 @@ from pkg_resources import (
     get_distribution,
     iter_entry_points
 )
-from textwrap import dedent
 
 from metapack import Downloader
 from metapack.cli.core import cli_init
@@ -22,8 +21,8 @@ from metapack.cli.core import cli_init
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
-   # package is not installed
-   pass
+    # package is not installed
+    pass
 
 
 def base_parser():
@@ -35,12 +34,14 @@ def base_parser():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-
     parser.add_argument('--exceptions', '-e', default=False, action='store_true',
                         help='Show full stack tract for some unhandled exceptions')
 
     parser.add_argument('--debug', '-d', default=False, action='store_true',
                         help='Turn on debug logging ( Basic Config ) ')
+
+    parser.add_argument('--quiet', '-q', default=False, action='store_true',
+                        help='Display less output')
 
     parser.add_argument('--no-cache', '-n', default=False, action='store_true',
                         help='Ignore the download cache')
@@ -48,35 +49,42 @@ def base_parser():
     subparsers = parser.add_subparsers(help='Commands')
 
     for ep in iter_entry_points(group='mt.subcommands'):
-
         f = ep.load()
         f(subparsers)
 
     return parser
 
-def mp():
-    from .core import prt, err
 
-    parser = base_parser()
-
-    args = parser.parse_args()
-
-    cli_init(log_level=logging.DEBUG if args.debug else logging.INFO)
-
+def setup_downloader(args):
     if args.no_cache:
         downloader = Downloader.get_instance()
         downloader.use_cache = False
 
+
+def mp(args=None, do_cli_init=True):
+    from .core import err
+
+    parser = base_parser()
+
+    parsed_args = parser.parse_args(args)
+
+    if do_cli_init:
+        cli_init(log_level=logging.DEBUG if parsed_args.debug else
+                 logging.WARNING if parsed_args.quiet else
+                 logging.INFO)
+
+    setup_downloader(parsed_args)
+
     try:
-        args.run_command # Happens when no commands are specified
+        parsed_args.run_command  # Happens when no commands are specified
     except AttributeError:
         parser.print_help()
         sys.exit(2)
 
     try:
-        args.run_command(args)
+        parsed_args.run_command(parsed_args)
     except Exception as e:
-        if args.exceptions:
+        if parsed_args.exceptions:
             raise e
         else:
             if e.__cause__:

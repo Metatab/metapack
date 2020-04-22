@@ -19,8 +19,8 @@ def search_index_file():
     return environ.get('METAPACK_SEARCH_INDEX',
                        Downloader.get_instance().cache.getsyspath('index.json'))
 
-class SearchIndex(object):
 
+class SearchIndex(object):
     pkg_format_priority = {
         'fs': 6,
         'zip': 5,
@@ -61,6 +61,7 @@ class SearchIndex(object):
             return
 
         with open(new_index_file, 'w') as f:
+
             json.dump(self._db, f, indent=4)
 
         if exists(index_file):
@@ -76,21 +77,20 @@ class SearchIndex(object):
         self.open()
 
         try:
-            version = 'V'+str(int(version)).zfill(10)
+            version = 'V' + str(version).zfill(12)
         except (ValueError, TypeError):
             # No version, skip it.
             return
 
-
         if format is None:
             format = 'unk'
+            return
 
+        self._db[ident] = {'t': 'ident', 'ref': nvname}  # these should always be equivalent
 
-        self._db[ident] = {'t':'ident', 'ref':nvname } # these should always be equivalent
+        self._db[name] = {'t': 'name', 'ref': nvname, 'version': version, 'ident': ident}
 
-        self._db[name] = {'t':'name',  'ref': nvname, 'version': version , 'ident': ident}
-
-        if not nvname in self._db:
+        if nvname not in self._db:
             self._db[nvname] = {
                 't': 'nvname',
                 'packages': {}
@@ -136,7 +136,7 @@ class SearchIndex(object):
     def add_entry(self, ident, name, nvname, version, format, url):
         self._make_package_entry(ident, name, nvname, version, format, url)
 
-    def update(self,o):
+    def update(self, o):
         """Update from another index or index dict"""
 
         self.open()
@@ -146,23 +146,23 @@ class SearchIndex(object):
         except AttributeError:
             self._db.update(o)
 
-
     def list(self):
 
         packages = []
 
         self.open()
 
-        for k, v in  self._db.items():
+        for k, v in self._db.items():
             if v.get('t') == 'nvname':
                 for pkey, e in v.get('packages').items():
                     packages.append(e)
 
-        return list(reversed(sorted(packages, key=lambda x: (x['name'], x['version'], self.pkg_format_priority[x['format']]))))
+        return list(
+            reversed(sorted(packages, key=lambda x: (x['name'], x['version'], self.pkg_format_priority[x['format']]))))
 
     def records(self):
         self.open()
-        for k,v in self._db.items():
+        for k, v in self._db.items():
             if v['t'] == 'nvname':
                 for pk, pv in v['packages'].items():
                     yield [pv['name'], pv['nvname'], pv['version'], pv['format'], pv['url']]
@@ -178,19 +178,19 @@ class SearchIndex(object):
 
         if format == 'all':
             format = None
-        elif format == 'issued': # 'issued' means  'not source'
-            format = ['zip','csv','xlsx','fs','web']
+        elif format == 'issued':  # 'issued' means  'not source'
+            format = ['zip', 'csv', 'xlsx', 'fs', 'web']
 
         if format and not isinstance(format, (list, tuple)):
             format = [format]
 
-        record = self._db.get(search_term) # Case when the term is a name, nvname, or ident
+        record = self._db.get(search_term)  # Case when the term is a name, nvname, or ident
 
         if record:
             records = [record]
             match_type = 'exact'
         else:
-            records = [ record for k, record in self._db.items() if search_term in k]
+            records = [record for k, record in self._db.items() if search_term in k]
             match_type = 'subset'
 
         packages = []
@@ -211,12 +211,11 @@ class SearchIndex(object):
 
             for pkey, p in e['packages'].items():
 
-
                 if (match_type == 'exact' and p[match_key] == match_value) or \
-                   (match_type == 'subset' and search_term in p[match_key]):
+                        (match_type == 'subset' and search_term in p[match_key]):
                     if (format and p['format'] in format) or format is None:
-                        if not (p['format'],p['name']) in seen:
+                        if not (p['format'], p['name']) in seen:
                             packages.append(p)
-                            seen.add((p['format'],p['name']))
+                            seen.add((p['format'], p['name']))
 
-        return list(reversed(sorted(packages, key=lambda x: (x['version'], self.pkg_format_priority[x['format']]) )))
+        return list(reversed(sorted(packages, key=lambda x: (x['version'], self.pkg_format_priority[x['format']]))))
