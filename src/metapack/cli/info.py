@@ -18,7 +18,8 @@ from pkg_resources import (
 from tabulate import tabulate
 
 from metapack.cli.core import err, prt
-from metapack.package import *
+from metapack.package import Downloader
+from metapack.util import iso8601_duration_as_seconds
 
 from .core import MetapackCliMemo as _MetapackCliMemo
 
@@ -57,7 +58,8 @@ def info_args(subparsers):
                        help="List the resources in the package")
 
     group.add_argument('-s', '--schema', default=False, action='store_true',
-                       help="Print a table of the common schema for all resources, or if the metatab file ref has a resource, only that one")
+                       help="Print a table of the common schema for all resources, or "
+                            "if the metatab file ref has a resource, only that one")
 
     group.add_argument('-R', '--row-table', default=False, action='store_true',
                        help="Print the row-processor table, including transforms and valuetypes")
@@ -74,6 +76,9 @@ def info_args(subparsers):
     group.add_argument('-t', '--transforms', default=False, action='store_true',
                        help='Print a list of available transform functions')
 
+    group.add_argument('-U', '--next-update', default=False, action='store_true',
+                       help='Print the date of the next update, based on Root.Modified and Root.UpdateFrequency')
+
     parser.add_argument('metatabfile', nargs='?',
                         help="Path or URL to a metatab file. If not provided, defaults to 'metadata.csv' ")
 
@@ -82,6 +87,8 @@ def info(args):
     from metapack.exc import MetatabFileNotFound
 
     m = MetapackCliMemo(args, downloader)
+
+    rc = None
 
     try:
         if m.args.name:
@@ -114,12 +121,16 @@ def info(args):
         elif args.transforms:
             print_transforms(m)
 
+        elif args.next_update:
+            rc = next_update(m)
+
         else:
             prt(m.doc.name)
 
-
     except MetatabFileNotFound:
         err('No metatab file found')
+
+    return rc
 
 
 def resource_info(m):
@@ -164,7 +175,7 @@ def print_versions(m):
             d = get_distribution(pkg_name)
             packages.append([d.project_name, d.version])
 
-        except (DistributionNotFound, ModuleNotFoundError) as e:
+        except (DistributionNotFound, ModuleNotFoundError):
             # package is not installed
 
             pass
@@ -223,11 +234,15 @@ def dump_schemas(m):
 
     if has_vt:
         headers = 'Name AltName DataType ValueType Description'.split()
-        cols = lambda c: (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('valuetype'),
-                          c.get_value('description'))
+
+        def cols(c):
+            return (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('valuetype'),
+                    c.get_value('description'))
     else:
         headers = 'Name AltName DataType Description'.split()
-        cols = lambda c: (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description'))
+
+        def cols(c):
+            return (c.name, c.get_value('altname'), c.get_value('datatype'), c.get_value('description'))
 
     for c in st.find('Table.Column'):
         rows_about_columns.append(cols(c))
@@ -261,6 +276,38 @@ def print_transforms(m):
     print(env)
     return
 
-    rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
+    # rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
 
-    print(tabulate(sorted(rows), headers='Code Class Description'.split()))
+    # print(tabulate(sorted(rows), headers='Code Class Description'.split()))
+
+
+def next_update(m):
+    from datetime import datetime, timedelta
+    from dateutil.parser import parse
+
+    last_mod = m.doc['Root'].find_first_value('Root.Modified')
+
+    if not last_mod:
+        prt('No Root.Modified')
+        return 2
+
+    last_mod = parse(last_mod)
+
+    uf = m.doc['Root'].find_first_value('Root.UpdateFrequency')
+
+    now = datetime.now().date()
+
+    if not uf:
+        prt(now.isoformat())
+        return 1
+
+    td = timedelta(seconds=iso8601_duration_as_seconds(uf))
+
+    update_time = (last_mod + td).date()
+
+    if update_time <= now:
+        print('UPDATE', update_time.isoformat())
+        return 0
+    else:
+        print('OK', update_time.isoformat())
+        return 1

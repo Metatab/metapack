@@ -88,7 +88,7 @@ class Resource(Term):
 
     @property
     def code_path(self):
-        from .util import slugify
+        from metatab.util import slugify
         from fs.errors import DirectoryExists
 
         sub_dir = 'resource-code/{}'.format(slugify(self.doc.name))
@@ -220,7 +220,7 @@ class Resource(Term):
         `schema` property"""
 
         if not self.name:
-            raise MetapackError("Resource for url '{}' doe not have name".format(self.url))
+            raise MetapackError("Resource for url '{}' does not have name".format(self.url))
 
         t = self.doc.find_first('Root.Table', value=self.get_value('name'))
 
@@ -749,7 +749,14 @@ class Resource(Term):
                 if isinstance(first, str):
                     # We have a GeoDataframe, but the geometry column is still strings, so
                     # it must be converted
-                    shapes = [loads(row['geometry']) for i, row in gdf.iterrows()]
+
+                    def robust_loads(data):
+                        try:
+                            return loads(data)
+                        except AttributeError:  # 'float' object has no attribute 'encode' -> loads got a nan
+                            return None
+
+                    shapes = [robust_loads(row['geometry']) for i, row in gdf.iterrows()]
 
                 elif not isinstance(first, BaseGeometry):
                     # If we are reading a metatab package, the geometry column's type should be

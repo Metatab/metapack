@@ -8,6 +8,7 @@ Extensions to the MetatabDoc, Resources and References, etc.
 from pathlib import Path
 
 from metatab import MetatabDoc, WebResolver
+from metatab.util import slugify
 from rowgenerators import Source, parse_app_url
 from rowgenerators.exceptions import RowGeneratorError
 
@@ -15,8 +16,6 @@ from metapack.appurl import MetapackDocumentUrl
 from metapack.exc import MetatabFileNotFound
 from metapack.package import Downloader
 from metapack.util import datetime_now
-
-from .util import slugify
 
 EMPTY_SOURCE_HEADER = '_NONE_'  # Marker for a column that is in the destination table but not in the source
 
@@ -284,7 +283,7 @@ class MetapackDoc(MetatabDoc):
             'Root.Created',
             'Root.Modified',
             'Root.Issued',
-            'Root.Access',
+            'Root.Updatefrequency',
             'Root.Access',
             'Root.Distribution'
         ])

@@ -383,6 +383,13 @@ class MetapackCliMemo(object):
     def get_resource(self):
         return get_resource(self)
 
+    @property
+    def filesystem_package(self):
+        """Return a FileSystemPackage object"""
+        from metapack_build.package import FileSystemPackageBuilder
+
+        return FileSystemPackageBuilder(self.mt_file, self.package_root)
+
 
 def get_resource(m):
     if m.resource:

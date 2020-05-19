@@ -48,7 +48,9 @@ _{{root.description}}_
 ## References
 <ul>{% for term_name, terms in references.items() -%}
 {% for reference in terms %}
-{%- if reference.url.startswith('http') -%}
+{%- if reference.url is not defined -%}
+    NOPE!
+{%- elif reference.url.startswith('http') -%}
     <li> <strong><a href="{{reference.url}}">{{reference.name}}</a></strong>. {{reference.description}}</li>
 {%-else-%}
     <li> <strong>{{reference.name}}</string>, <em>{{reference.url}}</em>. {{reference.description}}</li>

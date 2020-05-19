@@ -82,7 +82,7 @@ def mp(args=None, do_cli_init=True):
         sys.exit(2)
 
     try:
-        parsed_args.run_command(parsed_args)
+        return parsed_args.run_command(parsed_args)
     except Exception as e:
         if parsed_args.exceptions:
             raise e

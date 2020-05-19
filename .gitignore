@@ -49,3 +49,5 @@ MANIFEST
 .venv*/
 
 sphinx/build
+
+.DS_Store
