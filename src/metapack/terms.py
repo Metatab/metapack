@@ -675,6 +675,7 @@ class Resource(Term):
             # The if clause is b/c the generators don't respect the start, end and headers
             # url arguments.
             try:
+
                 df = rg.dataframe(*args, **mod_kwargs)
                 return df
             except AttributeError:

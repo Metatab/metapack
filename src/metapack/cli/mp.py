@@ -16,7 +16,7 @@ from pkg_resources import (
 )
 
 from metapack import Downloader
-from metapack.cli.core import cli_init
+from metapack.cli.core import cli_init, warn
 
 try:
     __version__ = get_distribution(__name__).version
@@ -64,16 +64,20 @@ def setup_downloader(args):
 def mp(args=None, do_cli_init=True):
     from .core import err
 
-    parser = base_parser()
+    try:
+        parser = base_parser()
 
-    parsed_args = parser.parse_args(args)
+        parsed_args = parser.parse_args(args)
 
-    if do_cli_init:
-        cli_init(log_level=logging.DEBUG if parsed_args.debug else
-                 logging.WARNING if parsed_args.quiet else
-                 logging.INFO)
+        if do_cli_init:
+            cli_init(log_level=logging.DEBUG if parsed_args.debug else
+                     logging.WARNING if parsed_args.quiet else
+                     logging.INFO)
 
-    setup_downloader(parsed_args)
+        setup_downloader(parsed_args)
+    except KeyboardInterrupt:
+        warn('Keyboard Interrupt')
+        return 0
 
     try:
         parsed_args.run_command  # Happens when no commands are specified
@@ -83,6 +87,11 @@ def mp(args=None, do_cli_init=True):
 
     try:
         return parsed_args.run_command(parsed_args)
+    except KeyboardInterrupt as e:
+        if parsed_args.exceptions:
+            raise e
+        warn('Keyboard Interrupt')
+
     except Exception as e:
         if parsed_args.exceptions:
             raise e
