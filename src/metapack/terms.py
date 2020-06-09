@@ -811,13 +811,16 @@ class Resource(Term):
 
         }
 
+        for c in self.columns():
+            print('!!!!', c)
+
         if dtype is True:
-            kwargs['dtype'] = {c['name']: type_map.get(c['datatype'], c['datatype']) for c in self.columns()}
+            kwargs['dtype'] = {c['header']: type_map.get(c['datatype'], c['datatype']) for c in self.columns()}
         elif dtype:
             kwargs['dtype'] = dtype
 
         if parse_dates is True:
-            date_cols = [c['name'] for c in self.columns() if c['datatype'] in ('date', 'datetime', 'time')]
+            date_cols = [c['header'] for c in self.columns() if c['datatype'] in ('date', 'datetime', 'time')]
             kwargs['parse_dates'] = date_cols or True
         elif parse_dates:
             kwargs['parse_dates'] = parse_dates
@@ -838,7 +841,11 @@ class Resource(Term):
 
         kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
-        return pandas.read_csv(t.fspath, *args, **kwargs)
+        try:
+            return pandas.read_csv(t.fspath, *args, **kwargs)
+        except Exception as e:
+            from .exc import InternalError
+            raise InternalError(f"{e} in read_csv: path={t.fspath} args={args} kwargs={kwargs}")
 
     def read_fwf(self, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_fwf.

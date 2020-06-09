@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Metpack CLI Commands &#8212; Metapack 0.7.11 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Using Metapack Packages" href="using.html" />
@@ -38,32 +38,38 @@
 <div class="section" id="mp">
 <h3>mp<a class="headerlink" href="#mp" title="Permalink to this headline">¶</a></h3>
 <p>Entry program for running Metapack commands.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp [-h] [--exceptions] [--debug] [--no-cache]</span>
-<span class="go">          {build,colmap,edit,mk,new,s3,stats,update,url,notebook,wp,db,sql,config,doc,index,info,open,run,search}</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp [-h] [--exceptions] [--debug] [--quiet] [--no-cache]</span>
+<span class="go">          {fred,config,doc,index,info,open,run,search,wp,notebook,build,colmap,edit,make,mk,new,s3,stats,touch,update,url,github}</span>
 <span class="go">          ...</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-exceptions">
-<code class="descname">--exceptions</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">-e</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-exceptions" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-e"></span><code class="sig-name descname">--exceptions</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">-e</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-exceptions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show full stack tract for some unhandled exceptions</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-debug">
-<code class="descname">--debug</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">-d</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-debug" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-d"></span><code class="sig-name descname">--debug</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">-d</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-debug" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turn on debug logging ( Basic Config )</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
+<dt id="cmdoption-mp-quiet">
+<span id="cmdoption-mp-q"></span><code class="sig-name descname">--quiet</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">-q</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-quiet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display less output</p>
+</dd></dl>
+
+<dl class="std option">
 <dt id="cmdoption-mp-no-cache">
-<code class="descname">--no-cache</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">-n</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-no-cache" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-n"></span><code class="sig-name descname">--no-cache</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">-n</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-no-cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ignore the download cache</p>
 </dd></dl>
 
@@ -76,45 +82,45 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp config [-h] [-v] [-V] [-c] [-d] [-m] [-t]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-config-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-config-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-config-v">
-<code class="descname">-v</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--version</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-v" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-config-version"></span><code class="sig-name descname">-v</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--version</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print Metapack versions</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-config-versions">
-<code class="descname">-V</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--versions</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-versions" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-config-V">
+<span id="cmdoption-mp-config-versions"></span><code class="sig-name descname">-V</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--versions</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-V" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print version of several important packages</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-config-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--cache</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-config-cache"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--cache</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the location of the cache</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-config-d">
-<code class="descname">-d</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--declare</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-d" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-config-declare"></span><code class="sig-name descname">-d</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--declare</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the location of the default declarition document</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-config-m">
-<code class="descname">-m</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--materialized</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-m" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-config-materialized"></span><code class="sig-name descname">-m</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--materialized</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-m" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the location of the materialized data cache</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-config-t">
-<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--value-types</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-t" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-config-value-types"></span><code class="sig-name descname">-t</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--value-types</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-config-t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a list of available value types</p>
 </dd></dl>
 
@@ -127,9 +133,9 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc [-h] {graph,deps,schema,markdown,html,json,jsonld,yaml} ...</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
@@ -138,27 +144,27 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc deps [-h] [-p] [-f FORMAT] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-deps-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-deps-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-deps-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-deps-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-deps-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-deps-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-deps-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-deps-p">
-<code class="descname">-p</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--packages</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-deps-p" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-deps-packages"></span><code class="sig-name descname">-p</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--packages</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-deps-p" title="Permalink to this definition">¶</a></dt>
 <dd><p>When listing dependencies, list only packages</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-deps-f">
-<code class="descname">-f</code><code class="descclassname"> &lt;format&gt;</code><code class="descclassname">, </code><code class="descname">--format</code><code class="descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-deps-f" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-deps-format"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"> &lt;format&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--format</code><code class="sig-prename descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-deps-f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table format, an argument to tabulate(). Common options are: plain, simple, jira, html, pipe, rst, mediawiki. Use pipe for markdown.</p>
 </dd></dl>
 
@@ -168,45 +174,45 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc graph [-h] [-d] [-v] [-V] [-D DIRECTORY] [-N] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-graph-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-graph-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-graph-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-graph-d">
-<code class="descname">-d</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dependencies</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-d" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-graph-dependencies"></span><code class="sig-name descname">-d</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--dependencies</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-d" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the dependencies</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-graph-v">
-<code class="descname">-v</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--view</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-v" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-graph-view"></span><code class="sig-name descname">-v</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--view</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-v" title="Permalink to this definition">¶</a></dt>
 <dd><p>View doc file after creating it</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-doc-graph-graphviz">
-<code class="descname">-V</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--graphviz</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-graphviz" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-doc-graph-V">
+<span id="cmdoption-mp-doc-graph-graphviz"></span><code class="sig-name descname">-V</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--graphviz</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-V" title="Permalink to this definition">¶</a></dt>
 <dd><p>Also dump the Graphviz file to the stdout</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-doc-graph-directory">
-<code class="descname">-D</code><code class="descclassname"> &lt;directory&gt;</code><code class="descclassname">, </code><code class="descname">--directory</code><code class="descclassname"> &lt;directory&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-graph-directory" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-doc-graph-D">
+<span id="cmdoption-mp-doc-graph-directory"></span><code class="sig-name descname">-D</code><code class="sig-prename descclassname"> &lt;directory&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--directory</code><code class="sig-prename descclassname"> &lt;directory&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-graph-D" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output file name</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-doc-graph-n">
-<code class="descname">-N</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--nonversion</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-n" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-doc-graph-N">
+<span id="cmdoption-mp-doc-graph-nonversion"></span><code class="sig-name descname">-N</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--nonversion</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-graph-N" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use the nonversioned package name for the file name</p>
 </dd></dl>
 
@@ -216,21 +222,21 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc html [-h] [-t TEMPLATE] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-html-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-html-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-html-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-html-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-html-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-html-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-html-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-html-t">
-<code class="descname">-t</code><code class="descclassname"> &lt;template&gt;</code><code class="descclassname">, </code><code class="descname">--template</code><code class="descclassname"> &lt;template&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-html-t" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-html-template"></span><code class="sig-name descname">-t</code><code class="sig-prename descclassname"> &lt;template&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--template</code><code class="sig-prename descclassname"> &lt;template&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-html-t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the template.</p>
 </dd></dl>
 
@@ -240,21 +246,21 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc json [-h] [-c] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-json-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-json-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-json-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-json-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--contact</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-json-contact"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--contact</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-json-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show only the contact information</p>
 </dd></dl>
 
@@ -264,21 +270,21 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc jsonld [-h] [-c] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-jsonld-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-jsonld-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-jsonld-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-jsonld-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--contact</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-jsonld-contact"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--contact</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-jsonld-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show only the contact information</p>
 </dd></dl>
 
@@ -288,21 +294,21 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc markdown [-h] [-t TEMPLATE] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-markdown-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-markdown-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-markdown-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-markdown-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-markdown-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-markdown-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-markdown-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-markdown-t">
-<code class="descname">-t</code><code class="descclassname"> &lt;template&gt;</code><code class="descclassname">, </code><code class="descname">--template</code><code class="descclassname"> &lt;template&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-markdown-t" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-markdown-template"></span><code class="sig-name descname">-t</code><code class="sig-prename descclassname"> &lt;template&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--template</code><code class="sig-prename descclassname"> &lt;template&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-markdown-t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the template.</p>
 </dd></dl>
 
@@ -312,21 +318,21 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc schema [-h] [-f FORMAT] [-c COLUMN]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-schema-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-schema-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-schema-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-schema-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-schema-f">
-<code class="descname">-f</code><code class="descclassname"> &lt;format&gt;</code><code class="descclassname">, </code><code class="descname">--format</code><code class="descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-schema-f" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-schema-format"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"> &lt;format&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--format</code><code class="sig-prename descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-schema-f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table format, an argument to tabulate(). Common options are: plain, simple, jira, html, pipe, rst, mediawiki. Use pipe for markdown.</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-schema-c">
-<code class="descname">-c</code><code class="descclassname"> &lt;column&gt;</code><code class="descclassname">, </code><code class="descname">--column</code><code class="descclassname"> &lt;column&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-schema-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-schema-column"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"> &lt;column&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--column</code><code class="sig-prename descclassname"> &lt;column&gt;</code><a class="headerlink" href="#cmdoption-mp-doc-schema-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a column from the schema to the output table. If specified, only the’name’ column is included by default</p>
 </dd></dl>
 
@@ -336,21 +342,21 @@
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp doc yaml [-h] [-c] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-yaml-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-yaml-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-yaml-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-doc-yaml-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--contact</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-doc-yaml-contact"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--contact</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-doc-yaml-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show only the contact information</p>
 </dd></dl>
 
@@ -367,68 +373,74 @@
 The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variable.</p>
 </div></blockquote>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp index [-h] [-l] [-c] [-C] [-f FILE] [-w] [-D DUMP] [-L LOAD]</span>
-<span class="go">                [-p PROFILE]</span>
+<span class="go">                [-p PROFILE] [-r]</span>
 <span class="go">                [metatab_url]</span>
 </pre></div>
 </div>
-<dl class="option">
-<dt id="cmdoption-mp-index-arg-metatab-url">
-<code class="descname">metatab_url</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-arg-metatab-url" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-index-arg-metatab_url">
+<code class="sig-name descname">metatab_url</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-arg-metatab_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>URL to a metatab package or container for packages</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-index-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-index-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-index-l">
-<code class="descname">-l</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--list</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-l" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-index-list"></span><code class="sig-name descname">-l</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--list</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-l" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the packages that would be indexed</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-index-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--clear</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-index-clear"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--clear</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the index</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-index-config">
-<code class="descname">-C</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--config</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-config" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-index-C">
+<span id="cmdoption-mp-index-config"></span><code class="sig-name descname">-C</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--config</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-C" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show the location of the index file</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-index-f">
-<code class="descname">-f</code><code class="descclassname"> &lt;file&gt;</code><code class="descclassname">, </code><code class="descname">--file</code><code class="descclassname"> &lt;file&gt;</code><a class="headerlink" href="#cmdoption-mp-index-f" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-index-file"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"> &lt;file&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--file</code><code class="sig-prename descclassname"> &lt;file&gt;</code><a class="headerlink" href="#cmdoption-mp-index-f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alternative path to index file</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-index-w">
-<code class="descname">-w</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--write</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-w" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-index-write"></span><code class="sig-name descname">-w</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--write</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-w" title="Permalink to this definition">¶</a></dt>
 <dd><p>After creating an index file from S3 and  write back the index file</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-index-d">
-<code class="descname">-D</code><code class="descclassname"> &lt;dump&gt;</code><code class="descclassname">, </code><code class="descname">--dump</code><code class="descclassname"> &lt;dump&gt;</code><a class="headerlink" href="#cmdoption-mp-index-d" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-index-D">
+<span id="cmdoption-mp-index-dump"></span><code class="sig-name descname">-D</code><code class="sig-prename descclassname"> &lt;dump&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--dump</code><code class="sig-prename descclassname"> &lt;dump&gt;</code><a class="headerlink" href="#cmdoption-mp-index-D" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dump a Metatab formatted version of the index</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-index-load">
-<code class="descname">-L</code><code class="descclassname"> &lt;load&gt;</code><code class="descclassname">, </code><code class="descname">--load</code><code class="descclassname"> &lt;load&gt;</code><a class="headerlink" href="#cmdoption-mp-index-load" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-index-L">
+<span id="cmdoption-mp-index-load"></span><code class="sig-name descname">-L</code><code class="sig-prename descclassname"> &lt;load&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--load</code><code class="sig-prename descclassname"> &lt;load&gt;</code><a class="headerlink" href="#cmdoption-mp-index-L" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load in a Metatab formatted index file</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-index-p">
-<code class="descname">-p</code><code class="descclassname"> &lt;profile&gt;</code><code class="descclassname">, </code><code class="descname">--profile</code><code class="descclassname"> &lt;profile&gt;</code><a class="headerlink" href="#cmdoption-mp-index-p" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-index-profile"></span><code class="sig-name descname">-p</code><code class="sig-prename descclassname"> &lt;profile&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--profile</code><code class="sig-prename descclassname"> &lt;profile&gt;</code><a class="headerlink" href="#cmdoption-mp-index-p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Name of a BOTO or AWS credentials profile, for S3 indexing</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-mp-index-r">
+<span id="cmdoption-mp-index-result"></span><code class="sig-name descname">-r</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--result</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-index-r" title="Permalink to this definition">¶</a></dt>
+<dd><p>If mp -q flag set, still report results</p>
 </dd></dl>
 
 </div>
@@ -440,73 +452,80 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <blockquote>
 <div><p>Entry program for running Metapack commands.</p>
 </div></blockquote>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp info [-h] [-n | -N | -r | -s | -R | -p | -P | -T | -t] [metatabfile]</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp info [-h] [-n | -N | -r | -s | -R | -p | -P | -T | -t | -U]</span>
+<span class="go">               [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-info-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-info-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-info-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-info-n">
-<code class="descname">-n</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--name</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-n" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-info-name"></span><code class="sig-name descname">-n</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--name</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-n" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the name, with version</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-info-root-name">
-<code class="descname">-N</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--root-name</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-root-name" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-info-N">
+<span id="cmdoption-mp-info-root-name"></span><code class="sig-name descname">-N</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--root-name</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-N" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the name, without the version</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-info-r">
-<code class="descname">-r</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--resources</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-r" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-info-resources"></span><code class="sig-name descname">-r</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--resources</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-r" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the resources in the package</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-info-s">
-<code class="descname">-s</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--schema</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-s" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-info-schema"></span><code class="sig-name descname">-s</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--schema</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-s" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a table of the common schema for all resources, or if the metatab file ref has a resource, only that one</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-info-row-table">
-<code class="descname">-R</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--row-table</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-row-table" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-info-R">
+<span id="cmdoption-mp-info-row-table"></span><code class="sig-name descname">-R</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--row-table</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-R" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the row-processor table, including transforms and valuetypes</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-info-p">
-<code class="descname">-p</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--package-url</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-p" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-info-package-url"></span><code class="sig-name descname">-p</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--package-url</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the package url</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-info-package-root">
-<code class="descname">-P</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--package-root</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-package-root" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-info-P">
+<span id="cmdoption-mp-info-package-root"></span><code class="sig-name descname">-P</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--package-root</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-P" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the package root url</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-info-t">
-<code class="descname">-T</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--value-types</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-t" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-info-T">
+<span id="cmdoption-mp-info-value-types"></span><code class="sig-name descname">-T</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--value-types</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-T" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a list of available value types</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-info-transforms">
-<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--transforms</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-transforms" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-info-t">
+<span id="cmdoption-mp-info-transforms"></span><code class="sig-name descname">-t</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--transforms</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a list of available transform functions</p>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-mp-info-U">
+<span id="cmdoption-mp-info-next-update"></span><code class="sig-name descname">-U</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--next-update</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-info-U" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the date of the next update, based on Root.Modified and Root.UpdateFrequency</p>
 </dd></dl>
 
 </div>
@@ -521,15 +540,15 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp open [-h] [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-open-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-open-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-open-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-open-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-open-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-open-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-open-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
@@ -544,99 +563,99 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <span class="go">              [metatabfile]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-arg-metatabfile">
-<code class="descname">metatabfile</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metatabfile</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-arg-metatabfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file. If not provided, defaults to ‘metadata.csv’</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-r">
-<code class="descname">-r</code><code class="descclassname"> &lt;resource&gt;</code><code class="descclassname">, </code><code class="descname">--resource</code><code class="descclassname"> &lt;resource&gt;</code><a class="headerlink" href="#cmdoption-mp-run-r" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-resource"></span><code class="sig-name descname">-r</code><code class="sig-prename descclassname"> &lt;resource&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--resource</code><code class="sig-prename descclassname"> &lt;resource&gt;</code><a class="headerlink" href="#cmdoption-mp-run-r" title="Permalink to this definition">¶</a></dt>
 <dd><p>Name of the Root.Resource to run</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-f">
-<code class="descname">-f</code><code class="descclassname"> &lt;reference&gt;</code><code class="descclassname">, </code><code class="descname">--reference</code><code class="descclassname"> &lt;reference&gt;</code><a class="headerlink" href="#cmdoption-mp-run-f" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-reference"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"> &lt;reference&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--reference</code><code class="sig-prename descclassname"> &lt;reference&gt;</code><a class="headerlink" href="#cmdoption-mp-run-f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Name of the Root.Reference to run</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--CSV</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-CSV"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--CSV</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output as CSV</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-t">
-<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--tabs</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-t" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-tabs"></span><code class="sig-name descname">-t</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--tabs</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-t" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output as tab-delimited rows</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-j">
-<code class="descname">-j</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--json</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-j" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-json"></span><code class="sig-name descname">-j</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--json</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-j" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output JSON lines. Each line is a completel JSON object</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-y">
-<code class="descname">-y</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--yaml</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-y" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-yaml"></span><code class="sig-name descname">-y</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--yaml</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-y" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output YAML</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-run-table">
-<code class="descname">-T</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--table</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-table" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-run-T">
+<span id="cmdoption-mp-run-table"></span><code class="sig-name descname">-T</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--table</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-T" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output 20 rows in a table format. Truncates columns to width of terminal</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-p">
-<code class="descname">-p</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--pivot</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-p" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-pivot"></span><code class="sig-name descname">-p</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--pivot</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-p" title="Permalink to this definition">¶</a></dt>
 <dd><p>When outputting a table, transpose rows for columns</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-run-m">
-<code class="descname">-m</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--markdown</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-m" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-run-markdown"></span><code class="sig-name descname">-m</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--markdown</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-m" title="Permalink to this definition">¶</a></dt>
 <dd><p>When outputting a table, use Markdown format</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-run-truncate">
-<code class="descname">-R</code><code class="descclassname"> &lt;truncate&gt;</code><code class="descclassname">, </code><code class="descname">--truncate</code><code class="descclassname"> &lt;truncate&gt;</code><a class="headerlink" href="#cmdoption-mp-run-truncate" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-run-R">
+<span id="cmdoption-mp-run-truncate"></span><code class="sig-name descname">-R</code><code class="sig-prename descclassname"> &lt;truncate&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--truncate</code><code class="sig-prename descclassname"> &lt;truncate&gt;</code><a class="headerlink" href="#cmdoption-mp-run-R" title="Permalink to this definition">¶</a></dt>
 <dd><p>Truncate the width of column values</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-run-s">
-<code class="descname">-S</code><code class="descclassname"> &lt;sample&gt;</code><code class="descclassname">, </code><code class="descname">--sample</code><code class="descclassname"> &lt;sample&gt;</code><a class="headerlink" href="#cmdoption-mp-run-s" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-run-S">
+<span id="cmdoption-mp-run-sample"></span><code class="sig-name descname">-S</code><code class="sig-prename descclassname"> &lt;sample&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--sample</code><code class="sig-prename descclassname"> &lt;sample&gt;</code><a class="headerlink" href="#cmdoption-mp-run-S" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample values from a column</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-run-l">
-<code class="descname">-L</code><code class="descclassname"> &lt;limit&gt;</code><code class="descclassname">, </code><code class="descname">--limit</code><code class="descclassname"> &lt;limit&gt;</code><a class="headerlink" href="#cmdoption-mp-run-l" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-run-L">
+<span id="cmdoption-mp-run-limit"></span><code class="sig-name descname">-L</code><code class="sig-prename descclassname"> &lt;limit&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--limit</code><code class="sig-prename descclassname"> &lt;limit&gt;</code><a class="headerlink" href="#cmdoption-mp-run-L" title="Permalink to this definition">¶</a></dt>
 <dd><p>Limit the number of output rows</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-run-n">
-<code class="descname">-N</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--number</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-n" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-run-N">
+<span id="cmdoption-mp-run-number"></span><code class="sig-name descname">-N</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--number</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-N" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add line numbers as the first column</p>
 </dd></dl>
 
-<dl class="option">
-<dt id="cmdoption-mp-run-no-schema">
-<code class="descname">-n</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--no-schema</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-no-schema" title="Permalink to this definition">¶</a></dt>
+<dl class="std option">
+<dt id="cmdoption-mp-run-n">
+<span id="cmdoption-mp-run-no-schema"></span><code class="sig-name descname">-n</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--no-schema</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-run-n" title="Permalink to this definition">¶</a></dt>
 <dd><p>Don’t use the schema to tansform the data</p>
 </dd></dl>
 
@@ -654,63 +673,63 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: mp search [-h] [-l] [-f FORMAT] [-1] [-p] [-c] [-j] [-n] [-r] [search]</span>
 </pre></div>
 </div>
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-arg-search">
-<code class="descname">search</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-arg-search" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">search</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-arg-search" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path or URL to a metatab file</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-h">
-<code class="descname">-h</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--help</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-h" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-help"></span><code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-h" title="Permalink to this definition">¶</a></dt>
 <dd><p>show this help message and exit</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-l">
-<code class="descname">-l</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--list</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-l" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-list"></span><code class="sig-name descname">-l</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--list</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-l" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the packages in the index</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-f">
-<code class="descname">-f</code><code class="descclassname"> &lt;format&gt;</code><code class="descclassname">, </code><code class="descname">--format</code><code class="descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-mp-search-f" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-format"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"> &lt;format&gt;</code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--format</code><code class="sig-prename descclassname"> &lt;format&gt;</code><a class="headerlink" href="#cmdoption-mp-search-f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select a specific package format</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-1">
-<code class="descname">-1</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--one</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-1" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-one"></span><code class="sig-name descname">-1</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--one</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find only one result, using the same resolution process used when building packages</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-p">
-<code class="descname">-p</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--path</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-p" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-path"></span><code class="sig-name descname">-p</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--path</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instead of displaying the Metapack URL, display only the local file path</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-c">
-<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--config</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-c" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-config"></span><code class="sig-name descname">-c</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--config</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-c" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show the path to the index file</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-j">
-<code class="descname">-j</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--json</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-j" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-json"></span><code class="sig-name descname">-j</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--json</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-j" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output json for some commands</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-n">
-<code class="descname">-n</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--name</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-n" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-name"></span><code class="sig-name descname">-n</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--name</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-n" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output only the first column, the name of the package</p>
 </dd></dl>
 
-<dl class="option">
+<dl class="std option">
 <dt id="cmdoption-mp-search-r">
-<code class="descname">-r</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--ref</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-r" title="Permalink to this definition">¶</a></dt>
+<span id="cmdoption-mp-search-ref"></span><code class="sig-name descname">-r</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--ref</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-mp-search-r" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output only the third column, the url of the package</p>
 </dd></dl>
 
@@ -754,15 +773,15 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -771,7 +790,7 @@ The file can be moved by setting the METAPACK_SEARCH_INDEX environmental variabl
       &copy;2018, Eric Busboom.
 
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
 
       |

@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Metapack: Data Packaging System &#8212; Metapack 0.7.11 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Metapack Overview" href="overview.html" />
@@ -54,11 +54,11 @@ data packages, see the <a class="reference external" href="https://github.com/Me
 </div>
 <div class="section" id="install">
 <h1>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
-<p>The most consistently reliable way to install Metapack is within Conda, which
-will avoid having to compile the geographic libraries for geos and gdal.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name metapack <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
+<p>The most consistently reliable way to install Metapack, especially in MacOs,  is
+within Conda, which will avoid having to compile the geographic libraries for
+geos and gdal.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name metapack <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6 --file https://raw.githubusercontent.com/Metatab/metapack/master/conda/conda-requirements.txt
 conda activate metapack
-conda install numpy pandas gdal geos <span class="nv">pyproj</span><span class="o">=</span><span class="m">1</span>.9.5.1 fiona shapely geopandas
 pip install metapack
 </pre></div>
 </div>
@@ -182,15 +182,15 @@ $ bin/init-develop.sh
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -199,7 +199,7 @@ $ bin/init-develop.sh
       &copy;2018, Eric Busboom.
 
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
 
       |

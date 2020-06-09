@@ -1,37 +1,37 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Metapack Overview &#8212; Metapack 0.7.11 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Using Metapack Packages" href="using.html" />
     <link rel="prev" title="Metapack: Data Packaging System" href="index.html" />
-   
+
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
+
+
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-  
+
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
+
 
           <div class="body" role="main">
-            
+
   <div class="section" id="metapack-overview">
 <h1>Metapack Overview<a class="headerlink" href="#metapack-overview" title="Permalink to this headline">¶</a></h1>
 <p>A Metapackage data package is a collection of data and metadata, where the
@@ -74,7 +74,7 @@ are also child terms.</p>
 <p>Child Relationship are encoded by specifing a term that has the first part of
 the fully qualified term be the same name as the parent term. For instance,
 these rows:</p>
-<table class="docutils align-center">
+<table class="docutils align-default">
 <colgroup>
 <col style="width: 54%" />
 <col style="width: 46%" />
@@ -96,7 +96,7 @@ properties is specified in a header, which is part of the section the terms are
 in. A Metatab document starts with a root section, but the section can be
 explicitly set with a <code class="code docutils literal notranslate"><span class="pre">Section</span></code> term. Here is an example, from the
 Schema section of a typical Metatab document:</p>
-<table class="docutils align-center">
+<table class="docutils align-default">
 <colgroup>
 <col style="width: 29%" />
 <col style="width: 39%" />
@@ -149,7 +149,7 @@ occasionally documentation will use the Lines format.</p>
 <p>The Root section is the first, unlabeled section of a Metatab document, which
 contains information such as the package title, name, and identification
 numbers. In the <a class="reference external" href="https://docs.google.com/spreadsheets/d/1j_rmEfDuR7h22GQvMp9s6pCKiiqW9l3xZY67IRnDiy8/edit?usp=sharing">example.com-full-2017-us-1</a> example file, the root section contains:</p>
-<table class="docutils align-center">
+<table class="docutils align-default">
 <colgroup>
 <col style="width: 17%" />
 <col style="width: 83%" />
@@ -379,7 +379,7 @@ includes a description of each column.</p>
 
 
           </div>
-          
+
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -412,33 +412,33 @@ includes a description of each column.</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
     <div class="footer">
       &copy;2018, Eric Busboom.
-      
+
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
+
       |
       <a href="_sources/overview.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
-    
 
-    
+
+
   </body>
 </html>
