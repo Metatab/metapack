@@ -16,6 +16,10 @@ class MetatabFileNotFound(MetatabError):
     pass
 
 
+class InternalError(MetatabError):
+    pass
+
+
 class PackageError(MetapackError):
     pass
 
