@@ -210,7 +210,7 @@ def make_citation_dict(td):
             authors.append(author_d)
         d['author'] = authors
 
-    if not 'type' in d:
+    if 'type' not in d:
 
         if '_term' in d:
             t = d['_term']
@@ -225,22 +225,22 @@ def make_citation_dict(td):
 
     if d['type'] == 'dataset':
 
-        if not 'editor' in d:
+        if 'editor' not in d:
             d['editor'] = [HumanName('Missing Editor').as_dict(include_empty=False)]
 
         if not 'accessdate' in d:
             d['accessdate'] = datetime.now().strftime('%Y-%m-%d')
 
-    if not 'author' in d:
+    if 'author' not in d:
         d['author'] = [HumanName('Missing Author').as_dict(include_empty=False)]
 
-    if not 'title' in d:
+    if 'title' not in d:
         d['title'] = d.get('description', '<Missing Title>')
 
-    if not 'journal' in d:
+    if 'journal' not in d:
         d['journal'] = '<Missing Journal>'
 
-    if not 'year' in d:
+    if 'year' not in d:
         d['year'] = '<Missing Year>'
 
     if '_term' in d:

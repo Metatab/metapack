@@ -4,9 +4,8 @@
 
 """Support for IPython and Python kernels in Jupyter Notebooks"""
 
-
 from os import getcwd
-from os.path import exists, getmtime, join
+from os.path import exists, join
 
 from metatab import (
     DEFAULT_METATAB_FILE,
@@ -41,7 +40,6 @@ def open_package(locals=None, dr=None):
     """Try to open a package with the metatab_doc variable, which is set when a Notebook is run
     as a resource. If that does not exist, try the local _packages directory"""
 
-
     if locals is None:
         locals = caller_locals()
 
@@ -59,6 +57,8 @@ def open_package(locals=None, dr=None):
         if dr is None:
             dr = getcwd()
 
+        unbilt_mtfiles = []
+
         for i, e in enumerate(walk_up(dr)):
 
             intr = set([DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE]) & set(e[2])
@@ -74,6 +74,8 @@ def open_package(locals=None, dr=None):
 
                 if PACKAGE_PREFIX in e[1]:
                     build_package_dir = join(e[0], PACKAGE_PREFIX)
+                else:
+                    unbilt_mtfiles.append(intr)
 
                 break
 
@@ -85,14 +87,18 @@ def open_package(locals=None, dr=None):
             built_package = join(build_package_dir, package_name)
             try:
                 return op(built_package)
-            except RowGeneratorError as e:
+            except RowGeneratorError:
                 pass  # Probably could not open the metadata file.
 
-        if source_package:
-            # Open the source package
-            return op(source_package)
+        # if source_package:
+        #    # Open the source package
+        #    return op(source_package)
 
-    raise PackageError("Failed to find package, either in locals() or above dir '{}' ".format(dr))
+    if unbilt_mtfiles:
+        raise PackageError(
+            f"Found a metatab package, but did not find a built package in {PACKAGE_PREFIX}. Has package been built?")
+    else:
+        raise PackageError("Failed to find package, either in locals() or above dir '{}' ".format(dr))
 
 
 def open_source_package(dr=None):
@@ -105,8 +111,7 @@ def open_source_package(dr=None):
         intr = set([DEFAULT_METATAB_FILE, LINES_METATAB_FILE, IPYNB_METATAB_FILE]) & set(e[2])
 
         if intr:
-
-            return op(join(e[0], list(intr)[0] ))
+            return op(join(e[0], list(intr)[0]))
 
         if i > 2:
             break

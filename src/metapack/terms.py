@@ -686,7 +686,7 @@ class Resource(Term):
                 # dtypes arg in mod_kwargs specifies an int, but the colum has
                 # Nans.
                 # OTOH, maybe we should never actually use the dtype --
-                # Pandas is reall good at conversions, except for dates.
+                # Pandas is really good at conversions, except for dates.
                 if 'dtype' not in mod_kwargs:
                     raise
 
@@ -811,9 +811,6 @@ class Resource(Term):
 
         }
 
-        for c in self.columns():
-            print('!!!!', c)
-
         if dtype is True:
             kwargs['dtype'] = {c['header']: type_map.get(c['datatype'], c['datatype']) for c in self.columns()}
         elif dtype:
@@ -836,16 +833,31 @@ class Resource(Term):
         """
 
         import pandas
+        from .exc import InternalError
 
         t = self.resolved_url.get_resource().get_target()
 
         kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
+        last_exception  = None
         try:
             return pandas.read_csv(t.fspath, *args, **kwargs)
         except Exception as e:
-            from .exc import InternalError
-            raise InternalError(f"{e} in read_csv: path={t.fspath} args={args} kwargs={kwargs}")
+            last_exception = e
+
+        if 'not in list' in str(last_exception) and 'parse_dates' in kwargs:
+
+            # This case happens when there is a mismatch between the headings in the
+            # file we're reading and the schema. for insance, the file header has a leading space,
+            # and we're areying to parse dates for that column. So, try again
+            # without parsing dates.
+            del kwargs['parse_dates']
+            try:
+                return pandas.read_csv(t.fspath, *args, **kwargs)
+            except Exception as e:
+                last_exception = e
+
+        raise InternalError(f"{last_exception} in read_csv: path={t.fspath} args={args} kwargs={kwargs}\n")
 
     def read_fwf(self, *args, **kwargs):
         """Fetch the target and pass through to pandas.read_fwf.
