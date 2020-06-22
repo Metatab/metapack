@@ -663,6 +663,8 @@ class Resource(Term):
         """Return a pandas datafrome from the resource"""
 
         import pandas as pd
+        import warnings
+        from rowgenerators.exceptions import RowGeneratorConfigError
 
         rg = self.row_generator
 
@@ -674,30 +676,29 @@ class Resource(Term):
         if not self.resolved_url.start and not self.resolved_url.headers:
             # The if clause is b/c the generators don't respect the start, end and headers
             # url arguments.
-            try:
+            while True:
+                try:
 
-                df = rg.dataframe(*args, **mod_kwargs)
-                return df
-            except AttributeError:
-                pass
-            except ValueError:
+                    df = rg.dataframe(*args, **mod_kwargs)
+                    return df
+                except AttributeError:
+                    break
+                except RowGeneratorConfigError as e:
 
-                # Hopefully a type conversion error, because, for instance,
-                # dtypes arg in mod_kwargs specifies an int, but the colum has
-                # Nans.
-                # OTOH, maybe we should never actually use the dtype --
-                # Pandas is really good at conversions, except for dates.
-                if 'dtype' not in mod_kwargs:
-                    raise
+                    if e.config_type == 'dtype':
+                        warnings.warn(f'Failed to set dtype of columns. Trying again without dtype configuration')
+                        del mod_kwargs['dtype']
+                    elif e.config_type == 'dates':
+                        warnings.warn(f'Failed to set parse dates . Trying again without parse_dates configuration')
+                        del mod_kwargs['parse_dates']
+                    else:
+                        break
 
-                del mod_kwargs['dtype']
-
-                df = rg.dataframe(*args, **mod_kwargs)
-                return df
-
-        if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
-            df = self.read_csv(*args, **mod_kwargs)
-            return df
+        # The CSV generator can handle dataframes itself, so this code should not be
+        # needed any longer
+        # if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
+        #    df = self.read_csv(*args, **mod_kwargs)
+        #    return df
 
         # Just normal data, so use the iterator in this object.
 
@@ -795,7 +796,16 @@ class Resource(Term):
         :return:
         """
 
+        import pandas
+
         kwargs = dict(kwargs.items())
+
+        try:
+            # Nullable integers added to pandas about 0.24
+            from pandas.arrays import IntegerArray
+            int_type = 'Int64'
+        except ModuleNotFoundError:
+            int_type = int
 
         type_map = {
             None: None,
@@ -804,7 +814,7 @@ class Resource(Term):
             'geometry': str,
             'text': str,
             'number': float,
-            'integer': int,
+            'integer': int_type,
             'datetime': str,  # datetime,
             'time': str,  # time,
             'date': str,  # date
