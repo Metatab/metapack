@@ -71,12 +71,11 @@ def resource(r, fields=None):
             for c in r.columns()]
 
     return ("### {name} \n [{url}]({url})\n\n".format(name=r.name, url=r.resolved_url)) + \
-           "{}\n".format(ns(r.description)) + \
-           "<table class=\"table table-striped\">\n" + \
+            "{}\n".format(ns(r.description)) + \
+            "<table class=\"table table-striped\">\n" + \
            ("<tr>{}</tr>".format(''.join("<th>{}</th>".format(e) for e in headers))) + \
-           "\n".join("<tr>{}</tr>".format(row) for row in rows) + \
-           '</table>\n'
-
+            "\n".join("<tr>{}</tr>".format(row) for row in rows) + \
+            '</table>\n'
 
 def ckan_resource_markdown(r, fields=None):
     fields = fields or (
@@ -85,8 +84,8 @@ def ckan_resource_markdown(r, fields=None):
         ('Description', 'description')
     )
 
-    headers = [f[0] for f in fields]
-    keys = [f[1] for f in fields]
+    # headers = [f[0] for f in fields]
+    # keys = [f[1] for f in fields]
 
     def col_line(c):
         return "* **{}** ({}): {}\n".format(
@@ -189,7 +188,7 @@ def make_citation_dict(td):
 
     if isinstance(td, dict):
         d = td
-        name = d['name_link']
+
     else:
 
         d = td.as_dict()
@@ -228,7 +227,7 @@ def make_citation_dict(td):
         if 'editor' not in d:
             d['editor'] = [HumanName('Missing Editor').as_dict(include_empty=False)]
 
-        if not 'accessdate' in d:
+        if 'accessdate' not in d:
             d['accessdate'] = datetime.now().strftime('%Y-%m-%d')
 
     if 'author' not in d:
@@ -264,7 +263,7 @@ def make_metatab_citation_dict(t):
                 url = parse_app_url(str(t.resolved_url)).resource_url
                 doc = t.row_generator.generator.package
 
-            except AttributeError as e:
+            except AttributeError:
                 return False  # It isn't a resource or reference
 
             creator = doc.find_first('Root.Creator')
@@ -283,7 +282,7 @@ def make_metatab_citation_dict(t):
             except AttributeError:
                 try:
                     origin = doc.get_value('Root.Origin', doc.get_value('Name.Origin')).title()
-                except:
+                except Exception:
                     origin = None
 
             d = {
@@ -308,7 +307,7 @@ def make_metatab_citation_dict(t):
         else:
             return False
 
-    except (AttributeError, KeyError) as e:
+    except (AttributeError, KeyError):
         raise
         return False
 
@@ -519,7 +518,7 @@ def display_context(doc):
             pass
 
     for ms in mandatory_sections:
-        if not ms in context:
+        if ms not in context:
             context[ms] = {}
 
     # Load inline documentation
@@ -527,7 +526,10 @@ def display_context(doc):
 
     for d in context.get('documentation', {}).get('documentation', []):
 
-        u = parse_app_url(d['url'])
+        try:
+            u = parse_app_url(d['url'])
+        except TypeError:
+            continue
 
         if u.target_format == 'md':  # The README.md file
             inline = ''
@@ -604,6 +606,9 @@ def display_context(doc):
 
     # For resources and references, convert scalars into lists of dicts, which are the
     # default for Datafiles and References.
+
+    context['references'] = {}
+    context['resources'] = {}
 
     for section in ('references', 'resources'):
         for term_key, term_vals in context.get(section, {}).items():
