@@ -607,9 +607,6 @@ def display_context(doc):
     # For resources and references, convert scalars into lists of dicts, which are the
     # default for Datafiles and References.
 
-    context['references'] = {}
-    context['resources'] = {}
-
     for section in ('references', 'resources'):
         for term_key, term_vals in context.get(section, {}).items():
             if isinstance(term_vals, dict):
@@ -625,7 +622,7 @@ def display_context(doc):
             if new_term_vals:
                 context[section][term_key] = new_term_vals
 
-    # Add in other properties to the resoruces
+    # Add in other properties to the resources
     for term in context.get('resources', {}).get('datafile', []):
         r = doc.resource(term['name'])
         term['isgeo'] = r.isgeo
