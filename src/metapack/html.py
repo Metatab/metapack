@@ -608,7 +608,9 @@ def display_context(doc):
     # default for Datafiles and References.
 
     for section in ('references', 'resources'):
-        for term_key, term_vals in context.get(section, {}).items():
+        if section not in context:
+            context[section] = {}
+        for term_key, term_vals in context[section].items():
             if isinstance(term_vals, dict):
                 if '@value' in term_vals:
                     term_vals['url'] = term_vals['@value']
@@ -621,6 +623,8 @@ def display_context(doc):
 
             if new_term_vals:
                 context[section][term_key] = new_term_vals
+
+
 
     # Add in other properties to the resources
     for term in context.get('resources', {}).get('datafile', []):

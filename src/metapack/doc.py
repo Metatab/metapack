@@ -107,6 +107,10 @@ class MetapackDoc(MetatabDoc):
         return nv
 
     @property
+    def version(self):
+        return self.get_value('Root.Version')
+
+    @property
     def identifier(self):
 
         # Maybe there are multiple values

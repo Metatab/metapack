@@ -17,7 +17,7 @@ from pkg_resources import (
 
 from tabulate import tabulate
 
-from metapack.cli.core import err, prt
+from metapack.cli.core import err, prt, warn
 from metapack.package import Downloader
 from metapack.util import iso8601_duration_as_seconds
 
@@ -56,6 +56,9 @@ def info_args(subparsers):
 
     group.add_argument('-r', '--resources', default=False, action='store_true',
                        help="List the resources in the package")
+
+    group.add_argument('-D', '--distributions', default=False, action='store_true',
+                       help="Show distribution URLS")
 
     group.add_argument('-s', '--schema', default=False, action='store_true',
                        help="Print a table of the common schema for all resources, or "
@@ -123,6 +126,9 @@ def info(args):
 
         elif args.next_update:
             rc = next_update(m)
+
+        elif args.distributions:
+            print_distributions(m)
 
         else:
             prt(m.doc.name)
@@ -279,6 +285,22 @@ def print_transforms(m):
     # rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
 
     # print(tabulate(sorted(rows), headers='Code Class Description'.split()))
+
+def print_distributions(m):
+    from pathlib import Path
+    import yaml
+    from metapack import open_package
+    from metapack_build.cli.build import last_dist_marker_path
+
+    try:
+        with last_dist_marker_path('.').open() as f:
+            ld = yaml.safe_load(f)
+
+        print(yaml.safe_dump(ld))
+
+    except (IOError) as e:
+        warn('No distributions found. Run `mp s3`')
+
 
 
 def next_update(m):
