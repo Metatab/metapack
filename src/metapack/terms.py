@@ -777,7 +777,7 @@ class Resource(Term):
                 # Wild guess. This case should be most often for Metatab processed geo files,
                 # which are all 4326
                 if gdf.crs is None:
-                    gdf.crs = {'init': 'epsg:4326'}
+                    gdf.crs = 'epsg:4326'
 
             except KeyError:
                 raise ResourceError(
