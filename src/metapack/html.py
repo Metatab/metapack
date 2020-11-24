@@ -624,12 +624,12 @@ def display_context(doc):
             if new_term_vals:
                 context[section][term_key] = new_term_vals
 
-
-
     # Add in other properties to the resources
     for term in context.get('resources', {}).get('datafile', []):
+
         r = doc.resource(term['name'])
-        term['isgeo'] = r.isgeo
+        if r is not None:
+            term['isgeo'] = r.isgeo
 
     context['distributions'] = {}
     for dist in doc.find('Root.Distribution'):

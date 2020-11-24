@@ -214,18 +214,22 @@ def update_name(mt_file, fail_on_missing=False, report_unchanged=True, force=Fal
         write_doc(doc, mt_file)
 
 
-def add_giturl(doc: MetapackDoc):
+def add_giturl(doc: MetapackDoc, force=False):
     import subprocess
 
-    if not doc['Root'].find('GitUrl'):
+    if not doc['Root'].find('GitUrl') or force:
+
         try:
             out = subprocess.run(['git', 'remote', 'show', 'origin'], stdout=subprocess.PIPE,
                                  stderr=subprocess.DEVNULL, timeout=6) \
                 .stdout.decode('utf-8')
 
             fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l)
-        except (TimeoutError, StopIteration, subprocess.TimeoutExpired, FileNotFoundError):
+
+        except (TimeoutError, StopIteration, subprocess.TimeoutExpired, FileNotFoundError) as e:
             fetchline = None
+            if force:
+                err(str(e))
 
         if fetchline:
             t = doc['Root'].get_or_new_term('GitUrl')

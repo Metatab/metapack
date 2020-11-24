@@ -354,7 +354,7 @@ class Resource(Term):
 
         return columns
 
-    def row_processor_table(self, ignore_none=False):
+    def row_processor_table(self, ignore_none=False, width_column='width'):
         """Create a row processor from the schema, to convert the text values from the
         CSV into real types"""
         from rowgenerators.rowpipe import Table
@@ -386,7 +386,7 @@ class Resource(Term):
                                  datatype=map_type(c.get_value('datatype')),
                                  valuetype=map_type(c.get_value('valuetype')),
                                  transform=c.get_value('transform'),
-                                 width=c.get_value('width')
+                                 width=c.get_value(width_column)
                                  )
                     col_n += 1
 
@@ -664,7 +664,7 @@ class Resource(Term):
 
         import pandas as pd
         import warnings
-        from rowgenerators.exceptions import RowGeneratorConfigError
+        from rowgenerators.exceptions import RowGeneratorConfigError, RowGeneratorError
 
         rg = self.row_generator
 
@@ -678,7 +678,6 @@ class Resource(Term):
             # url arguments.
             while True:
                 try:
-
                     df = rg.dataframe(*args, **mod_kwargs)
                     return df
                 except AttributeError:
@@ -688,11 +687,18 @@ class Resource(Term):
                     if e.config_type == 'dtype':
                         warnings.warn(f'Failed to set dtype of columns. Trying again without dtype configuration')
                         del mod_kwargs['dtype']
-                    elif e.config_type == 'dates':
+                    elif e.config_type == 'dates' or 'parse_dates' in str(e):
                         warnings.warn(f'Failed to set parse dates . Trying again without parse_dates configuration')
                         del mod_kwargs['parse_dates']
                     else:
                         break
+                except RowGeneratorError as e:
+                    if 'parse_dates' in str(e):
+                        warnings.warn(f'Failed to set parse dates . Trying again without parse_dates configuration')
+                        del mod_kwargs['parse_dates']
+                    else:
+                        break
+
 
         # The CSV generator can handle dataframes itself, so this code should not be
         # needed any longer
@@ -702,7 +708,7 @@ class Resource(Term):
 
         # Just normal data, so use the iterator in this object.
 
-        headers = next(islice(self, 0, 1))
+        headers = next(islice(self, 0, 1)) # Why not using the schema?
         data = islice(self, 1, None)
 
         df = pd.DataFrame(list(data), columns=headers, *args, **kwargs)
