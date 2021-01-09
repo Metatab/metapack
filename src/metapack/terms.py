@@ -670,7 +670,8 @@ class Resource(Term):
 
         mod_kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
-        t = self.resolved_url.get_resource().get_target()
+        # Unecessary?
+        self.resolved_url.get_resource().get_target()
 
         # Maybe generator has it's own Dataframe method()
         if not self.resolved_url.start and not self.resolved_url.headers:
@@ -685,20 +686,19 @@ class Resource(Term):
                 except RowGeneratorConfigError as e:
 
                     if e.config_type == 'dtype':
-                        warnings.warn(f'Failed to set dtype of columns. Trying again without dtype configuration')
+                        warnings.warn('Failed to set dtype of columns. Trying again without dtype configuration')
                         del mod_kwargs['dtype']
                     elif e.config_type == 'dates' or 'parse_dates' in str(e):
-                        warnings.warn(f'Failed to set parse dates . Trying again without parse_dates configuration')
+                        warnings.warn('Failed to set parse dates . Trying again without parse_dates configuration')
                         del mod_kwargs['parse_dates']
                     else:
                         break
                 except RowGeneratorError as e:
                     if 'parse_dates' in str(e):
-                        warnings.warn(f'Failed to set parse dates . Trying again without parse_dates configuration')
+                        warnings.warn('Failed to set parse dates . Trying again without parse_dates configuration')
                         del mod_kwargs['parse_dates']
                     else:
                         break
-
 
         # The CSV generator can handle dataframes itself, so this code should not be
         # needed any longer
@@ -708,7 +708,7 @@ class Resource(Term):
 
         # Just normal data, so use the iterator in this object.
 
-        headers = next(islice(self, 0, 1)) # Why not using the schema?
+        headers = next(islice(self, 0, 1))  # Why not using the schema?
         data = islice(self, 1, None)
 
         df = pd.DataFrame(list(data), columns=headers, *args, **kwargs)
@@ -802,13 +802,11 @@ class Resource(Term):
         :return:
         """
 
-        import pandas
-
         kwargs = dict(kwargs.items())
 
         try:
             # Nullable integers added to pandas about 0.24
-            from pandas.arrays import IntegerArray
+            from pandas.arrays import IntegerArray # noqa F401
             int_type = 'Int64'
         except ModuleNotFoundError:
             int_type = int
@@ -855,7 +853,7 @@ class Resource(Term):
 
         kwargs = self._update_pandas_kwargs(dtype, parse_dates, kwargs)
 
-        last_exception  = None
+        last_exception = None
         try:
             return pandas.read_csv(t.fspath, *args, **kwargs)
         except Exception as e:
@@ -948,7 +946,14 @@ class Reference(Resource):
 
     @property
     def resource(self):
+        """Interpret the URL as a metatab package with a resource reference,
+        and return the resource"""
         return self.expanded_url.resource
+
+    @property
+    def package(self):
+        """Interpret the URL as a metatab package"""
+        return self.expanded_url.doc
 
     def _repr_html_(self):
         try:

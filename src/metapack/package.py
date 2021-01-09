@@ -50,3 +50,39 @@ def open_package(ref, downloader=None):
         p = MetapackDoc(u, downloader=downloader)
         p.default_resource = u.resource_name
         return p
+
+
+def remove_version(name):
+    import re
+    p = re.compile(r'\-\d+\.\d+\.\d+$')
+
+    return re.sub(p, '', name)
+
+
+def multi_open(name, base_url='http://library.metatab.org/', print_ref=False):
+    """Try many different ways to open a package. Will try both the versioned and unversioned
+    name  in the index, local directory, and the official package repository"""
+    from metapack.exc import MetatabFileNotFound
+    from rowgenerators.exceptions import AppUrlError
+
+    r = None
+
+    refs = [
+        name,
+        'index:' + name,
+        'index:' + remove_version(name),
+        base_url + name + '.csv',
+        base_url + remove_version(name) + '.csv',
+    ]
+
+    for ref in refs:
+
+        try:
+            r = open_package(ref)
+            if print_ref:
+                print("Opening: ", ref)
+            return r
+        except (MetatabFileNotFound, AppUrlError):
+            pass
+
+    return None

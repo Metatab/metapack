@@ -4,21 +4,20 @@
 Record objects for the Simple Data Package format.
 """
 
-from rowgenerators import get_cache
-from .exc import *
-from .doc import MetapackDoc, Resolver
-from .package import open_package, Downloader
-from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl
-from .terms import Resource
+from rowgenerators import get_cache # noqa: 401
+from .exc import *  # noqa: 403
+from .doc import MetapackDoc, Resolver  # noqa: 401
+from .package import open_package,  multi_open, Downloader  # noqa: 401
+from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl  # noqa: 401
+from .terms import Resource  # noqa: 401
+from metapack.appurl import is_metapack_url  # noqa: 401
+import rowgenerators.appurl.url  # noqa: 401
+from rowgenerators import set_default_cache_name  # noqa: 401
+from pkg_resources import get_distribution, DistributionNotFound  # noqa: 401
+import metapack.jupyter  # noqa: 401
 
-import metapack.jupyter
+# from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
 
-#from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
-
-from rowgenerators import set_default_cache_name
-
-
-from pkg_resources import get_distribution, DistributionNotFound
 
 try:
     __version__ = get_distribution(__name__).version
@@ -28,9 +27,5 @@ finally:
     del get_distribution, DistributionNotFound
 
 set_default_cache_name('metapack')
-
-from metapack.appurl import is_metapack_url
-
-import rowgenerators.appurl.url
 
 rowgenerators.appurl.url.default_downloader = Downloader.get_instance()

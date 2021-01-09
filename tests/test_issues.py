@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import unittest
 
 from rowgenerators import parse_app_url
@@ -223,6 +225,41 @@ Reference.Description: CRA Loan originations, aggregated to tracts.
         pkg = mp.open_package('http://library.metatab.org/sandiegodata.org-dowtown_homeless-1.csv')
 
         print(pkg.html)
+
+    def test_zip(self):
+        """Check that zip files aren't uncompressed every time. """
+        pkg = mp.open_package('metapack+http://library.metatab.org/example.com-simple_example-2017-us-1.zip')
+
+        r = pkg.resource('random-names')
+
+        f = r.resolved_url.get_resource().get_target() # Ensure it exists.
+
+        f = r.resolved_url.get_resource().get_target()
+
+        self.assertEqual('extant',f._disp)
+
+        self.assertTrue(f.fspath.exists())
+
+        f.fspath.unlink()
+
+        self.assertFalse(f.fspath.exists())
+
+        f = r.resolved_url.get_resource().get_target()
+
+        self.assertEqual('copied', f._disp)
+
+        f = r.resolved_url.get_resource().get_target()
+
+        self.assertEqual('extant', f._disp)
+
+        # Test copy if resource is newer
+
+        r.resolved_url.get_resource().fspath.unlink()
+
+        f = r.resolved_url.get_resource().get_target()
+
+        self.assertEqual('copied', f._disp)
+
 
 
 if __name__ == '__main__':
