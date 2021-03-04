@@ -138,8 +138,8 @@ class MetapackDoc(MetatabDoc):
         for t in self['Root'].find(term):
             self.remove_term(t)
 
-        for l in textwrap.wrap(v, 80):
-            self['Root'].new_term(term, l)
+        for line in textwrap.wrap(v, 80):
+            self['Root'].new_term(term, line)
 
     @property
     def description(self):
@@ -230,6 +230,10 @@ class MetapackDoc(MetatabDoc):
         return self.find(term=term, section=section)
 
     def resource(self, name=None, term='Root.Resource', section='Resources'):
+
+        if name is None and self.default_resource is not None:
+            name = self.default_resource
+
         return self.find_first(term=term, name=name, section=section)
 
     def references(self, term='Root.*', section='References'):

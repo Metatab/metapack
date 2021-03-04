@@ -139,7 +139,12 @@ class Resource(Term):
                 if self.get_value(pns):
                     setattr(ru, p, self.get_value(pns))
                 elif self.get_value(p):  # Legacy version with '_'
-                    setattr(ru, p, self.get_value(p))
+                    try:
+                        setattr(ru, p, self.get_value(p))
+                    except AttributeError:
+                        # Can't set attribute. Some of the attributes in the for list
+                        # may actually be properties that can't be set for a paricular object.
+                        pass
 
         return ru
 

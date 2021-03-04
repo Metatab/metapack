@@ -2,9 +2,6 @@
 # Revised BSD License, included in this distribution as LICENSE
 
 """
-CLI program for storing pacakges in CKAN
-
-The program uses the Root.Distributions in the source package to locate packages to link into a CKAN record.
 
 """
 
@@ -17,7 +14,7 @@ from pkg_resources import (
 from tabulate import tabulate
 
 from metapack.cli.core import err, prt
-from metapack.package import *
+from metapack.package import Downloader
 
 downloader = Downloader.get_instance()
 
@@ -58,7 +55,7 @@ def config(args):
             prt(get_distribution('metapack'))
 
         elif args.cache:
-            from shlex import quote
+
             prt(downloader.cache.getsyspath('/'))
 
         elif args.materialized:
