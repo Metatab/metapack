@@ -217,6 +217,7 @@ class MetapackDoc(MetatabDoc):
                     return d
 
                 except ModuleNotFoundError as e:
+
                     # We need to know if it is the datapackage's module that is missing
                     # or if it is a module that it imported
                     if module_name not in str(e):
@@ -225,6 +226,8 @@ class MetapackDoc(MetatabDoc):
                     continue
         else:
             return {}
+
+        assert False, "Should not get here. No idea why we did. Maybe errors in pylib/__init__.py?"
 
     def resources(self, term='Root.Resource', section='Resources'):
         return self.find(term=term, section=section)

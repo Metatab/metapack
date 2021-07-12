@@ -137,7 +137,11 @@ class Resource(Term):
                 pns = ''.join(p.split('_'))  # attr names have '_', but Metatab props dont
 
                 if self.get_value(pns):
-                    setattr(ru, p, self.get_value(pns))
+                    try:
+                        setattr(ru, p, self.get_value(pns))
+                    except AttributeError:
+                        # Can't set the attribute, probaby because it is a property
+                        pass
                 elif self.get_value(p):  # Legacy version with '_'
                     try:
                         setattr(ru, p, self.get_value(p))
