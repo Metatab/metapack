@@ -122,6 +122,8 @@ class SearchIndex(object):
 
         target_ref = ref_url.get_resource().get_target()
 
+        # FIXME The following should be replaced with pkg.package_format
+
         if format is None:
             if target_ref.fspath.is_dir() and target_ref.fspath.joinpath('metadata.csv').exists():
                 if not pkg.get_value('Root.Issued') or target_ref.fspath.joinpath('_packages').exists():

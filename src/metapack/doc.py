@@ -107,6 +107,25 @@ class MetapackDoc(MetatabDoc):
         return nv
 
     @property
+    def package_format(self):
+        from os.path import abspath
+
+        ref_url = self.package_url.clone()
+        ref_url.path = abspath(ref_url.path)
+
+        target_ref = ref_url.get_resource().get_target()
+
+        if target_ref.fspath.is_dir() and target_ref.fspath.joinpath('metadata.csv').exists():
+            if not self.get_value('Root.Issued') or target_ref.fspath.joinpath('_packages').exists():
+                format = 'source'
+            else:
+                format = 'fs'
+        else:
+            format = target_ref.target_format
+
+        return format
+
+    @property
     def version(self):
         return self.get_value('Root.Version')
 

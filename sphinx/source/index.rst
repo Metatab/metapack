@@ -29,37 +29,34 @@ data packages, see the `metapack-build
 Install
 =======
 
-
-The most consistently reliable way to install Metapack, especially in MacOs,  is
-within Conda, which will avoid having to compile the geographic libraries for
-geos and gdal.
-
-.. code-block:: bash
-
-    conda create --name metapack python=3.6 --file https://raw.githubusercontent.com/Metatab/metapack/master/conda/conda-requirements.txt
-    conda activate metapack
-    pip install metapack
-
-On Linux, you can usually install the Metapack package from PiPy with:
-
-.. code-block:: bash
-
-    $ pip install metapack
-
-Other modules you may want include:
+If you want to use metapack packages, just install ``metapack``. But if you
+want to build packages, you should install:
 
 * `metapack-build <https://github.com/Metatab/metapack-build>`_ for building
   packages.
 * `metapack-jupyter <https://github.com/Metatab/metapack-jupyter>`_. for
   Jupyter notebook support.
+* `metapack-github <https://github.com/Metatab/metapack-github>`_. for
+  managing Github repositories.
 * `metapack-wp <https://github.com/Metatab/metapack-wp>`_. for publising
   packages to the web.
 
-Install everything with
+The most consistently reliable way to install Metapack, especially in MacOs,  is
+within Conda, which will avoid having to compile the geographic libraries for
+geos and gdal. So, on MacOs, you may want to start with:
 
 .. code-block:: bash
 
-    $ pip install metapack metapack-build metapack-jupyter metapack-wp
+    conda create --name metapack -c conda-forge python=3.10.2 pyproj proj-data geopandas
+    conda activate metapack
+
+Then, on MacOS and Linux, install metapack with:
+
+.. code-block:: bash
+
+    pip install metapack-build metpack-github metapack-jupyter
+    # Or
+    pip install metapack
 
 For development, you'll probably want the development package, with sub-modules
 for related repos:

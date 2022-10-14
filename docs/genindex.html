@@ -1,18 +1,17 @@
 
-
 <!DOCTYPE html>
 
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; Metapack 0.7.11 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
 
@@ -58,7 +57,7 @@
 </li>
       </ul></li>
       <li>
-    --column &lt;column&gt;
+    --column
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-schema-c">mp-doc-schema command line option</a>
@@ -113,14 +112,21 @@
 </li>
       </ul></li>
       <li>
-    --directory &lt;directory&gt;
+    --directory
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-graph-D">mp-doc-graph command line option</a>
 </li>
       </ul></li>
       <li>
-    --dump &lt;dump&gt;
+    --distributions
+
+      <ul>
+        <li><a href="commands.html#cmdoption-mp-info-D">mp-info command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --dump
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-index-D">mp-index command line option</a>
@@ -134,14 +140,14 @@
 </li>
       </ul></li>
       <li>
-    --file &lt;file&gt;
+    --file
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-index-f">mp-index command line option</a>
 </li>
       </ul></li>
       <li>
-    --format &lt;format&gt;
+    --format
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-deps-f">mp-doc-deps command line option</a>
@@ -205,7 +211,7 @@
 </li>
       </ul></li>
       <li>
-    --limit &lt;limit&gt;
+    --limit
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-run-L">mp-run command line option</a>
@@ -221,7 +227,7 @@
 </li>
       </ul></li>
       <li>
-    --load &lt;load&gt;
+    --load
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-index-L">mp-index command line option</a>
@@ -268,7 +274,7 @@
     --no-schema
 
       <ul>
-        <li><a href="commands.html#cmdoption-mp-run-n">mp-run command line option</a>
+        <li><a href="commands.html#cmdoption-mp-run-0">mp-run command line option</a>
 </li>
       </ul></li>
       <li>
@@ -328,7 +334,7 @@
 </li>
       </ul></li>
       <li>
-    --profile &lt;profile&gt;
+    --profile
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-index-p">mp-index command line option</a>
@@ -349,14 +355,14 @@
 </li>
       </ul></li>
       <li>
-    --reference &lt;reference&gt;
+    --reference
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-run-f">mp-run command line option</a>
 </li>
       </ul></li>
       <li>
-    --resource &lt;resource&gt;
+    --resource
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-run-r">mp-run command line option</a>
@@ -391,7 +397,7 @@
 </li>
       </ul></li>
       <li>
-    --sample &lt;sample&gt;
+    --sample
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-run-S">mp-run command line option</a>
@@ -419,7 +425,7 @@
 </li>
       </ul></li>
       <li>
-    --template &lt;template&gt;
+    --template
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-html-t">mp-doc-html command line option</a>
@@ -431,11 +437,13 @@
     --transforms
 
       <ul>
-        <li><a href="commands.html#cmdoption-mp-info-t">mp-info command line option</a>
+        <li><a href="commands.html#cmdoption-mp-info-0">mp-info command line option</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
-    --truncate &lt;truncate&gt;
+    --truncate
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-run-R">mp-run command line option</a>
@@ -450,8 +458,6 @@
         <li><a href="commands.html#cmdoption-mp-info-T">mp-info command line option</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     --version
 
@@ -511,6 +517,8 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-jsonld-c">mp-doc-jsonld command line option</a>
 </li>
+        <li><a href="commands.html#cmdoption-mp-doc-schema-c">mp-doc-schema command line option</a>
+</li>
         <li><a href="commands.html#cmdoption-mp-doc-yaml-c">mp-doc-yaml command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-c">mp-index command line option</a>
@@ -521,10 +529,14 @@
 </li>
       </ul></li>
       <li>
-    -c &lt;column&gt;
+    -D
 
       <ul>
-        <li><a href="commands.html#cmdoption-mp-doc-schema-c">mp-doc-schema command line option</a>
+        <li><a href="commands.html#cmdoption-mp-doc-graph-D">mp-doc-graph command line option</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-index-D">mp-index command line option</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-info-D">mp-info command line option</a>
 </li>
       </ul></li>
       <li>
@@ -539,20 +551,6 @@
 </li>
       </ul></li>
       <li>
-    -D &lt;directory&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-doc-graph-D">mp-doc-graph command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -D &lt;dump&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-index-D">mp-index command line option</a>
-</li>
-      </ul></li>
-      <li>
     -e
 
       <ul>
@@ -560,28 +558,18 @@
 </li>
       </ul></li>
       <li>
-    -f &lt;file&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-index-f">mp-index command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -f &lt;format&gt;
+    -f
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-deps-f">mp-doc-deps command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-schema-f">mp-doc-schema command line option</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-search-f">mp-search command line option</a>
+        <li><a href="commands.html#cmdoption-mp-index-f">mp-index command line option</a>
 </li>
-      </ul></li>
-      <li>
-    -f &lt;reference&gt;
-
-      <ul>
         <li><a href="commands.html#cmdoption-mp-run-f">mp-run command line option</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-search-f">mp-search command line option</a>
 </li>
       </ul></li>
       <li>
@@ -631,26 +619,21 @@
 </li>
       </ul></li>
       <li>
+    -L
+
+      <ul>
+        <li><a href="commands.html#cmdoption-mp-index-L">mp-index command line option</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-run-L">mp-run command line option</a>
+</li>
+      </ul></li>
+      <li>
     -l
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-index-l">mp-index command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-search-l">mp-search command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -L &lt;limit&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-run-L">mp-run command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -L &lt;load&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-index-L">mp-index command line option</a>
 </li>
       </ul></li>
       <li>
@@ -681,7 +664,7 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-info-n">mp-info command line option</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-n">mp-run command line option</a>
+        <li><a href="commands.html#cmdoption-mp-run-0">mp-run command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-search-n">mp-search command line option</a>
 </li>
@@ -699,18 +682,13 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-deps-p">mp-doc-deps command line option</a>
 </li>
+        <li><a href="commands.html#cmdoption-mp-index-p">mp-index command line option</a>
+</li>
         <li><a href="commands.html#cmdoption-mp-info-p">mp-info command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-p">mp-run command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-search-p">mp-search command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -p &lt;profile&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-index-p">mp-index command line option</a>
 </li>
       </ul></li>
       <li>
@@ -726,6 +704,8 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-info-R">mp-info command line option</a>
 </li>
+        <li><a href="commands.html#cmdoption-mp-run-R">mp-run command line option</a>
+</li>
       </ul></li>
       <li>
     -r
@@ -735,21 +715,16 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-info-r">mp-info command line option</a>
 </li>
+        <li><a href="commands.html#cmdoption-mp-run-r">mp-run command line option</a>
+</li>
         <li><a href="commands.html#cmdoption-mp-search-r">mp-search command line option</a>
 </li>
       </ul></li>
       <li>
-    -r &lt;resource&gt;
+    -S
 
       <ul>
-        <li><a href="commands.html#cmdoption-mp-run-r">mp-run command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -R &lt;truncate&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-run-R">mp-run command line option</a>
+        <li><a href="commands.html#cmdoption-mp-run-S">mp-run command line option</a>
 </li>
       </ul></li>
       <li>
@@ -757,13 +732,6 @@
 
       <ul>
         <li><a href="commands.html#cmdoption-mp-info-s">mp-info command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -S &lt;sample&gt;
-
-      <ul>
-        <li><a href="commands.html#cmdoption-mp-run-S">mp-run command line option</a>
 </li>
       </ul></li>
       <li>
@@ -781,18 +749,13 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-config-t">mp-config command line option</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-info-t">mp-info command line option</a>
-</li>
-        <li><a href="commands.html#cmdoption-mp-run-t">mp-run command line option</a>
-</li>
-      </ul></li>
-      <li>
-    -t &lt;template&gt;
-
-      <ul>
         <li><a href="commands.html#cmdoption-mp-doc-html-t">mp-doc-html command line option</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-markdown-t">mp-doc-markdown command line option</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-info-0">mp-info command line option</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-run-t">mp-run command line option</a>
 </li>
       </ul></li>
       <li>
@@ -943,13 +906,13 @@
     mp-doc-deps command line option
 
       <ul>
-        <li><a href="commands.html#cmdoption-mp-doc-deps-f">--format &lt;format&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-deps-f">--format</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-deps-h">--help</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-deps-p">--packages</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-deps-f">-f &lt;format&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-deps-f">-f</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-deps-h">-h</a>
 </li>
@@ -964,7 +927,7 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-graph-d">--dependencies</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-graph-D">--directory &lt;directory&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-graph-D">--directory</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-graph-V">--graphviz</a>
 </li>
@@ -976,7 +939,7 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-graph-d">-d</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-graph-D">-D &lt;directory&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-graph-D">-D</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-graph-h">-h</a>
 </li>
@@ -995,11 +958,11 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-html-h">--help</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-html-t">--template &lt;template&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-html-t">--template</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-html-h">-h</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-html-t">-t &lt;template&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-html-t">-t</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-html-arg-metatabfile">metatabfile</a>
 </li>
@@ -1040,11 +1003,11 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-doc-markdown-h">--help</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-markdown-t">--template &lt;template&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-markdown-t">--template</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-markdown-h">-h</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-markdown-t">-t &lt;template&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-markdown-t">-t</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-markdown-arg-metatabfile">metatabfile</a>
 </li>
@@ -1053,15 +1016,15 @@
     mp-doc-schema command line option
 
       <ul>
-        <li><a href="commands.html#cmdoption-mp-doc-schema-c">--column &lt;column&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-schema-c">--column</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-schema-f">--format &lt;format&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-schema-f">--format</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-schema-h">--help</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-schema-c">-c &lt;column&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-schema-c">-c</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-doc-schema-f">-f &lt;format&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-doc-schema-f">-f</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-doc-schema-h">-h</a>
 </li>
@@ -1081,8 +1044,6 @@
         <li><a href="commands.html#cmdoption-mp-doc-yaml-arg-metatabfile">metatabfile</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     mp-index command line option
 
@@ -1091,17 +1052,17 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-index-C">--config</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-D">--dump &lt;dump&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-D">--dump</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-f">--file &lt;file&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-f">--file</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-h">--help</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-l">--list</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-L">--load &lt;load&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-L">--load</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-p">--profile &lt;profile&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-p">--profile</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-r">--result</a>
 </li>
@@ -1111,17 +1072,17 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-index-C">-C</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-D">-D &lt;dump&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-D">-D</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-f">-f &lt;file&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-f">-f</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-h">-h</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-l">-l</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-L">-L &lt;load&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-L">-L</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-index-p">-p &lt;profile&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-index-p">-p</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-index-r">-r</a>
 </li>
@@ -1130,10 +1091,14 @@
         <li><a href="commands.html#cmdoption-mp-index-arg-metatab_url">metatab_url</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     mp-info command line option
 
       <ul>
+        <li><a href="commands.html#cmdoption-mp-info-D">--distributions</a>
+</li>
         <li><a href="commands.html#cmdoption-mp-info-h">--help</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-info-n">--name</a>
@@ -1152,9 +1117,11 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-info-s">--schema</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-info-t">--transforms</a>
+        <li><a href="commands.html#cmdoption-mp-info-0">--transforms</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-info-T">--value-types</a>
+</li>
+        <li><a href="commands.html#cmdoption-mp-info-D">-D</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-info-h">-h</a>
 </li>
@@ -1174,7 +1141,7 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-info-T">-T</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-info-t">-t</a>
+        <li><a href="commands.html#cmdoption-mp-info-0">-t</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-info-U">-U</a>
 </li>
@@ -1202,53 +1169,53 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-run-j">--json</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-L">--limit &lt;limit&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-L">--limit</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-m">--markdown</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-n">--no-schema</a>
+        <li><a href="commands.html#cmdoption-mp-run-0">--no-schema</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-N">--number</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-p">--pivot</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-f">--reference &lt;reference&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-f">--reference</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-r">--resource &lt;resource&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-r">--resource</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-S">--sample &lt;sample&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-S">--sample</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-T">--table</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-t">--tabs</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-R">--truncate &lt;truncate&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-R">--truncate</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-y">--yaml</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-c">-c</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-f">-f &lt;reference&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-f">-f</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-h">-h</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-j">-j</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-L">-L &lt;limit&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-L">-L</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-m">-m</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-N">-N</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-n">-n</a>
+        <li><a href="commands.html#cmdoption-mp-run-0">-n</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-p">-p</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-r">-r &lt;resource&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-r">-r</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-R">-R &lt;truncate&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-R">-R</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-run-S">-S &lt;sample&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-run-S">-S</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-run-t">-t</a>
 </li>
@@ -1265,7 +1232,7 @@
       <ul>
         <li><a href="commands.html#cmdoption-mp-search-c">--config</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-search-f">--format &lt;format&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-search-f">--format</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-search-h">--help</a>
 </li>
@@ -1285,7 +1252,7 @@
 </li>
         <li><a href="commands.html#cmdoption-mp-search-c">-c</a>
 </li>
-        <li><a href="commands.html#cmdoption-mp-search-f">-f &lt;format&gt;</a>
+        <li><a href="commands.html#cmdoption-mp-search-f">-f</a>
 </li>
         <li><a href="commands.html#cmdoption-mp-search-h">-h</a>
 </li>
@@ -1341,7 +1308,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -1355,7 +1322,7 @@
       &copy;2018, Eric Busboom.
 
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
 
     </div>

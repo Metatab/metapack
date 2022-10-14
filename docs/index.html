@@ -4,14 +4,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Metapack: Data Packaging System &#8212; Metapack 0.7.11 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Metapack Overview" href="overview.html" />
@@ -31,7 +32,7 @@
 
           <div class="body" role="main">
 
-  <div class="section" id="metapack-data-packaging-system">
+  <section id="metapack-data-packaging-system">
 <h1>Metapack: Data Packaging System<a class="headerlink" href="#metapack-data-packaging-system" title="Permalink to this headline">¶</a></h1>
 <p>Metapack is a data package format and packging system that uses Metatab
 formatted files for both metadata and for the instructions for building data
@@ -51,32 +52,32 @@ Data.World and CKAN, and to use these packages in Jupyter notebooks.</p>
 <p>This python module provides CLI tools and APIs for inspecting and using data
 packages, but does not provide support for building data packages. For building
 data packages, see the <a class="reference external" href="https://github.com/Metatab/metapack-build">metapack-build</a>. module.</p>
-</div>
-<div class="section" id="install">
+</section>
+<section id="install">
 <h1>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
-<p>The most consistently reliable way to install Metapack, especially in MacOs,  is
-within Conda, which will avoid having to compile the geographic libraries for
-geos and gdal.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name metapack <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6 --file https://raw.githubusercontent.com/Metatab/metapack/master/conda/conda-requirements.txt
-conda activate metapack
-pip install metapack
-</pre></div>
-</div>
-<p>On Linux, you can usually install the Metapack package from PiPy with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install metapack
-</pre></div>
-</div>
-<p>Other modules you may want include:</p>
+<p>If you want to use metapack packages, just install <code class="docutils literal notranslate"><span class="pre">metapack</span></code>. But if you
+want to build packages, you should install:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/Metatab/metapack-build">metapack-build</a> for building
 packages.</p></li>
 <li><p><a class="reference external" href="https://github.com/Metatab/metapack-jupyter">metapack-jupyter</a>. for
 Jupyter notebook support.</p></li>
+<li><p><a class="reference external" href="https://github.com/Metatab/metapack-github">metapack-github</a>. for
+managing Github repositories.</p></li>
 <li><p><a class="reference external" href="https://github.com/Metatab/metapack-wp">metapack-wp</a>. for publising
 packages to the web.</p></li>
 </ul>
-<p>Install everything with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install metapack metapack-build metapack-jupyter metapack-wp
+<p>The most consistently reliable way to install Metapack, especially in MacOs,  is
+within Conda, which will avoid having to compile the geographic libraries for
+geos and gdal. So, on MacOs, you may want to start with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name metapack -c conda-forge <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.10.2 pyproj proj-data geopandas
+conda activate metapack
+</pre></div>
+</div>
+<p>Then, on MacOS and Linux, install metapack with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install metapack-build metpack-github metapack-jupyter
+<span class="c1"># Or</span>
+pip install metapack
 </pre></div>
 </div>
 <p>For development, you’ll probably want the development package, with sub-modules
@@ -86,8 +87,8 @@ $ <span class="nb">cd</span> metapack-dev
 $ bin/init-develop.sh
 </pre></div>
 </div>
-</div>
-<div class="section" id="metatab-and-metapack-overview">
+</section>
+<section id="metatab-and-metapack-overview">
 <h1>Metatab and Metapack Overview<a class="headerlink" href="#metatab-and-metapack-overview" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
@@ -103,8 +104,8 @@ $ bin/init-develop.sh
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="using-metapack-packages">
+</section>
+<section id="using-metapack-packages">
 <h1>Using Metapack Packages<a class="headerlink" href="#using-metapack-packages" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
@@ -133,8 +134,8 @@ $ bin/init-develop.sh
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="building-metapack-packages">
+</section>
+<section id="building-metapack-packages">
 <h1>Building Metapack Packages<a class="headerlink" href="#building-metapack-packages" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -146,15 +147,15 @@ $ bin/init-develop.sh
 <li><p><a class="reference external" href="https://metatab.github.io/metapack-build/build/GeneratingRows.html" title="(in metapack-build v0.0.2)"><span class="xref std std-doc">Generating Rows</span></a></p></li>
 <li><p><a class="reference external" href="https://metatab.github.io/metapack-build/build/Transforms.html" title="(in metapack-build v0.0.2)"><span class="xref std std-doc">Altering rows with transforms</span></a></p></li>
 </ul>
-</div>
-<div class="section" id="indices-and-tables">
+</section>
+<section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</div>
+</section>
 
 
           </div>
@@ -185,7 +186,7 @@ $ bin/init-develop.sh
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -199,7 +200,7 @@ $ bin/init-develop.sh
       &copy;2018, Eric Busboom.
 
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
 
       |

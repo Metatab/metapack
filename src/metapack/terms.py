@@ -57,6 +57,11 @@ class Resource(Term):
         return self.doc._ref
 
     @property
+    def qualified_name(self):
+        """The name of the resource with the name of the package and the target format"""
+        return self.doc.name+'-'+self.name+'.'+self.resolved_url.target_format
+
+    @property
     def _envvar_env(self):
 
         return {
@@ -688,6 +693,7 @@ class Resource(Term):
             # url arguments.
             while True:
                 try:
+
                     df = rg.dataframe(*args, **mod_kwargs)
                     return df
                 except AttributeError:
@@ -708,12 +714,6 @@ class Resource(Term):
                         del mod_kwargs['parse_dates']
                     else:
                         break
-
-        # The CSV generator can handle dataframes itself, so this code should not be
-        # needed any longer
-        # if t.target_format == 'csv' and not self.resolved_url.start and not self.resolved_url.headers:
-        #    df = self.read_csv(*args, **mod_kwargs)
-        #    return df
 
         # Just normal data, so use the iterator in this object.
 

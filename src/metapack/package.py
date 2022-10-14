@@ -86,3 +86,65 @@ def multi_open(name, base_url='http://library.metatab.org/', print_ref=False):
             pass
 
     return None
+
+
+def walk_packages(root):
+    """
+    :param root: List all of the packages under a root directory
+    :type root:
+    :return: The metapack document for the package
+    :rtype:  metapack.doc.MetapackDoc
+    """
+    from os import walk
+    from os.path import islink, join, isdir
+
+    from rowgenerators.exceptions import RowGeneratorError
+
+    from metapack.constants import PACKAGE_PREFIX
+    from metapack.exc import MetatabFileNotFound
+    from metapack.package import open_package
+    seen = set()
+
+    # Try all files as packages
+    if not isdir(root):
+        try:
+            yield open_package(root)
+        except (RowGeneratorError, MetatabFileNotFound):
+            pass
+
+        return
+
+    for root, dirs, files in walk(root):
+
+        try:
+            p = open_package(root)
+
+            # This was a package, so only recurse if it is a source package and has a _packages dir
+
+            if PACKAGE_PREFIX in dirs:
+                del dirs[:]
+                dirs.append(PACKAGE_PREFIX)
+            else:
+                del dirs[:]
+
+            if str(p.ref) not in seen:
+                yield p
+
+            seen.add(str(p.ref))
+            continue
+
+        except (RowGeneratorError, MetatabFileNotFound):
+            # directory is not a package, carry on
+            pass
+
+        for f in files:
+            if not islink(join(root, f)):
+                try:
+
+                    p = open_package(join(root, f))
+                    if str(p.ref) not in seen:
+                        yield p
+                    seen.add(str(p.ref))
+                except (RowGeneratorError, MetatabFileNotFound):
+                    # directory is not a package, carry on
+                    pass

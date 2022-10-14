@@ -7,7 +7,7 @@ Record objects for the Simple Data Package format.
 from rowgenerators import get_cache # noqa: 401
 from .exc import *  # noqa: 403
 from .doc import MetapackDoc, Resolver  # noqa: 401
-from .package import open_package,  multi_open, Downloader  # noqa: 401
+from .package import open_package,  multi_open, Downloader, walk_packages  # noqa: 401
 from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl  # noqa: 401
 from .terms import Resource  # noqa: 401
 from metapack.appurl import is_metapack_url  # noqa: 401
@@ -17,7 +17,6 @@ from pkg_resources import get_distribution, DistributionNotFound  # noqa: 401
 import metapack.jupyter  # noqa: 401
 
 # from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
-
 
 try:
     __version__ = get_distribution(__name__).version
