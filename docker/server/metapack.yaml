@@ -1,0 +1,14 @@
+
+wordpress:
+    wordpress.server.com:
+        url: https://wordpress.server.com/xmlrpc.php
+        user: user
+        password: password
+        
+    
+invoke:
+    s3_bucket: library.metatab.org
+    wp_site: wordpress.server.com
+    
+packages:
+    - https://github.com/metatab-packages/bis.org-exchange_rates-2018e.git
