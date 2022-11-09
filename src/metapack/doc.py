@@ -64,7 +64,6 @@ class MetapackDoc(MetatabDoc):
                 package_url = None
 
         try:
-
             super().__init__(ref, decl, package_url, cache, resolver, clean_cache)
         except RowGeneratorError:
             raise MetatabFileNotFound("Failed to get Metatabfile for reference: '{}' ".format(ref))

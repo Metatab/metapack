@@ -224,7 +224,7 @@ def add_giturl(doc: MetapackDoc, force=False):
                                  stderr=subprocess.DEVNULL, timeout=6) \
                 .stdout.decode('utf-8')
 
-            fetchline = next(l.split() for l in out.splitlines() if 'Fetch' in l)
+            fetchline = next(line.split() for line in out.splitlines() if 'Fetch' in line)
 
         except (TimeoutError, StopIteration, subprocess.TimeoutExpired, FileNotFoundError) as e:
             fetchline = None
@@ -431,6 +431,7 @@ def get_config():
 
     paths = [environ.get("METAPACK_CONFIG"), '~/.metapack.yaml', '/etc/metapack.yaml']
 
+    config = None
     for p in paths:
 
         if not p:
@@ -445,9 +446,8 @@ def get_config():
                     config = {}
 
                 config['_loaded_from'] = str(p)
-                return config
 
-    return None
+    return config
 
 
 def list_rr(doc):

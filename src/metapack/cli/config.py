@@ -10,7 +10,6 @@ from pkg_resources import (
     get_distribution,
     iter_entry_points
 )
-
 from tabulate import tabulate
 
 from metapack.cli.core import err, prt
@@ -45,6 +44,9 @@ def config_args(subparsers):
     parser.add_argument('-t', '--value-types', default=False, action='store_true',
                         help='Print a list of available value types')
 
+    parser.add_argument('-p', '--print', default=False, action='store_true',
+                        help='Print configuration information')
+
 
 def config(args):
     from metapack.exc import MetatabFileNotFound
@@ -55,7 +57,6 @@ def config(args):
             prt(get_distribution('metapack'))
 
         elif args.cache:
-
             prt(downloader.cache.getsyspath('/'))
 
         elif args.materialized:
@@ -70,6 +71,9 @@ def config(args):
 
         elif args.value_types:
             print_value_types()
+
+        elif args.print:
+            print_config()
 
         else:
             print_versions()
@@ -130,3 +134,10 @@ def print_value_types():
     rows = [(k, v.__name__, v.__doc__) for k, v in value_types.items()]
 
     print(tabulate(sorted(rows), headers='Code Class Description'.split()))
+
+
+def print_config():
+    import json
+    from metapack.cli.core import get_config
+
+    print(json.dumps(get_config(), indent=4))
