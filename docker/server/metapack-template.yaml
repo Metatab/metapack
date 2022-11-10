@@ -5,7 +5,6 @@ wordpress:
         user: user
         password: password
         
-    
 invoke:
     s3_bucket: library.metatab.org
     wp_site: wordpress.server.com
