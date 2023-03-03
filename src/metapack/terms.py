@@ -673,8 +673,9 @@ class Resource(Term):
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
 
-    def dataframe(self, dtype=True, parse_dates=True, *args, **kwargs):
+    def dataframe(self, dtype=True, parse_dates=True, convert_categorical=True, *args, **kwargs):
         """Return a pandas datafrome from the resource"""
+
 
         import pandas as pd
         import warnings
@@ -687,6 +688,30 @@ class Resource(Term):
         # Unecessary?
         self.resolved_url.get_resource().get_target()
 
+        def _convert_categorical(df):
+            """Convert categorical columns to pandas categorical columns, using the labels from the _labels resource"""
+
+            def isnan(v):
+                import math
+                try:
+                    return math.isnan(v)
+                except TypeError:
+                    return False
+
+            if convert_categorical and self.doc.reference('_labels'):
+                labels_df = self.doc.reference('_labels').dataframe( convert_categorical=False)
+
+                for col_name, g in labels_df.groupby('column'):
+                    d = { r.code:r.label if not isnan(r.label) else 'NA' for idx, r in g.iterrows() }
+                    try:
+                        df[col_name] = df[col_name].astype('category').cat.rename_categories(d)
+                    except Exception as e:
+                        print(col_name, d, e)
+
+
+
+            return df
+
         # Maybe generator has it's own Dataframe method()
         if not self.resolved_url.start and not self.resolved_url.headers:
             # The if clause is b/c the generators don't respect the start, end and headers
@@ -695,7 +720,7 @@ class Resource(Term):
                 try:
 
                     df = rg.dataframe(*args, **mod_kwargs)
-                    return df
+                    return _convert_categorical(df)
                 except AttributeError:
                     break
                 except RowGeneratorConfigError as e:
@@ -724,7 +749,8 @@ class Resource(Term):
 
         self.errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
-        return df
+
+        return _convert_categorical(df)
 
     @property
     def isgeo(self):

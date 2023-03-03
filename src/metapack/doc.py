@@ -193,6 +193,9 @@ class MetapackDoc(MetatabDoc):
         return r
 
     def set_sys_path(self):
+        """Add the package's 'lib' directory to the system path, so that it can be used to provide
+        functions for notebooks. This only works filesystem packages"""
+
         from os.path import join, isdir, dirname, abspath
         import sys
 
