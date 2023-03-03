@@ -703,12 +703,11 @@ class Resource(Term):
 
                 for col_name, g in labels_df.groupby('column'):
                     d = { r.code:r.label if not isnan(r.label) else 'NA' for idx, r in g.iterrows() }
-                    try:
-                        df[col_name] = df[col_name].astype('category').cat.rename_categories(d)
-                    except Exception as e:
-                        print(col_name, d, e)
-
-
+                    if col_name in df.columns:
+                        try:
+                            df[col_name] = df[col_name].astype('category').cat.rename_categories(d)
+                        except Exception as e:
+                            print(col_name, d, e)
 
             return df
 
