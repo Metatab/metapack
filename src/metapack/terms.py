@@ -18,6 +18,10 @@ from metapack.exc import (
 )
 
 
+
+LABELS_REFERENCE = '_labels' # The name of the reference to the labels, which link codes in a dataset to strings
+
+
 def int_maybe(v):
     try:
         return int(float(v))
@@ -673,6 +677,36 @@ class Resource(Term):
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
 
+    def _convert_categorical(self, df):
+        """Convert categorical columns to pandas categorical columns, using the labels from the _labels resource"""
+
+        def isnan(v):
+            import math
+            try:
+                return math.isnan(v)
+            except TypeError:
+                return False
+
+        if  self.doc.resource(LABELS_REFERENCE):
+            labels_df = self.doc.resource(LABELS_REFERENCE).dataframe(convert_categorical=False)
+
+            for col_name, g in labels_df.groupby('column'):
+                d = {r.code: r.label if not isnan(r.label) else 'NA' for idx, r in g.iterrows()}
+                if col_name in df.columns:
+                    try:
+                        df[col_name] = df[col_name].astype('category').cat.rename_categories(d)
+                    except ValueError as e:
+                        if 'unique' in str(e):
+                            import warnings
+                            from collections import Counter
+                            warnings.warn("The column '{}' has duplicate labels".format(col_name))
+
+                        else:
+                            raise(e)
+
+
+        return df
+
     def dataframe(self, dtype=True, parse_dates=True, convert_categorical=True, *args, **kwargs):
         """Return a pandas datafrome from the resource"""
 
@@ -688,28 +722,8 @@ class Resource(Term):
         # Unecessary?
         self.resolved_url.get_resource().get_target()
 
-        def _convert_categorical(df):
-            """Convert categorical columns to pandas categorical columns, using the labels from the _labels resource"""
-
-            def isnan(v):
-                import math
-                try:
-                    return math.isnan(v)
-                except TypeError:
-                    return False
-
-            if convert_categorical and self.doc.reference('_labels'):
-                labels_df = self.doc.reference('_labels').dataframe( convert_categorical=False)
-
-                for col_name, g in labels_df.groupby('column'):
-                    d = { r.code:r.label if not isnan(r.label) else 'NA' for idx, r in g.iterrows() }
-                    if col_name in df.columns:
-                        try:
-                            df[col_name] = df[col_name].astype('category').cat.rename_categories(d)
-                        except Exception as e:
-                            print(col_name, d, e)
-
-            return df
+        if self.name == LABELS_REFERENCE:
+            convert_categorical = False
 
         # Maybe generator has it's own Dataframe method()
         if not self.resolved_url.start and not self.resolved_url.headers:
@@ -719,7 +733,7 @@ class Resource(Term):
                 try:
 
                     df = rg.dataframe(*args, **mod_kwargs)
-                    return _convert_categorical(df)
+                    return self._convert_categorical(df) if convert_categorical else df
                 except AttributeError:
                     break
                 except RowGeneratorConfigError as e:
@@ -748,8 +762,7 @@ class Resource(Term):
 
         self.errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
-
-        return _convert_categorical(df)
+        return  self._convert_categorical(df) if convert_categorical else df
 
     @property
     def isgeo(self):
