@@ -704,7 +704,6 @@ class Resource(Term):
                         else:
                             raise(e)
 
-
         return df
 
     def dataframe(self, dtype=True, parse_dates=True, convert_categorical=True, *args, **kwargs):
