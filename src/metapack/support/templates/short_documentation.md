@@ -40,7 +40,7 @@ _{{root.description}}_
 ## Resources
 {% for term_name, terms in resources.items() -%}
     {% for resource in terms %}
-* ** [{{resource.name}}]({{resource.url}})**. {{resource.description}}
+* **[{{resource.name}}]({{resource.url}})**. {{resource.description}}
 {%- endfor %}
 {%- endfor -%}
 {% endif %}

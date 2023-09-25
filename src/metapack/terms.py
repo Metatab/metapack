@@ -1,11 +1,15 @@
 from itertools import islice
 from os.path import join
 
+import pandas as pd
+
 from metatab import Term
 from rowgenerators import parse_app_url
 from rowgenerators.exceptions import DownloadError
 from rowgenerators.rowpipe import RowProcessor
 from rowgenerators.rowproxy import RowProxy
+
+from functools import cached_property
 
 from metapack.appurl import MetapackPackageUrl
 from metapack.doc import EMPTY_SOURCE_HEADER
@@ -17,9 +21,11 @@ from metapack.exc import (
     ResourceError
 )
 
+# The labels file has three columns
+#   - columns, the name of the columns the label applies to
+#   - code, the numerica value
+#   - label, the string value
 
-
-LABELS_REFERENCE = '_labels' # The name of the reference to the labels, which link codes in a dataset to strings
 
 
 def int_maybe(v):
@@ -63,7 +69,7 @@ class Resource(Term):
     @property
     def qualified_name(self):
         """The name of the resource with the name of the package and the target format"""
-        return self.doc.name+'-'+self.name+'.'+self.resolved_url.target_format
+        return self.doc.name + '-' + self.name + '.' + self.resolved_url.target_format
 
     @property
     def _envvar_env(self):
@@ -347,14 +353,8 @@ class Resource(Term):
             r = self.expanded_url.resource.columns()
             return list(r)
         except AttributeError:
-
             pass
 
-        return self.schema_columns
-
-    @property
-    def schema_columns(self):
-        """Return column information only from this schema"""
         t = self.schema_term
 
         columns = []
@@ -368,9 +368,16 @@ class Resource(Term):
                     p['name'] = c.value
                     p['header'] = self._name_for_col_term(c, i)
 
+
                     columns.append(p)
 
         return columns
+
+    @cached_property
+    def schema_columns(self):
+        """Return column information only from this schema"""
+
+        return self.columns()
 
     def row_processor_table(self, ignore_none=False, width_column='width'):
         """Create a row processor from the schema, to convert the text values from the
@@ -379,6 +386,7 @@ class Resource(Term):
 
         type_map = {
             None: None,
+            'nan': None,
             'string': 'str',
             'text': 'str',
             'number': 'float',
@@ -386,6 +394,7 @@ class Resource(Term):
         }
 
         def map_type(v):
+
             return type_map.get(v, v)
 
         if self.schema_term:
@@ -667,7 +676,12 @@ class Resource(Term):
             yield (json.dumps(s, *args, **kwargs))
 
     def iteryaml(self, *args, **kwargs):
-        """Yields the data structures from iterstruct as YAML strings"""
+        """Yields the data structures from iterstruct as YAML strings
+        @param args:
+        @type args:
+        @param kwargs:
+        @type kwargs:
+        """
         from rowgenerators.rowpipe.json import VTEncoder
         import yaml
 
@@ -677,38 +691,51 @@ class Resource(Term):
         for s in self.iterstruct:
             yield (yaml.safe_dump(s))
 
-    def _convert_categorical(self, df):
-        """Convert categorical columns to pandas categorical columns, using the labels from the _labels resource"""
+    def _label_map(self):
+        from math import isnan
+        from pandas import isnull
 
-        def isnan(v):
-            import math
+        lm = {}
+
+        def int_maybe(v):
             try:
-                return math.isnan(v)
-            except TypeError:
-                return False
+                return int(v)
+            except ValueError:
+                return v
 
-        if  self.doc.resource(LABELS_REFERENCE):
+        if self.doc.resource(LABELS_REFERENCE):
             labels_df = self.doc.resource(LABELS_REFERENCE).dataframe(convert_categorical=False)
 
             for col_name, g in labels_df.groupby('column'):
-                d = {r.code: r.label if not isnan(r.label) else 'NA' for idx, r in g.iterrows()}
-                if col_name in df.columns:
-                    try:
-                        df[col_name] = df[col_name].astype('category').cat.rename_categories(d)
-                    except ValueError as e:
-                        if 'unique' in str(e):
-                            import warnings
-                            from collections import Counter
-                            warnings.warn("The column '{}' has duplicate labels".format(col_name))
+                if len(g) and len(g.code.dropna()):
+                    lm[col_name.lower()] = {int_maybe(r.code): r.label for idx, r in g.iterrows()
+                                            if not isnull(r.code)}
 
-                        else:
-                            raise(e)
+        return lm
 
-        return df
+    @property
+    def cat(self):
+        from .categorical import Categorical
 
-    def dataframe(self, dtype=True, parse_dates=True, convert_categorical=True, *args, **kwargs):
-        """Return a pandas datafrome from the resource"""
+        return Categorical(self)
 
+
+
+    def dataframe(self, dtype=True, parse_dates=True, convert_categorical=False, *args, **kwargs) -> pd.DataFrame:
+        """Return a pandas dataframe from the resource
+        @param dtype:
+        @type dtype:
+        @param parse_dates:
+        @type parse_dates:
+        @param convert_categorical:
+        @type convert_categorical: Bool or Dict of Dicts
+        @param args:
+        @type args:
+        @param kwargs:
+        @type kwargs:
+        @return:
+        @rtype:
+        """
 
         import pandas as pd
         import warnings
@@ -720,9 +747,6 @@ class Resource(Term):
 
         # Unecessary?
         self.resolved_url.get_resource().get_target()
-
-        if self.name == LABELS_REFERENCE:
-            convert_categorical = False
 
         # Maybe generator has it's own Dataframe method()
         if not self.resolved_url.start and not self.resolved_url.headers:
@@ -761,7 +785,7 @@ class Resource(Term):
 
         self.errors = rg.errors if hasattr(rg, 'errors') and rg.errors else {}
 
-        return  self._convert_categorical(df) if convert_categorical else df
+        return self._convert_categorical(df) if convert_categorical else df
 
     @property
     def isgeo(self):
@@ -852,7 +876,7 @@ class Resource(Term):
 
         try:
             # Nullable integers added to pandas about 0.24
-            from pandas.arrays import IntegerArray # noqa F401
+            from pandas.arrays import IntegerArray  # noqa F401
             int_type = 'Int64'
         except ModuleNotFoundError:
             int_type = int
