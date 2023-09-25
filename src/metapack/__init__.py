@@ -1,30 +1,16 @@
-# Copyright (c) 2016 Civic Knowledge. This file is licensed under the terms of the
-# Revised BSD License, included in this distribution as LICENSE
-"""
-Record objects for the Simple Data Package format.
-"""
+import sys
 
-from rowgenerators import get_cache # noqa: 401
-from .exc import *  # noqa: 403
-from .doc import MetapackDoc, Resolver  # noqa: 401
-from .package import open_package,  multi_open, Downloader, walk_packages  # noqa: 401
-from .appurl import MetapackUrl, MetapackDocumentUrl, MetapackResourceUrl, MetapackPackageUrl  # noqa: 401
-from .terms import Resource  # noqa: 401
-from metapack.appurl import is_metapack_url  # noqa: 401
-import rowgenerators.appurl.url  # noqa: 401
-from rowgenerators import set_default_cache_name  # noqa: 401
-from pkg_resources import get_distribution, DistributionNotFound  # noqa: 401
-import metapack.jupyter  # noqa: 401
-
-# from metapack.jupyter.magic import load_ipython_extension, unload_ipython_extension
+if sys.version_info[:2] >= (3, 8):
+    # TODO: Import directly (no need for conditional) when `python_requires = >= 3.8`
+    from importlib.metadata import PackageNotFoundError, version  # pragma: no cover
+else:
+    from importlib_metadata import PackageNotFoundError, version  # pragma: no cover
 
 try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-    __version__ = 'unknown'
+    # Change here if project is renamed and does not equal the package name
+    dist_name = __name__
+    __version__ = version(dist_name)
+except PackageNotFoundError:  # pragma: no cover
+    __version__ = "unknown"
 finally:
-    del get_distribution, DistributionNotFound
-
-set_default_cache_name('metapack')
-
-rowgenerators.appurl.url.default_downloader = Downloader.get_instance()
+    del version, PackageNotFoundError
