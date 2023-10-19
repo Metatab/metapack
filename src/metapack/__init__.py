@@ -28,3 +28,4 @@ finally:
 set_default_cache_name('metapack')
 
 rowgenerators.appurl.url.default_downloader = Downloader.get_instance()
+
